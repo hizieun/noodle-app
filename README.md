@@ -4,7 +4,9 @@
 
 ## 📸 프로젝트 화면
 
-![Noodle 웹앱 화면 예시](./screenshot.png)
+![Noodle 웹앱 화면 예시]
+<img width="1470" height="761" alt="image" src="https://github.com/user-attachments/assets/dfb97daf-2647-49e8-9aa5-a97be89cee9d" />
+
 
 ## ✨ 주요 기능
 - **지역별 필터링**: 우측 상단의 드롭다운을 통해 서울/경기 지역구별로 노포 맛집 필터링 가능
