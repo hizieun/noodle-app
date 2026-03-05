@@ -1,0 +1,16 @@
+# Virtual Environment
+venv/
+__pycache__/
+*.pyc
+.env
+
+# Node
+node_modules/
+dist/
+.DS_Store
+
+# Crawled data
+*.csv
+
+# Vercel
+.vercel
