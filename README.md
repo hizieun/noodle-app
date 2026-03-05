@@ -4,7 +4,7 @@
 
 ## 📸 프로젝트 화면
 
-![Noodle 웹앱 화면 예시]
+Noodle 웹앱 화면 예시
 <img width="1470" height="761" alt="image" src="https://github.com/user-attachments/assets/dfb97daf-2647-49e8-9aa5-a97be89cee9d" />
 
 
