@@ -1,7 +1,8 @@
 # 2. 크롤러 설정 및 사용 방법
 
 ## 목적
-카카오맵에서 Selenium을 이용한 headless 브라우저 자동화로, 지역구별 노포 맛집 정보(이름, 주소, 평점)를 가져옵니다.
+카카오맵에서 Selenium을 이용한 headless 브라우저 자동화로, 지역구별 노포 맛집 정보(이름, 주소, 평점, 전화번호, 대표 메뉴)를 가져옵니다. 
+특히 상세 페이지(`place.map.kakao.com`)에 직접 접근하여 메뉴 데이터를 추출하는 2단계 크로울링 방식을 사용합니다.
 
 ## 필요한 환경 준비
 
@@ -16,9 +17,9 @@ source venv/bin/activate
 
 ### 2. 패키지 설치
 ```bash
-pip install selenium python-dotenv
+pip install selenium python-dotenv webdriver-manager
 ```
-> Chrome WebDriver도 필요합니다. Chrome 브라우저 버전에 맞는 `chromedriver`를 설치하거나, `webdriver-manager` 패키지를 활용하세요.
+> `webdriver-manager`를 사용하여 Chrome 브라우저 버전에 맞는 드라이버를 자동으로 설치하고 관리합니다.
 
 ### 3. 환경 변수 설정 (`.env` 파일)
 프로젝트 루트에 `.env` 파일을 생성하고 아래 내용을 입력합니다:
@@ -86,14 +87,16 @@ for keyword in keywords:
     # .PlaceItem CSS 선택자로 업소 정보 추출 (이름, 주소, 평점)
     # results_by_region[keyword].append({...})
 
-# 5. 지역별 평점 내림차순 정렬 후 CSV 저장
+# 5. 상세 메뉴 추출을 위해 각 식당 ID 파싱 및 상세페이지 이동
+# place.map.kakao.com/{place_id} 이동 후 'ul li .tit_item' 셀렉터로 메뉴 추출
+
+# 6. 지역별 평점 내림차순 정렬 후 CSV 저장
 writer.writerows(final_sorted)
 ```
+> **주의**: 상세 페이지를 하나씩 방문하므로 전체 실행 시 약 20~30분 정도 소요될 수 있습니다.
 
 ---
 
-## TODO (향후 개선 가능 항목)
-- 다음 페이지 넘기기 (현재 1페이지만 크롤링)
-- 리뷰 문장 추출 및 감성 분석
-- 상세 페이지 접근 (전화번호, 영업시간 등)
-- 정기 자동 실행 (cron job 등)
+- 다음 페이지 넘기기 (현재 검색 결과 1페이지만 크롤링)
+- 리뷰 문장 추출 및 AI 감성 분석
+- 정기 자동 실행 (Vercel Cron 또는 Github Actions 이용)
