@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import restaurantData from './data.json';
 import './index.css';
 
@@ -19,22 +19,111 @@ const getRestaurantEmoji = (name) => {
 };
 
 const formatRestaurantName = (name) => {
-  // 카카오맵에서 붙는 알파벳 + 공백(예: "A ") 제거
   const cleanName = name.replace(/^[a-zA-Z]\s+/, '');
   const emoji = getRestaurantEmoji(cleanName);
-  return `${emoji} ${cleanName}`;
+  return { emoji, cleanName };
 };
 
-const RestaurantCard = ({ data, index }) => {
-  const formattedName = formatRestaurantName(data.상호명);
+// --- Modal Component ---
+const RestaurantModal = ({ restaurant, onClose }) => {
+  // ESC 키로 닫기
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  if (!restaurant) return null;
+
+  const { emoji, cleanName } = formatRestaurantName(restaurant.상호명);
+  const menus = restaurant.대표메뉴 ? restaurant.대표메뉴.split(',').map(m => m.trim()).filter(Boolean) : [];
+
+  // 링크가 없으면 주소로 자동 생성
+  const kakaoLink = restaurant.카카오맵_링크 || `https://map.kakao.com/?q=${encodeURIComponent(cleanName + ' ' + restaurant.주소)}`;
+  const naverBlogLink = restaurant.네이버블로그_링크 || `https://search.naver.com/search.naver?where=blog&query=${encodeURIComponent(cleanName + ' 후기')}`;
+  const naverMapLink = restaurant.네이버지도_링크 || `https://map.naver.com/v5/search/${encodeURIComponent(cleanName + ' ' + restaurant.주소)}`;
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-header">
+          <div>
+            <div className="modal-title">
+              <span className="modal-emoji">{emoji}</span>
+              {cleanName}
+            </div>
+            <span className="card-region" style={{ marginTop: '0.5rem', display: 'inline-block' }}>{restaurant.지역}</span>
+          </div>
+          <button className="modal-close-btn" onClick={onClose}>✕</button>
+        </div>
+
+        <div className="modal-body">
+          {/* 기본 정보 */}
+          <div className="modal-section">
+            <h4 className="modal-section-title">📍 기본 정보</h4>
+            <div className="modal-info-grid">
+              <div className="modal-info-item">
+                <span className="modal-info-label">주소</span>
+                <span className="modal-info-value">{restaurant.주소 || '정보 없음'}</span>
+              </div>
+              <div className="modal-info-item">
+                <span className="modal-info-label">평점</span>
+                <span className="modal-info-value rating-value">⭐ {restaurant.평점 !== '정보 없음' ? restaurant.평점 : '-'}</span>
+              </div>
+              {restaurant.전화번호 && (
+                <div className="modal-info-item">
+                  <span className="modal-info-label">전화번호</span>
+                  <span className="modal-info-value">{restaurant.전화번호}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 대표 메뉴 */}
+          {menus.length > 0 && (
+            <div className="modal-section">
+              <h4 className="modal-section-title">🍽️ 대표 메뉴</h4>
+              <div className="menu-tags">
+                {menus.map((menu, i) => (
+                  <span key={i} className="menu-tag">{menu}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 외부 링크 */}
+          <div className="modal-section">
+            <h4 className="modal-section-title">🔗 바로가기</h4>
+            <div className="action-btns">
+              <a href={kakaoLink} target="_blank" rel="noopener noreferrer" className="action-btn kakao-btn">
+                <span>🗺️</span> 카카오맵
+              </a>
+              <a href={naverMapLink} target="_blank" rel="noopener noreferrer" className="action-btn naver-btn">
+                <span>📍</span> 네이버 지도
+              </a>
+              <a href={naverBlogLink} target="_blank" rel="noopener noreferrer" className="action-btn blog-btn">
+                <span>📝</span> 블로그 후기
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- Card Component ---
+const RestaurantCard = ({ data, index, onClick }) => {
+  const { emoji, cleanName } = formatRestaurantName(data.상호명);
 
   return (
     <div
       className="card animate-fade-in"
-      style={{ animationDelay: `${index * 50}ms` }}
+      style={{ animationDelay: `${index * 40}ms`, cursor: 'pointer' }}
+      onClick={() => onClick(data)}
     >
       <div className="card-header">
-        <h3 className="card-title">{formattedName}</h3>
+        <h3 className="card-title">{emoji} {cleanName}</h3>
         <span className="card-region">{data.지역}</span>
       </div>
 
@@ -46,27 +135,30 @@ const RestaurantCard = ({ data, index }) => {
         {data.주소}
       </div>
 
-      <div className="card-rating">
-        <svg xmlns="http://www.w3.org/w/svg/2000" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-        </svg>
-        {data.평점 !== "정보 없음" ? data.평점 : "-"}
+      <div className="card-footer">
+        <div className="card-rating">
+          <svg xmlns="http://www.w3.org/w/svg/2000" viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+          {data.평점 !== "정보 없음" ? data.평점 : "-"}
+        </div>
+        <span className="card-detail-hint">자세히 보기 →</span>
       </div>
     </div>
   );
 };
 
+// --- App Main ---
 function App() {
   const [activeRegion, setActiveRegion] = useState('전체');
+  const [selectedRestaurant, setSelectedRestaurant] = useState(null);
 
-  // Extract unique regions for the filter
   const regions = useMemo(() => {
     const rawRegions = restaurantData.map((item) => item.지역);
     const unique = Array.from(new Set(rawRegions));
     return ['전체', ...unique.sort()];
   }, []);
 
-  // Filter the data based on active region
   const filteredData = useMemo(() => {
     if (activeRegion === '전체') return restaurantData;
     return restaurantData.filter((item) => item.지역 === activeRegion);
@@ -105,6 +197,7 @@ function App() {
                 key={`${restaurant.상호명}-${index}`}
                 data={restaurant}
                 index={index}
+                onClick={setSelectedRestaurant}
               />
             ))}
           </div>
@@ -116,6 +209,14 @@ function App() {
           </div>
         )}
       </main>
+
+      {/* Modal */}
+      {selectedRestaurant && (
+        <RestaurantModal
+          restaurant={selectedRestaurant}
+          onClose={() => setSelectedRestaurant(null)}
+        />
+      )}
     </div>
   );
 }

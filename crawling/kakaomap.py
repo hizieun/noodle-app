@@ -3,7 +3,10 @@ import csv
 import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from collections import defaultdict
+from urllib.parse import quote
 from dotenv import load_dotenv
 
 
@@ -24,10 +27,55 @@ options.add_argument("--disable-dev-shm-usage")
 
 driver = webdriver.Chrome(options=options)
 
+def get_kakao_link(name, addr):
+    """식당 이름과 주소를 기반으로 카카오맵 검색 링크 생성"""
+    query = quote(f"{name} {addr}")
+    return f"https://map.kakao.com/?q={query}"
+
+def get_naver_blog_link(name):
+    """식당 이름으로 네이버 블로그 검색 링크 생성"""
+    query = quote(f"{name} 후기")
+    return f"https://search.naver.com/search.naver?where=blog&query={query}"
+
+def get_naver_map_link(name, addr):
+    """식당 이름과 주소로 네이버지도 검색 링크 생성"""
+    query = quote(f"{name} {addr}")
+    return f"https://map.naver.com/v5/search/{query}"
+
+def extract_menus(place):
+    """PlaceItem에서 대표 메뉴 태그 추출"""
+    menus = []
+    try:
+        menu_elements = place.find_elements(By.CSS_SELECTOR, ".tag_list .tag_item")
+        menus = [m.text.strip() for m in menu_elements if m.text.strip()]
+    except:
+        pass
+    if not menus:
+        try:
+            menu_elements = place.find_elements(By.CSS_SELECTOR, ".menu_list li")
+            menus = [m.text.strip() for m in menu_elements if m.text.strip()]
+        except:
+            pass
+    return ", ".join(menus) if menus else ""
+
+def extract_phone(place):
+    """PlaceItem에서 전화번호 추출"""
+    try:
+        phone_el = place.find_element(By.CSS_SELECTOR, ".phone")
+        return phone_el.text.strip()
+    except:
+        pass
+    try:
+        phone_el = place.find_element(By.CSS_SELECTOR, ".contact")
+        return phone_el.text.strip()
+    except:
+        return ""
+
+
 for keyword in keywords:
-    print(f"\n🔍 [{keyword}", "노포]", "검색 중...")
-    fin_keywword = keyword + " " + add_word
-    url = f"https://map.kakao.com/?q={fin_keywword}"
+    print(f"\n🔍 [{keyword} {add_word}] 검색 중...")
+    fin_keyword = keyword + " " + add_word
+    url = f"https://map.kakao.com/?q={quote(fin_keyword)}"
     driver.get(url)
     time.sleep(3)
 
@@ -57,12 +105,28 @@ for keyword in keywords:
                     except:
                         rating = "정보 없음"
 
-                print(f"📍 {name} - {addr} | ⭐ {rating}")
+                # 전화번호
+                phone = extract_phone(place)
+
+                # 대표 메뉴
+                menus = extract_menus(place)
+
+                # 링크 자동 생성
+                kakao_link = get_kakao_link(name, addr)
+                naver_blog_link = get_naver_blog_link(name)
+                naver_map_link = get_naver_map_link(name, addr)
+
+                print(f"📍 {name} - {addr} | ⭐ {rating} | 📞 {phone or 'N/A'} | 🍽 {menus or 'N/A'}")
                 results_by_region[keyword].append({
                     "지역": keyword,
                     "상호명": name,
                     "주소": addr,
-                    "평점": rating
+                    "평점": rating,
+                    "전화번호": phone,
+                    "대표메뉴": menus,
+                    "카카오맵_링크": kakao_link,
+                    "네이버블로그_링크": naver_blog_link,
+                    "네이버지도_링크": naver_map_link,
                 })
             except Exception as e:
                 print(f"❌ 항목 추출 실패: {e}")
@@ -83,13 +147,9 @@ for region in sorted(results_by_region.keys()):
 # ✅ CSV 저장
 output_file = os.path.join(os.getcwd(), "맛집_평점순_정렬.csv")
 with open(output_file, "w", newline="", encoding="utf-8-sig") as csvfile:
-    fieldnames = ["지역", "상호명", "주소", "평점"]
+    fieldnames = ["지역", "상호명", "주소", "평점", "전화번호", "대표메뉴", "카카오맵_링크", "네이버블로그_링크", "네이버지도_링크"]
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()
     writer.writerows(final_sorted)
 
 print(f"\n📁 결과 CSV 저장 완료 → {output_file}")
-
-'''
-TODO : 평점 높은 순으로 정렬, 후기 문장 분석, 다음 페이지 넘기기, 상세정보 접근, 지도 마커 UI 연결
-'''
