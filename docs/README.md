@@ -8,3 +8,4 @@
 | [02_crawler-setup.md](./02_crawler-setup.md) | Python Selenium 크롤러(카카오맵) 설정 및 사용법 |
 | [03_frontend-setup.md](./03_frontend-setup.md) | React 프론트엔드 구성 및 컴포넌트 문서 |
 | [04_deployment.md](./04_deployment.md) | Vercel 배포 및 GitHub 연동 방법 |
+| [05_future-roadmap.md](./05_future-roadmap.md) | 향후 개선 계획 및 신규 기능 로드맵 |
