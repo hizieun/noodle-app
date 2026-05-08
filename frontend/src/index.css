@@ -762,3 +762,128 @@ a:hover {
     width: 100%;
   }
 }
+
+/* View Toggle */
+.view-toggle {
+  display: flex;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.view-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  line-height: 1;
+}
+
+.view-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+
+.view-btn.active {
+  background: var(--text-accent);
+  color: white;
+}
+
+/* Map Layout */
+.main-map {
+  padding: 0 !important;
+}
+
+.map-wrapper {
+  position: relative;
+  height: calc(100vh - 80px);
+}
+
+.leaflet-map {
+  width: 100%;
+  height: 100%;
+  background: var(--bg-secondary);
+}
+
+.map-notice {
+  position: absolute;
+  top: 0.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  background: rgba(20, 20, 24, 0.85);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border-color);
+  white-space: nowrap;
+  backdrop-filter: blur(8px);
+}
+
+/* Leaflet popup override */
+.leaflet-popup-content-wrapper {
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 0.75rem !important;
+  box-shadow: var(--shadow-lg) !important;
+  color: var(--text-primary) !important;
+}
+
+.leaflet-popup-tip {
+  background: var(--bg-secondary) !important;
+}
+
+.map-popup-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 140px;
+  padding: 0.25rem 0;
+}
+
+.map-popup-inner strong {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.map-popup-region {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.25rem;
+  align-self: flex-start;
+}
+
+.map-popup-rating {
+  font-size: 0.8rem;
+  color: #fbbf24;
+}
+
+.map-popup-menu {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.map-popup-btn {
+  margin-top: 0.25rem;
+  background: var(--text-accent);
+  color: white;
+  border: none;
+  border-radius: 0.4rem;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+  font-family: var(--font-family);
+}
+
+.map-popup-btn:hover {
+  opacity: 0.85;
+}

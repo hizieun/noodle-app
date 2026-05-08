@@ -1,6 +1,8 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, lazy, Suspense } from 'react';
 import restaurantData from './data.json';
 import './index.css';
+
+const MapView = lazy(() => import('./MapView.jsx'));
 
 const getRestaurantEmoji = (name) => {
   if (/냉면|국수|면|우동|짬뽕|소바|라면|파스타|칼국수|수제비/.test(name)) return "🍜";
@@ -171,6 +173,7 @@ function App() {
   const [sortBy, setSortBy] = useState('평점순');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+  const [viewMode, setViewMode] = useState('list'); // 'list' | 'map'
   const [favorites, setFavorites] = useState(() => {
     try {
       const saved = localStorage.getItem('nopo-favorites');
@@ -243,6 +246,11 @@ function App() {
     setShowFavoritesOnly(false);
   };
 
+  const handleViewMode = (mode) => {
+    setViewMode(mode);
+    setVisibleCount(ITEMS_PER_PAGE);
+  };
+
   const visibleData = filteredData.slice(0, visibleCount);
 
   return (
@@ -311,12 +319,52 @@ function App() {
               {showFavoritesOnly ? '♥' : '♡'}
               {favorites.size > 0 && <span className="favorites-count">{favorites.size}</span>}
             </button>
+
+            <div className="view-toggle">
+              <button
+                className={`view-btn ${viewMode === 'list' ? 'active' : ''}`}
+                onClick={() => handleViewMode('list')}
+                aria-label="리스트 보기"
+              >
+                ☰
+              </button>
+              <button
+                className={`view-btn ${viewMode === 'map' ? 'active' : ''}`}
+                onClick={() => handleViewMode('map')}
+                aria-label="지도 보기"
+              >
+                🗺
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
-      <main>
-        {filteredData.length > 0 ? (
+      <main className={viewMode === 'map' ? 'main-map' : ''}>
+        {filteredData.length === 0 ? (
+          <div className="empty-state">
+            {showFavoritesOnly ? (
+              <>
+                <div className="empty-icon">🤍</div>
+                <h2>즐겨찾기한 맛집이 없습니다.</h2>
+                <p>카드의 ♡ 버튼을 눌러 저장하세요.</p>
+              </>
+            ) : (
+              <>
+                <div className="empty-icon">🍽️</div>
+                <h2>검색 결과가 없습니다.</h2>
+                <p>선택한 지역의 맛집 정보를 찾을 수 없습니다.</p>
+              </>
+            )}
+          </div>
+        ) : viewMode === 'map' ? (
+          <Suspense fallback={<div className="loading"><div className="spinner"></div><span>지도 불러오는 중...</span></div>}>
+            <MapView
+              restaurants={filteredData}
+              onCardClick={setSelectedRestaurant}
+            />
+          </Suspense>
+        ) : (
           <>
             <div className="restaurant-grid">
               {visibleData.map((restaurant, index) => (
@@ -341,22 +389,6 @@ function App() {
               </div>
             )}
           </>
-        ) : (
-          <div className="empty-state">
-            {showFavoritesOnly ? (
-              <>
-                <div className="empty-icon">🤍</div>
-                <h2>즐겨찾기한 맛집이 없습니다.</h2>
-                <p>카드의 ♡ 버튼을 눌러 저장하세요.</p>
-              </>
-            ) : (
-              <>
-                <div className="empty-icon">🍽️</div>
-                <h2>검색 결과가 없습니다.</h2>
-                <p>선택한 지역의 맛집 정보를 찾을 수 없습니다.</p>
-              </>
-            )}
-          </div>
         )}
       </main>
 
