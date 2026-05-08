@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
+import restaurantData from './data.json';
 import './index.css';
 
 const getRestaurantEmoji = (name) => {
@@ -157,8 +158,12 @@ const ITEMS_PER_PAGE = 30;
 
 // --- App Main ---
 function App() {
-  const [restaurants, setRestaurants] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [restaurants] = useState(() =>
+    restaurantData.map(item => {
+      const { emoji, cleanName } = formatRestaurantName(item.상호명);
+      return { ...item, emoji, cleanName };
+    })
+  );
   const [activeRegion, setActiveRegion] = useState('전체');
   const [activeCategory, setActiveCategory] = useState('노포');
   const [searchQuery, setSearchQuery] = useState('');
@@ -174,40 +179,6 @@ function App() {
       return new Set();
     }
   });
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const response = await fetch(`${import.meta.env.VITE_API_URL}/api/restaurants`);
-        const data = await response.json();
-
-        const processed = data.map(item => {
-          const mappedItem = {
-            상호명: item.name || item.상호명 || "이름 없음",
-            지역: item.region || item.지역 || "기타",
-            카테고리: item.category || item.카테고리 || '노포',
-            주소: item.address || item.주소 || "",
-            평점: item.rating || item.평점 || "정보 없음",
-            전화번호: item.phone || item.전화번호 || "",
-            대표메뉴: item.menus || item.대표메뉴 || "",
-            카카오맵_링크: item.kakao_link || item.카카오맵_링크 || "",
-            네이버블로그_링크: item.naver_blog_link || item.네이버블로그_링크 || "",
-            네이버지도_링크: item.naver_map_link || item.네이버지도_링크 || ""
-          };
-          const { emoji, cleanName } = formatRestaurantName(mappedItem.상호명);
-          return { ...mappedItem, emoji, cleanName };
-        });
-
-        setRestaurants(processed);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
 
   // 필터 변경 시 더 보기 초기화
   useEffect(() => {
@@ -345,12 +316,7 @@ function App() {
       </header>
 
       <main>
-        {isLoading ? (
-          <div className="loading">
-            <div className="spinner"></div>
-            <span>맛집 정보를 불러오는 중...</span>
-          </div>
-        ) : filteredData.length > 0 ? (
+        {filteredData.length > 0 ? (
           <>
             <div className="restaurant-grid">
               {visibleData.map((restaurant, index) => (
