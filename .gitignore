@@ -12,5 +12,11 @@ dist/
 # Crawled data
 *.csv
 
+# Logs
+*.log
+
+# Frontend env (local only — .env.production is safe to commit)
+frontend/.env
+
 # Vercel
 .vercel

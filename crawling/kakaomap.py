@@ -7,11 +7,16 @@ from selenium.webdriver.common.by import By
 from collections import defaultdict
 from urllib.parse import quote
 from dotenv import load_dotenv
+import sqlite3
 from webdriver_manager.chrome import ChromeDriverManager
+import subprocess
 
+# DB 파일 경로
+DB_PATH = os.path.join(os.getcwd(), 'backend', 'restaurants.db')
 
 load_dotenv()
-add_word = os.getenv("ADD_WORD", "노포")
+# 기본적으로 '노포'와 '야장' 두 가지 카테고리를 처리합니다.
+categories = ["노포", "야장"]
 
 file_path = os.path.join(os.getcwd(), "crawling", "keywords.txt")
 
@@ -20,15 +25,26 @@ with open(file_path, "r", encoding="utf-8") as f:
 
 results_by_region = defaultdict(list)
 
-options = webdriver.ChromeOptions()
-options.add_argument("--headless=new")
-options.add_argument("--no-sandbox")
-options.add_argument("--disable-dev-shm-usage")
-options.add_argument("--window-size=1280,900")
-options.add_argument("--disable-blink-features=AutomationControlled")
+def init_driver(retries=3):
+    """드라이버 초기화 및 옵션 설정"""
+    for i in range(retries):
+        try:
+            options = webdriver.ChromeOptions()
+            options.add_argument("--headless")
+            options.add_argument("--no-sandbox")
+            options.add_argument("--disable-dev-shm-usage")
+            options.add_argument("--disable-gpu")
+            
+            service = Service(ChromeDriverManager().install())
+            driver = webdriver.Chrome(service=service, options=options)
+            driver.set_page_load_timeout(60)
+            return driver
+        except Exception as e:
+            print(f"⚠️ 드라이버 초기화 실패 ({i+1}/{retries}): {e}")
+            time.sleep(5)
+    raise Exception("❌ 드라이버 초기화에 최종 실패했습니다.")
 
-# ChromeDriverManager가 현재 Chrome 버전에 맞는 드라이버를 자동으로 설치/사용합니다
-driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+driver = init_driver()
 
 
 def get_naver_blog_link(name):
@@ -102,100 +118,162 @@ def extract_phone(place):
         return ""
 
 
-for keyword in keywords:
-    print(f"\n🔍 [{keyword} {add_word}] 검색 중...")
-    fin_keyword = keyword + " " + add_word
-    url = f"https://map.kakao.com/?q={quote(fin_keyword)}"
-    driver.get(url)
-    time.sleep(3)
+def save_to_db(data_list):
+    """수집된 데이터를 DB에 저장 (Upsert)"""
+    if not data_list:
+        return
+        
+    conn = sqlite3.connect(DB_PATH)
+    for row in data_list:
+        try:
+            conn.execute('''
+            INSERT INTO restaurants (
+                region, category, name, address, rating, phone, menus, 
+                kakao_link, naver_blog_link, naver_map_link
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(name, address) DO UPDATE SET
+                region=excluded.region,
+                category=excluded.category,
+                rating=excluded.rating,
+                phone=excluded.phone,
+                menus=excluded.menus,
+                kakao_link=excluded.kakao_link,
+                naver_blog_link=excluded.naver_blog_link,
+                naver_map_link=excluded.naver_map_link,
+                updated_at=CURRENT_TIMESTAMP
+            ''', (
+                row['지역'], row['카테고리'], row['상호명'], row['주소'], 
+                row['평점'], row['전화번호'], row['대표메뉴'],
+                row['카카오맵_링크'], row['네이버블로그_링크'], row['네이버지도_링크']
+            ))
+        except Exception as e:
+            print(f"❌ DB 저장 실패: {e}")
+            
+    conn.commit()
+    conn.close()
 
-    try:
-        place_list = driver.find_elements(By.CSS_SELECTOR, ".PlaceItem")
+def save_to_csv(data_dict, file_name):
+    """현재까지 수집된 데이터를 CSV로 저장 (평점순 정렬)"""
+    final_list = []
+    for region in sorted(data_dict.keys()):
+        # 평점 문자열을 숫자로 변환하여 정렬 시도
+        def get_score(x):
+            try: return float(x["평점"])
+            except: return 0.0
+        sorted_places = sorted(data_dict[region], key=get_score, reverse=True)
+        final_list.extend(sorted_places)
 
-        if not place_list:
-            print("⚠️ 검색 결과 없음 또는 구조 변경")
-            continue
+    output_path = os.path.join(os.getcwd(), file_name)
+    with open(output_path, "w", newline="", encoding="utf-8-sig") as csvfile:
+        fieldnames = ["지역", "카테고리", "상호명", "주소", "평점", "전화번호", "대표메뉴", "카카오맵_링크", "네이버블로그_링크", "네이버지도_링크"]
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(final_list)
+    return output_path
 
-        # 1단계: 검색 결과 리스트에서 기본 데이터 수집 (상세 페이지 접근 전)
-        raw_places = []
-        for place in place_list:
-            try:
-                # 'A ', 'B ' 같은 알파벳 머리말을 제외하기 위해 .link_name만 추출
-                name_el = place.find_element(By.CSS_SELECTOR, ".head_item .link_name")
-                name = name_el.get_attribute("title") or name_el.text
-                
-                try:
-                    addr = place.find_element(By.CSS_SELECTOR, ".addr .details span").text
-                except:
-                    addr = place.find_element(By.CSS_SELECTOR, ".addr p").text
+region_count = 0
+for category_word in categories:
+    print(f"\n🚀 [{category_word}] 카테고리 크롤링 시작...")
+    for keyword in keywords:
+        region_count += 1
+        # 5개 지역마다 드라이버 재시작하여 안정성 확보
+        if region_count > 1 and region_count % 5 == 1:
+            print("\n🔄 드라이버 재시작 중 (안정성 확보)...")
+            driver.quit()
+            time.sleep(2)
+            driver = init_driver()
 
-                try:
-                    rating_raw = place.find_element(By.CSS_SELECTOR, ".rating span").text
-                    rating = rating_raw.split("\n")[0].strip() if rating_raw else "정보 없음"
-                except:
-                    try:
-                        rating_raw = place.find_element(By.CSS_SELECTOR, ".score .num").text
-                        rating = rating_raw.split("\n")[0].strip() if rating_raw else "정보 없음"
-                    except:
-                        rating = "정보 없음"
+        print(f"\n🔍 [{keyword} {category_word}] 검색 중...")
+        fin_keyword = keyword + " " + category_word
+        url = f"https://map.kakao.com/?q={quote(fin_keyword)}"
+        
+        try:
+            driver.get(url)
+            time.sleep(3)
 
-                phone = extract_phone(place)
-                place_id = extract_place_id(place)
+            place_list = driver.find_elements(By.CSS_SELECTOR, ".PlaceItem")
 
-                raw_places.append({
-                    "name": name,
-                    "addr": addr,
-                    "rating": rating,
-                    "phone": phone,
-                    "place_id": place_id,
-                })
-            except Exception as e:
-                print(f"❌ 기본 정보 추출 실패: {e}")
+            if not place_list:
+                print("⚠️ 검색 결과 없음 또는 구조 변경")
                 continue
 
-        # 2단계: 각 식당의 상세 페이지에서 메뉴 추출
-        search_url = driver.current_url
-        for info in raw_places:
-            print(f"  📍 {info['name']} → 상세 페이지에서 메뉴 추출 중...")
-            menus = get_menus_from_detail(info["place_id"], search_url)
+            # 1단계: 검색 결과 리스트에서 기본 데이터 수집
+            raw_places = []
+            for place in place_list:
+                try:
+                    name_el = place.find_element(By.CSS_SELECTOR, ".head_item .link_name")
+                    name = name_el.get_attribute("title") or name_el.text
+                    
+                    try:
+                        addr = place.find_element(By.CSS_SELECTOR, ".addr .details span").text
+                    except:
+                        addr = place.find_element(By.CSS_SELECTOR, ".addr p").text
 
-            # 검색 결과 페이지로 복귀 후 다음 장소 처리
-            kakao_link = f"https://place.map.kakao.com/{info['place_id']}" if info["place_id"] else \
-                         f"https://map.kakao.com/?q={quote(info['name'] + ' ' + info['addr'])}"
-            naver_blog_link = get_naver_blog_link(info["name"])
-            naver_map_link = get_naver_map_link(info["name"], info["addr"])
+                    try:
+                        rating_raw = place.find_element(By.CSS_SELECTOR, ".rating span").text
+                        rating = rating_raw.split("\n")[0].strip() if rating_raw else "정보 없음"
+                    except:
+                        try:
+                            rating_raw = place.find_element(By.CSS_SELECTOR, ".score .num").text
+                            rating = rating_raw.split("\n")[0].strip() if rating_raw else "정보 없음"
+                        except:
+                            rating = "정보 없음"
 
-            print(f"     ⭐ {info['rating']} | 📞 {info['phone'] or 'N/A'} | 🍽 {menus or 'N/A'}")
-            results_by_region[keyword].append({
-                "지역": keyword,
-                "상호명": info["name"],
-                "주소": info["addr"],
-                "평점": info["rating"],
-                "전화번호": info["phone"],
-                "대표메뉴": menus,
-                "카카오맵_링크": kakao_link,
-                "네이버블로그_링크": naver_blog_link,
-                "네이버지도_링크": naver_map_link,
-            })
+                    phone = extract_phone(place)
+                    place_id = extract_place_id(place)
 
-    except Exception as e:
-        print(f"❗ 검색 중 오류 발생: {e}")
-        continue
+                    raw_places.append({
+                        "name": name,
+                        "addr": addr,
+                        "rating": rating,
+                        "phone": phone,
+                        "place_id": place_id,
+                    })
+                except Exception as e:
+                    continue
+
+            # 2단계: 각 식당의 상세 페이지에서 메뉴 추출
+            search_url = driver.current_url
+            for info in raw_places:
+                try:
+                    print(f"  📍 {info['name']} → 메뉴 추출 중...")
+                    menus = get_menus_from_detail(info["place_id"], search_url)
+
+                    kakao_link = f"https://place.map.kakao.com/{info['place_id']}" if info["place_id"] else \
+                                 f"https://map.kakao.com/?q={quote(info['name'] + ' ' + info['addr'])}"
+                    naver_blog_link = get_naver_blog_link(info["name"])
+                    naver_map_link = get_naver_map_link(info["name"], info["addr"])
+
+                    results_by_region[keyword].append({
+                        "지역": keyword,
+                        "카테고리": category_word,
+                        "상호명": info["name"],
+                        "주소": info["addr"],
+                        "평점": info["rating"],
+                        "전화번호": info["phone"],
+                        "대표메뉴": menus,
+                        "카카오맵_링크": kakao_link,
+                        "네이버블로그_링크": naver_blog_link,
+                        "네이버지도_링크": naver_map_link,
+                    })
+                except:
+                    continue
+
+            # 지역 하나 끝날 때마다 임시 저장 (CSV & DB)
+            save_to_csv(results_by_region, "맛집_평점순_정렬.csv")
+            save_to_db(results_by_region[keyword])
+            print(f"✅ {keyword} 저장 완료 (CSV & DB)")
+
+        except Exception as e:
+            print(f"❗ {keyword} 처리 중 오류 발생: {e}")
+            # 오류 발생 시 드라이버 재시작 시도
+            try:
+                driver.quit()
+                driver = init_driver()
+            except:
+                pass
+            continue
 
 driver.quit()
-
-# ✅ 지역별로 평점 내림차순 정렬 후 전체 리스트로 합치기
-final_sorted = []
-for region in sorted(results_by_region.keys()):
-    sorted_places = sorted(results_by_region[region], key=lambda x: x["평점"], reverse=True)
-    final_sorted.extend(sorted_places)
-
-# ✅ CSV 저장
-output_file = os.path.join(os.getcwd(), "맛집_평점순_정렬.csv")
-with open(output_file, "w", newline="", encoding="utf-8-sig") as csvfile:
-    fieldnames = ["지역", "상호명", "주소", "평점", "전화번호", "대표메뉴", "카카오맵_링크", "네이버블로그_링크", "네이버지도_링크"]
-    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-    writer.writeheader()
-    writer.writerows(final_sorted)
-
-print(f"\n📁 결과 CSV 저장 완료 → {output_file}")
+save_to_csv(results_by_region, "맛집_평점순_정렬.csv")
+print("\n✨ 모든 크롤링 및 저장 완료!")
