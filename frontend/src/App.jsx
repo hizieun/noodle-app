@@ -193,6 +193,7 @@ function App() {
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'map'
+  const [filterOpen, setFilterOpen] = useState(false);
   const [favorites, setFavorites] = useState(() => {
     try {
       const saved = localStorage.getItem('nopo-favorites');
@@ -291,12 +292,21 @@ function App() {
     setActiveCategory(cat);
     setActiveRegion('전체');
     setShowFavoritesOnly(false);
+    setFilterOpen(false);
   };
 
   const handleViewMode = (mode) => {
     setViewMode(mode);
     setVisibleCount(ITEMS_PER_PAGE);
   };
+
+  const activeFilterCount = [
+    activeRegion !== '전체',
+    activeCategory !== '노포',
+    sortBy !== '평점순',
+    showFavoritesOnly,
+    userLocation !== null,
+  ].filter(Boolean).length;
 
   const visibleData = filteredData.slice(0, visibleCount);
 
@@ -311,21 +321,7 @@ function App() {
           </h1>
 
           <div className="controls-group">
-            <div className="category-toggle">
-              <button
-                className={`category-btn ${activeCategory === '노포' ? 'active' : ''}`}
-                onClick={() => handleCategoryChange('노포')}
-              >
-                🏮 노포
-              </button>
-              <button
-                className={`category-btn ${activeCategory === '야장' ? 'active' : ''}`}
-                onClick={() => handleCategoryChange('야장')}
-              >
-                🌙 야장
-              </button>
-            </div>
-
+            {/* 항상 표시: 검색 + 필터 토글(모바일 전용) + 뷰 토글 */}
             <div className="search-container">
               <input
                 type="text"
@@ -336,59 +332,15 @@ function App() {
               />
             </div>
 
-            <div className="filter-container">
-              <select
-                className="filter-select"
-                value={activeRegion}
-                onChange={(e) => setActiveRegion(e.target.value)}
-              >
-                {regions.map((region) => (
-                  <option key={region} value={region}>{region}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="filter-container">
-              <select
-                className="filter-select"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-              >
-                <option value="평점순">⭐ 평점순</option>
-                <option value="이름순">가나다순</option>
-                <option value="거리순">📍 거리순</option>
-              </select>
-            </div>
-
             <button
-              className={`location-btn ${userLocation ? 'active' : ''}`}
-              onClick={handleLocate}
-              title="내 위치로 정렬"
+              className={`filter-toggle-btn ${filterOpen ? 'open' : ''}`}
+              onClick={() => setFilterOpen(prev => !prev)}
+              aria-label="필터 열기"
             >
-              📍
-            </button>
-
-            {userLocation && (
-              <div className="filter-container">
-                <select
-                  className="filter-select"
-                  value={nearbyRadius}
-                  onChange={(e) => setNearbyRadius(Number(e.target.value))}
-                >
-                  <option value={1}>1km</option>
-                  <option value={3}>3km</option>
-                  <option value={5}>5km</option>
-                  <option value={Infinity}>전체</option>
-                </select>
-              </div>
-            )}
-
-            <button
-              className={`favorites-toggle-btn ${showFavoritesOnly ? 'active' : ''}`}
-              onClick={() => setShowFavoritesOnly(prev => !prev)}
-            >
-              {showFavoritesOnly ? '♥' : '♡'}
-              {favorites.size > 0 && <span className="favorites-count">{favorites.size}</span>}
+              ☰ 필터
+              {activeFilterCount > 0 && (
+                <span className="filter-count-badge">{activeFilterCount}</span>
+              )}
             </button>
 
             <div className="view-toggle">
@@ -405,6 +357,79 @@ function App() {
                 aria-label="지도 보기"
               >
                 🗺
+              </button>
+            </div>
+
+            {/* 접이식 필터 패널: 데스크톱 항상 표시, 모바일 토글 */}
+            <div className={`filter-panel ${filterOpen ? 'open' : ''}`}>
+              <div className="category-toggle">
+                <button
+                  className={`category-btn ${activeCategory === '노포' ? 'active' : ''}`}
+                  onClick={() => handleCategoryChange('노포')}
+                >
+                  🏮 노포
+                </button>
+                <button
+                  className={`category-btn ${activeCategory === '야장' ? 'active' : ''}`}
+                  onClick={() => handleCategoryChange('야장')}
+                >
+                  🌙 야장
+                </button>
+              </div>
+
+              <div className="filter-container">
+                <select
+                  className="filter-select"
+                  value={activeRegion}
+                  onChange={(e) => setActiveRegion(e.target.value)}
+                >
+                  {regions.map((region) => (
+                    <option key={region} value={region}>{region}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="filter-container">
+                <select
+                  className="filter-select"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                >
+                  <option value="평점순">⭐ 평점순</option>
+                  <option value="이름순">가나다순</option>
+                  <option value="거리순">📍 거리순</option>
+                </select>
+              </div>
+
+              <button
+                className={`location-btn ${userLocation ? 'active' : ''}`}
+                onClick={handleLocate}
+                title="내 위치로 정렬"
+              >
+                📍
+              </button>
+
+              {userLocation && (
+                <div className="filter-container">
+                  <select
+                    className="filter-select"
+                    value={nearbyRadius}
+                    onChange={(e) => setNearbyRadius(Number(e.target.value))}
+                  >
+                    <option value={1}>1km</option>
+                    <option value={3}>3km</option>
+                    <option value={5}>5km</option>
+                    <option value={Infinity}>전체</option>
+                  </select>
+                </div>
+              )}
+
+              <button
+                className={`favorites-toggle-btn ${showFavoritesOnly ? 'active' : ''}`}
+                onClick={() => setShowFavoritesOnly(prev => !prev)}
+              >
+                {showFavoritesOnly ? '♥' : '♡'}
+                {favorites.size > 0 && <span className="favorites-count">{favorites.size}</span>}
               </button>
             </div>
           </div>

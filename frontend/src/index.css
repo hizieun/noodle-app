@@ -231,6 +231,16 @@ a:hover {
   padding: 0.5rem;
 }
 
+/* Filter Toggle Button (hidden on desktop, shown on mobile) */
+.filter-toggle-btn {
+  display: none;
+}
+
+/* Filter Panel (desktop: children participate directly in flex) */
+.filter-panel {
+  display: contents;
+}
+
 /* Search Input */
 .search-container {
   display: flex;
@@ -773,26 +783,78 @@ a:hover {
     align-items: stretch;
   }
 
+  /* 상단 행: 검색 + 필터 버튼 + 뷰 토글 — nowrap 1줄 유지 */
   .controls-group {
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.5rem;
   }
 
-  .filter-container {
-    overflow-x: auto;
-    padding-bottom: 0.5rem;
-    scrollbar-width: none;
-  }
-
-  .filter-container::-webkit-scrollbar {
-    display: none;
-  }
-
-  .restaurant-grid {
-    grid-template-columns: 1fr;
+  .search-container {
+    flex: 1;
+    min-width: 0;
   }
 
   .search-input {
     width: 100%;
+  }
+
+  /* 필터 토글 버튼 */
+  .filter-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 0.5rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: all var(--transition-fast);
+    font-family: var(--font-family);
+  }
+
+  .filter-toggle-btn.open,
+  .filter-toggle-btn:hover {
+    border-color: var(--text-accent);
+    color: var(--text-accent);
+  }
+
+  .filter-count-badge {
+    background: var(--text-accent);
+    color: white;
+    border-radius: 9999px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    padding: 0 0.35rem;
+    min-width: 1.1rem;
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  /* 접이식 패널 */
+  .filter-panel {
+    display: none;
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-top: 0.25rem;
+  }
+
+  .filter-panel.open {
+    display: flex;
+  }
+
+  /* 뷰 토글 축소 방지 */
+  .view-toggle {
+    flex-shrink: 0;
+  }
+
+  .restaurant-grid {
+    grid-template-columns: 1fr;
   }
 }
 
