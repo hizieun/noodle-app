@@ -112,8 +112,12 @@ const RestaurantModal = ({ restaurant, onClose }) => {
 };
 
 // --- Card Component ---
-const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite }) => {
+const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite, distance }) => {
   const { emoji, cleanName } = formatRestaurantName(data.상호명);
+
+  const distanceLabel = distance !== null && distance !== undefined
+    ? distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km`
+    : null;
 
   return (
     <div
@@ -150,10 +154,25 @@ const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite })
           </svg>
           {data.평점 !== "정보 없음" ? data.평점 : "-"}
         </div>
-        <span className="card-detail-hint">자세히 보기 →</span>
+        {distanceLabel ? (
+          <span className="distance-badge">📍 {distanceLabel}</span>
+        ) : (
+          <span className="card-detail-hint">자세히 보기 →</span>
+        )}
       </div>
     </div>
   );
+};
+
+const toRad = (d) => (d * Math.PI) / 180;
+const haversine = (lat1, lng1, lat2, lng2) => {
+  const R = 6371;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 };
 
 const ITEMS_PER_PAGE = 30;
@@ -182,11 +201,13 @@ function App() {
       return new Set();
     }
   });
+  const [userLocation, setUserLocation] = useState(null); // { lat, lng }
+  const [nearbyRadius, setNearbyRadius] = useState(3);    // km
 
   // 필터 변경 시 더 보기 초기화
   useEffect(() => {
     setVisibleCount(ITEMS_PER_PAGE);
-  }, [activeCategory, activeRegion, searchQuery, sortBy, showFavoritesOnly]);
+  }, [activeCategory, activeRegion, searchQuery, sortBy, showFavoritesOnly, userLocation, nearbyRadius]);
 
   const toggleFavorite = (restaurant, e) => {
     e.stopPropagation();
@@ -205,6 +226,18 @@ function App() {
     });
   };
 
+  const handleLocate = () => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setUserLocation({ lat: coords.latitude, lng: coords.longitude });
+        setSortBy('거리순');
+      },
+      () => alert('위치 정보를 가져올 수 없습니다.\n브라우저 권한을 확인해주세요.'),
+      { timeout: 8000 }
+    );
+  };
+
   const regions = useMemo(() => {
     const categoryData = restaurants.filter(item => item.카테고리 === activeCategory);
     const unique = Array.from(new Set(categoryData.map(item => item.지역)));
@@ -212,7 +245,15 @@ function App() {
   }, [activeCategory, restaurants]);
 
   const filteredData = useMemo(() => {
-    let data = restaurants.filter(item => item.카테고리 === activeCategory);
+    let data = restaurants
+      .filter(item => item.카테고리 === activeCategory)
+      .map(item => ({
+        ...item,
+        distance:
+          userLocation && item.lat && item.lng
+            ? haversine(userLocation.lat, userLocation.lng, item.lat, item.lng)
+            : null,
+      }));
 
     if (activeRegion !== '전체') {
       data = data.filter(item => item.지역 === activeRegion);
@@ -230,15 +271,21 @@ function App() {
       data = data.filter(item => favorites.has(favKey(item)));
     }
 
+    if (userLocation && nearbyRadius < Infinity) {
+      data = data.filter(item => item.distance !== null && item.distance <= nearbyRadius);
+    }
+
     const sorted = [...data];
     if (sortBy === '이름순') {
       sorted.sort((a, b) => a.cleanName.localeCompare(b.cleanName, 'ko'));
+    } else if (sortBy === '거리순') {
+      sorted.sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
     } else {
       sorted.sort((a, b) => parseFloat(b.평점) - parseFloat(a.평점));
     }
 
     return sorted;
-  }, [activeCategory, activeRegion, restaurants, searchQuery, showFavoritesOnly, sortBy, favorites]);
+  }, [activeCategory, activeRegion, restaurants, searchQuery, showFavoritesOnly, sortBy, favorites, userLocation, nearbyRadius]);
 
   const handleCategoryChange = (cat) => {
     setActiveCategory(cat);
@@ -309,8 +356,32 @@ function App() {
               >
                 <option value="평점순">⭐ 평점순</option>
                 <option value="이름순">가나다순</option>
+                <option value="거리순">📍 거리순</option>
               </select>
             </div>
+
+            <button
+              className={`location-btn ${userLocation ? 'active' : ''}`}
+              onClick={handleLocate}
+              title="내 위치로 정렬"
+            >
+              📍
+            </button>
+
+            {userLocation && (
+              <div className="filter-container">
+                <select
+                  className="filter-select"
+                  value={nearbyRadius}
+                  onChange={(e) => setNearbyRadius(Number(e.target.value))}
+                >
+                  <option value={1}>1km</option>
+                  <option value={3}>3km</option>
+                  <option value={5}>5km</option>
+                  <option value={Infinity}>전체</option>
+                </select>
+              </div>
+            )}
 
             <button
               className={`favorites-toggle-btn ${showFavoritesOnly ? 'active' : ''}`}
@@ -362,6 +433,8 @@ function App() {
             <MapView
               restaurants={filteredData}
               onCardClick={setSelectedRestaurant}
+              userLocation={userLocation}
+              nearbyRadius={nearbyRadius}
             />
           </Suspense>
         ) : (
@@ -375,6 +448,7 @@ function App() {
                   onClick={setSelectedRestaurant}
                   isFavorited={favorites.has(favKey(restaurant))}
                   onToggleFavorite={toggleFavorite}
+                  distance={restaurant.distance}
                 />
               ))}
             </div>

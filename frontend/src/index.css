@@ -302,6 +302,39 @@ a:hover {
   line-height: 1.4;
 }
 
+/* Location Button */
+.location-btn {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 9999px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.location-btn:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+.location-btn.active {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+/* Distance Badge on Cards */
+.distance-badge {
+  font-size: 0.8rem;
+  color: #3b82f6;
+  font-weight: 600;
+}
+
 /* Card header right section */
 .card-header-right {
   display: flex;

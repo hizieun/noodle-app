@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet';
 import L from 'leaflet';
 
 // Leaflet 기본 마커 이미지 경로 수정 (Vite 빌드 환경 대응)
@@ -8,6 +8,19 @@ L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
+
+const userMarkerIcon = L.divIcon({
+  className: '',
+  html: `<div style="
+    width:14px;height:14px;
+    background:#3b82f6;
+    border:3px solid white;
+    border-radius:50%;
+    box-shadow:0 0 0 3px rgba(59,130,246,0.3);
+  "></div>`,
+  iconSize: [14, 14],
+  iconAnchor: [7, 7],
 });
 
 // 카테고리별 마커 색상
@@ -42,7 +55,7 @@ function MapController({ restaurants }) {
   return null;
 }
 
-export default function MapView({ restaurants, onCardClick }) {
+export default function MapView({ restaurants, onCardClick, userLocation, nearbyRadius }) {
   const [activeMarker, setActiveMarker] = useState(null);
 
   const mapped = restaurants.filter(r => r.lat && r.lng);
@@ -66,6 +79,20 @@ export default function MapView({ restaurants, onCardClick }) {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <MapController restaurants={mapped} />
+        {userLocation && (
+          <>
+            <Marker position={[userLocation.lat, userLocation.lng]} icon={userMarkerIcon}>
+              <Popup>📍 내 위치</Popup>
+            </Marker>
+            {nearbyRadius < Infinity && (
+              <Circle
+                center={[userLocation.lat, userLocation.lng]}
+                radius={nearbyRadius * 1000}
+                pathOptions={{ color: '#3b82f6', fillColor: '#3b82f6', fillOpacity: 0.08 }}
+              />
+            )}
+          </>
+        )}
         {mapped.map((r, i) => (
           <Marker
             key={`${r.상호명}-${i}`}
