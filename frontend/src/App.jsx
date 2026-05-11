@@ -116,6 +116,20 @@ const RestaurantModal = ({ restaurant, onClose }) => {
             </div>
           )}
 
+          {restaurant.lat && restaurant.lng && (
+            <div className="modal-section">
+              <h4 className="modal-section-title">🗺️ 위치</h4>
+              <div className="modal-map-wrapper">
+                <iframe
+                  title="식당 위치"
+                  src={`https://www.openstreetmap.org/export/embed.html?bbox=${restaurant.lng - 0.004}%2C${restaurant.lat - 0.003}%2C${restaurant.lng + 0.004}%2C${restaurant.lat + 0.003}&layer=mapnik&marker=${restaurant.lat}%2C${restaurant.lng}`}
+                  className="modal-map-frame"
+                  loading="lazy"
+                />
+              </div>
+            </div>
+          )}
+
           <div className="modal-section">
             <h4 className="modal-section-title">🔗 바로가기</h4>
             <div className="action-btns">
@@ -317,11 +331,17 @@ function App() {
     } else if (sortBy === '거리순') {
       sorted.sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
     } else {
-      sorted.sort((a, b) => parseFloat(b.평점) - parseFloat(a.평점));
+      sorted.sort((a, b) => (parseFloat(b.평점) || 0) - (parseFloat(a.평점) || 0));
     }
 
     return sorted;
   }, [activeCategory, activeRegion, restaurants, searchQuery, showFavoritesOnly, sortBy, favorites, userLocation, nearbyRadius]);
+
+  const handleRandomPick = () => {
+    if (filteredData.length === 0) return;
+    const pick = filteredData[Math.floor(Math.random() * filteredData.length)];
+    handleOpenRestaurant(pick);
+  };
 
   const handleOpenRestaurant = (restaurant) => {
     setSelectedRestaurant(restaurant);
@@ -540,6 +560,10 @@ function App() {
           </>
         )}
       </main>
+
+      <button className="random-fab" onClick={handleRandomPick} title="랜덤 맛집 뽑기">
+        🎲
+      </button>
 
       {selectedRestaurant && (
         <RestaurantModal

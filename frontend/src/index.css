@@ -795,6 +795,56 @@ a:hover {
   transform: translateY(-1px);
 }
 
+/* Modal mini-map */
+.modal-map-wrapper {
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.modal-map-frame {
+  width: 100%;
+  height: 200px;
+  border: 0;
+  display: block;
+}
+
+/* Random FAB */
+.random-fab {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 3.2rem;
+  height: 3.2rem;
+  border-radius: 50%;
+  background: var(--text-accent);
+  border: none;
+  color: white;
+  font-size: 1.4rem;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(244, 63, 94, 0.45);
+  z-index: 40;
+  transition: transform 0.15s, box-shadow 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.random-fab:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 22px rgba(244, 63, 94, 0.55);
+}
+
+.random-fab:active {
+  transform: scale(0.93);
+}
+
+.yajang-theme .random-fab {
+  background: var(--text-accent-yajang);
+  box-shadow: 0 4px 16px rgba(251, 146, 60, 0.45);
+}
+
 .animate-fade-in {
   animation: fadeIn var(--transition-slow) forwards;
 }
