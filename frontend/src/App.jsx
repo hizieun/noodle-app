@@ -30,6 +30,8 @@ const favKey = (r) => `${r.상호명}|${r.주소}`;
 
 // --- Modal Component ---
 const RestaurantModal = ({ restaurant, onClose }) => {
+  const [copied, setCopied] = useState(false);
+
   useEffect(() => {
     const handler = (e) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', handler);
@@ -45,6 +47,24 @@ const RestaurantModal = ({ restaurant, onClose }) => {
   const naverBlogLink = restaurant.네이버블로그_링크 || `https://search.naver.com/search.naver?where=blog&query=${encodeURIComponent(cleanName + ' 후기')}`;
   const naverMapLink = restaurant.네이버지도_링크 || `https://map.naver.com/v5/search/${encodeURIComponent(cleanName + ' ' + restaurant.주소)}`;
 
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // fallback for older browsers
+      const el = document.createElement('input');
+      el.value = window.location.href;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-container" onClick={(e) => e.stopPropagation()}>
@@ -56,7 +76,12 @@ const RestaurantModal = ({ restaurant, onClose }) => {
             </div>
             <span className="card-region" style={{ marginTop: '0.5rem', display: 'inline-block' }}>{restaurant.지역}</span>
           </div>
-          <button className="modal-close-btn" onClick={onClose}>✕</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <button className={`share-btn ${copied ? 'copied' : ''}`} onClick={handleCopyLink} title="링크 복사">
+              {copied ? '✓ 복사됨' : '🔗 공유'}
+            </button>
+            <button className="modal-close-btn" onClick={onClose}>✕</button>
+          </div>
         </div>
 
         <div className="modal-body">
@@ -205,6 +230,16 @@ function App() {
   const [userLocation, setUserLocation] = useState(null); // { lat, lng }
   const [nearbyRadius, setNearbyRadius] = useState(3);    // km
 
+  // URL ?r= 파라미터로 식당 자동 열기 (공유 링크 지원)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const rParam = params.get('r');
+    if (rParam) {
+      const found = restaurants.find(r => r.상호명 === rParam);
+      if (found) setSelectedRestaurant(found);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // 필터 변경 시 더 보기 초기화
   useEffect(() => {
     setVisibleCount(ITEMS_PER_PAGE);
@@ -287,6 +322,21 @@ function App() {
 
     return sorted;
   }, [activeCategory, activeRegion, restaurants, searchQuery, showFavoritesOnly, sortBy, favorites, userLocation, nearbyRadius]);
+
+  const handleOpenRestaurant = (restaurant) => {
+    setSelectedRestaurant(restaurant);
+    const params = new URLSearchParams(window.location.search);
+    params.set('r', restaurant.상호명);
+    window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+  };
+
+  const handleCloseRestaurant = () => {
+    setSelectedRestaurant(null);
+    const params = new URLSearchParams(window.location.search);
+    params.delete('r');
+    const newSearch = params.toString();
+    window.history.replaceState({}, '', newSearch ? `${window.location.pathname}?${newSearch}` : window.location.pathname);
+  };
 
   const handleCategoryChange = (cat) => {
     setActiveCategory(cat);
@@ -457,7 +507,7 @@ function App() {
           <Suspense fallback={<div className="loading"><div className="spinner"></div><span>지도 불러오는 중...</span></div>}>
             <MapView
               restaurants={filteredData}
-              onCardClick={setSelectedRestaurant}
+              onCardClick={handleOpenRestaurant}
               userLocation={userLocation}
               nearbyRadius={nearbyRadius}
             />
@@ -470,7 +520,7 @@ function App() {
                   key={`${restaurant.상호명}-${index}`}
                   data={restaurant}
                   index={index}
-                  onClick={setSelectedRestaurant}
+                  onClick={handleOpenRestaurant}
                   isFavorited={favorites.has(favKey(restaurant))}
                   onToggleFavorite={toggleFavorite}
                   distance={restaurant.distance}
@@ -494,7 +544,7 @@ function App() {
       {selectedRestaurant && (
         <RestaurantModal
           restaurant={selectedRestaurant}
-          onClose={() => setSelectedRestaurant(null)}
+          onClose={handleCloseRestaurant}
         />
       )}
     </div>

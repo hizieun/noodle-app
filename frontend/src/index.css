@@ -632,6 +632,30 @@ a:hover {
   font-size: 1.75rem;
 }
 
+.share-btn {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 0.4rem 0.8rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  font-family: var(--font-family);
+}
+
+.share-btn:hover {
+  border-color: var(--text-accent);
+  color: var(--text-accent);
+}
+
+.share-btn.copied {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: #22c55e;
+  color: #22c55e;
+}
+
 .modal-close-btn {
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
