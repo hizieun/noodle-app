@@ -1,0 +1,57 @@
+name: Weekly Data Refresh
+
+on:
+  schedule:
+    - cron: '0 18 * * 0'  # 매주 일요일 18:00 UTC = 월요일 03:00 KST
+  workflow_dispatch:        # 수동 트리거
+
+jobs:
+  crawl-and-update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: crawling/requirements.txt
+
+      - name: Install Chrome
+        uses: browser-actions/setup-chrome@v1
+        with:
+          chrome-version: stable
+
+      - name: Install Python dependencies
+        run: pip install -r crawling/requirements.txt
+
+      - name: Crawl (노포 + 야장 전체)
+        run: python crawling/kakaomap.py
+        timeout-minutes: 90
+
+      - name: Geocode (좌표 없는 신규 항목)
+        run: python crawling/geocode.py
+        timeout-minutes: 20
+
+      - name: Export data.json
+        run: python crawling/sync_data.py
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add frontend/public/data.json backend/restaurants.db
+          if git diff --staged --quiet; then
+            echo "변경사항 없음 — 커밋 스킵"
+          else
+            COUNT=$(python -c "import json; print(len(json.load(open('frontend/public/data.json'))))")
+            git commit -m "data: 자동 업데이트 ${COUNT}개 식당"
+            git push origin main
+            echo "✅ 푸시 완료"
+          fi

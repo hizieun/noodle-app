@@ -17,7 +17,7 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DB_PATH = os.path.join(ROOT, "backend", "restaurants.db")
-DATA_JSON_PATH = os.path.join(ROOT, "frontend", "src", "data.json")
+DATA_JSON_PATH = os.path.join(ROOT, "frontend", "public", "data.json")
 
 
 def export_db_to_json():

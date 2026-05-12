@@ -1,5 +1,4 @@
 import { useState, useMemo, useEffect, lazy, Suspense } from 'react';
-import restaurantData from './data.json';
 import './index.css';
 
 const MapView = lazy(() => import('./MapView.jsx'));
@@ -27,6 +26,7 @@ const formatRestaurantName = (name) => {
 };
 
 const favKey = (r) => `${r.상호명}|${r.주소}`;
+const visitKey = (r) => `${r.상호명}|${r.주소}`;
 
 // --- Modal Component ---
 const RestaurantModal = ({ restaurant, onClose }) => {
@@ -151,7 +151,7 @@ const RestaurantModal = ({ restaurant, onClose }) => {
 };
 
 // --- Card Component ---
-const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite, distance }) => {
+const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite, isVisited, onToggleVisited, distance }) => {
   const { emoji, cleanName } = formatRestaurantName(data.상호명);
 
   const distanceLabel = distance !== null && distance !== undefined
@@ -160,14 +160,23 @@ const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite, d
 
   return (
     <div
-      className="card animate-fade-in"
+      className={`card animate-fade-in ${isVisited ? 'visited' : ''}`}
       style={{ animationDelay: `${index * 40}ms`, cursor: 'pointer' }}
       onClick={() => onClick(data)}
     >
       <div className="card-header">
         <h3 className="card-title">{emoji} {cleanName}</h3>
         <div className="card-header-right">
+          {isVisited && <span className="visited-badge">방문</span>}
           <span className="card-region">{data.지역}</span>
+          <button
+            className={`visit-btn ${isVisited ? 'active' : ''}`}
+            onClick={(e) => onToggleVisited(data, e)}
+            aria-label={isVisited ? '방문 취소' : '방문했어요'}
+            title={isVisited ? '방문 취소' : '가봤어요'}
+          >
+            {isVisited ? '✓' : '○'}
+          </button>
           <button
             className={`favorite-btn ${isFavorited ? 'active' : ''}`}
             onClick={(e) => onToggleFavorite(data, e)}
@@ -218,12 +227,10 @@ const ITEMS_PER_PAGE = 30;
 
 // --- App Main ---
 function App() {
-  const [restaurants] = useState(() =>
-    restaurantData.map(item => {
-      const { emoji, cleanName } = formatRestaurantName(item.상호명);
-      return { ...item, emoji, cleanName };
-    })
-  );
+  const [restaurants, setRestaurants] = useState([]);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [activeRegion, setActiveRegion] = useState('전체');
   const [activeCategory, setActiveCategory] = useState('노포');
   const [searchQuery, setSearchQuery] = useState('');
@@ -241,23 +248,61 @@ function App() {
       return new Set();
     }
   });
+  const [visited, setVisited] = useState(() => {
+    try {
+      const saved = localStorage.getItem('nopo-visited');
+      return saved ? new Set(JSON.parse(saved)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
+  const [showUnvisitedOnly, setShowUnvisitedOnly] = useState(false);
   const [userLocation, setUserLocation] = useState(null); // { lat, lng }
   const [nearbyRadius, setNearbyRadius] = useState(3);    // km
 
-  // URL ?r= 파라미터로 식당 자동 열기 (공유 링크 지원)
+  // PWA 설치 프롬프트
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const rParam = params.get('r');
-    if (rParam) {
-      const found = restaurants.find(r => r.상호명 === rParam);
-      if (found) setSelectedRestaurant(found);
-    }
+    const handler = (e) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+      setShowInstallBanner(true);
+    };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstall = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome === 'accepted') setShowInstallBanner(false);
+    setInstallPrompt(null);
+  };
+
+  // data.json fetch + URL ?r= 파라미터 처리
+  useEffect(() => {
+    fetch('/data.json')
+      .then(r => r.json())
+      .then(raw => {
+        const data = raw.map(item => {
+          const { emoji, cleanName } = formatRestaurantName(item.상호명);
+          return { ...item, emoji, cleanName };
+        });
+        setRestaurants(data);
+        setDataLoading(false);
+        const params = new URLSearchParams(window.location.search);
+        const rParam = params.get('r');
+        if (rParam) {
+          const found = data.find(r => r.상호명 === rParam);
+          if (found) setSelectedRestaurant(found);
+        }
+      });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // 필터 변경 시 더 보기 초기화
   useEffect(() => {
     setVisibleCount(ITEMS_PER_PAGE);
-  }, [activeCategory, activeRegion, searchQuery, sortBy, showFavoritesOnly, userLocation, nearbyRadius]);
+  }, [activeCategory, activeRegion, searchQuery, sortBy, showFavoritesOnly, showUnvisitedOnly, userLocation, nearbyRadius]);
 
   const toggleFavorite = (restaurant, e) => {
     e.stopPropagation();
@@ -271,6 +316,23 @@ function App() {
       }
       try {
         localStorage.setItem('nopo-favorites', JSON.stringify([...next]));
+      } catch {}
+      return next;
+    });
+  };
+
+  const toggleVisited = (restaurant, e) => {
+    e.stopPropagation();
+    setVisited(prev => {
+      const next = new Set(prev);
+      const key = visitKey(restaurant);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      try {
+        localStorage.setItem('nopo-visited', JSON.stringify([...next]));
       } catch {}
       return next;
     });
@@ -321,6 +383,10 @@ function App() {
       data = data.filter(item => favorites.has(favKey(item)));
     }
 
+    if (showUnvisitedOnly) {
+      data = data.filter(item => !visited.has(visitKey(item)));
+    }
+
     if (userLocation && nearbyRadius < Infinity) {
       data = data.filter(item => item.distance !== null && item.distance <= nearbyRadius);
     }
@@ -335,7 +401,7 @@ function App() {
     }
 
     return sorted;
-  }, [activeCategory, activeRegion, restaurants, searchQuery, showFavoritesOnly, sortBy, favorites, userLocation, nearbyRadius]);
+  }, [activeCategory, activeRegion, restaurants, searchQuery, showFavoritesOnly, showUnvisitedOnly, sortBy, favorites, visited, userLocation, nearbyRadius]);
 
   const handleRandomPick = () => {
     if (filteredData.length === 0) return;
@@ -362,6 +428,7 @@ function App() {
     setActiveCategory(cat);
     setActiveRegion('전체');
     setShowFavoritesOnly(false);
+    setShowUnvisitedOnly(false);
     setFilterOpen(false);
   };
 
@@ -372,66 +439,44 @@ function App() {
 
   const activeFilterCount = [
     activeRegion !== '전체',
-    activeCategory !== '노포',
     sortBy !== '평점순',
     showFavoritesOnly,
+    showUnvisitedOnly,
     userLocation !== null,
   ].filter(Boolean).length;
 
   const visibleData = filteredData.slice(0, visibleCount);
 
+  if (dataLoading) {
+    return (
+      <div className="loading" style={{ minHeight: '100vh' }}>
+        <div className="spinner"></div>
+        <span>맛집 불러오는 중...</span>
+      </div>
+    );
+  }
+
   return (
     <div className={`app-container ${activeCategory === '야장' ? 'yajang-theme' : ''}`}>
+      {showInstallBanner && (
+        <div className="install-banner">
+          <span>📱 홈화면에 추가하면 앱처럼 사용할 수 있어요</span>
+          <div className="install-banner-actions">
+            <button className="install-banner-btn primary" onClick={handleInstall}>추가하기</button>
+            <button className="install-banner-btn" onClick={() => setShowInstallBanner(false)}>✕</button>
+          </div>
+        </div>
+      )}
       <header className="header glass">
         <div className="header-content">
-          <h1 className="title">
-            <span className="title-icon">{activeCategory === '야장' ? '🌃' : '🍜'}</span>
-            노포지도
-            <span className="title-suffix"> - 서울의 숨은 맛</span>
-          </h1>
-
-          <div className="controls-group">
-            {/* 항상 표시: 검색 + 필터 토글(모바일 전용) + 뷰 토글 */}
-            <div className="search-container">
-              <input
-                type="text"
-                className="search-input"
-                placeholder="가게명, 메뉴 검색..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-
-            <button
-              className={`filter-toggle-btn ${filterOpen ? 'open' : ''}`}
-              onClick={() => setFilterOpen(prev => !prev)}
-              aria-label="필터 열기"
-            >
-              ☰ 필터
-              {activeFilterCount > 0 && (
-                <span className="filter-count-badge">{activeFilterCount}</span>
-              )}
-            </button>
-
-            <div className="view-toggle">
-              <button
-                className={`view-btn ${viewMode === 'list' ? 'active' : ''}`}
-                onClick={() => handleViewMode('list')}
-                aria-label="리스트 보기"
-              >
-                ☰
-              </button>
-              <button
-                className={`view-btn ${viewMode === 'map' ? 'active' : ''}`}
-                onClick={() => handleViewMode('map')}
-                aria-label="지도 보기"
-              >
-                🗺
-              </button>
-            </div>
-
-            {/* 접이식 필터 패널: 데스크톱 항상 표시, 모바일 토글 */}
-            <div className={`filter-panel ${filterOpen ? 'open' : ''}`}>
+          {/* 1행: 로고 + 카테고리 탭 + 뷰 전환 */}
+          <div className="header-row-1">
+            <h1 className="title">
+              <span className="title-icon">{activeCategory === '야장' ? '🌃' : '🍜'}</span>
+              노포지도
+              <span className="title-suffix"> - 서울의 숨은 맛</span>
+            </h1>
+            <div className="header-actions">
               <div className="category-toggle">
                 <button
                   className={`category-btn ${activeCategory === '노포' ? 'active' : ''}`}
@@ -446,63 +491,145 @@ function App() {
                   🌙 야장
                 </button>
               </div>
-
-              <div className="filter-container">
-                <select
-                  className="filter-select"
-                  value={activeRegion}
-                  onChange={(e) => setActiveRegion(e.target.value)}
+              <div className="view-toggle">
+                <button
+                  className={`view-btn ${viewMode === 'list' ? 'active' : ''}`}
+                  onClick={() => handleViewMode('list')}
+                  aria-label="리스트 보기"
                 >
-                  {regions.map((region) => (
-                    <option key={region} value={region}>{region}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="filter-container">
-                <select
-                  className="filter-select"
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
+                  ☰
+                </button>
+                <button
+                  className={`view-btn ${viewMode === 'map' ? 'active' : ''}`}
+                  onClick={() => handleViewMode('map')}
+                  aria-label="지도 보기"
                 >
-                  <option value="평점순">⭐ 평점순</option>
-                  <option value="이름순">가나다순</option>
-                  <option value="거리순">📍 거리순</option>
-                </select>
+                  🗺
+                </button>
               </div>
-
-              <button
-                className={`location-btn ${userLocation ? 'active' : ''}`}
-                onClick={handleLocate}
-                title="내 위치로 정렬"
-              >
-                📍
-              </button>
-
-              {userLocation && (
-                <div className="filter-container">
-                  <select
-                    className="filter-select"
-                    value={nearbyRadius}
-                    onChange={(e) => setNearbyRadius(Number(e.target.value))}
-                  >
-                    <option value={1}>1km</option>
-                    <option value={3}>3km</option>
-                    <option value={5}>5km</option>
-                    <option value={Infinity}>전체</option>
-                  </select>
-                </div>
-              )}
-
-              <button
-                className={`favorites-toggle-btn ${showFavoritesOnly ? 'active' : ''}`}
-                onClick={() => setShowFavoritesOnly(prev => !prev)}
-              >
-                {showFavoritesOnly ? '♥' : '♡'}
-                {favorites.size > 0 && <span className="favorites-count">{favorites.size}</span>}
-              </button>
             </div>
           </div>
+
+          {/* 2행: 검색 + 내 위치 + 필터 */}
+          <div className="header-row-2">
+            <div className="search-container">
+              <input
+                type="text"
+                className="search-input"
+                placeholder="가게명, 메뉴 검색..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <button
+              className={`location-btn ${userLocation ? 'active' : ''}`}
+              onClick={handleLocate}
+            >
+              📍 {userLocation ? '위치 ON' : '내 위치'}
+            </button>
+            <button
+              className={`filter-toggle-btn ${filterOpen ? 'open' : ''}`}
+              onClick={() => setFilterOpen(prev => !prev)}
+              aria-label="필터 열기"
+            >
+              필터 {filterOpen ? '▲' : '▼'}
+              {activeFilterCount > 0 && (
+                <span className="filter-count-badge">{activeFilterCount}</span>
+              )}
+            </button>
+          </div>
+
+          {/* 접이식 필터 패널 */}
+          <div className={`filter-panel ${filterOpen ? 'open' : ''}`}>
+            <div className="filter-container">
+              <select
+                className="filter-select"
+                value={activeRegion}
+                onChange={(e) => setActiveRegion(e.target.value)}
+              >
+                {regions.map((region) => (
+                  <option key={region} value={region}>{region}</option>
+                ))}
+              </select>
+            </div>
+            <div className="filter-container">
+              <select
+                className="filter-select"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+              >
+                <option value="평점순">⭐ 평점순</option>
+                <option value="이름순">가나다순</option>
+                <option value="거리순">📍 거리순</option>
+              </select>
+            </div>
+            {userLocation && (
+              <div className="filter-container">
+                <select
+                  className="filter-select"
+                  value={nearbyRadius}
+                  onChange={(e) => setNearbyRadius(Number(e.target.value))}
+                >
+                  <option value={1}>1km</option>
+                  <option value={3}>3km</option>
+                  <option value={5}>5km</option>
+                  <option value={Infinity}>전체</option>
+                </select>
+              </div>
+            )}
+            <button
+              className={`favorites-toggle-btn ${showFavoritesOnly ? 'active' : ''}`}
+              onClick={() => setShowFavoritesOnly(prev => !prev)}
+            >
+              {showFavoritesOnly ? '♥' : '♡'}
+              {favorites.size > 0 && <span className="favorites-count">{favorites.size}</span>}
+            </button>
+            <button
+              className={`unvisited-toggle-btn ${showUnvisitedOnly ? 'active' : ''}`}
+              onClick={() => setShowUnvisitedOnly(prev => !prev)}
+              title="방문하지 않은 곳만 보기"
+            >
+              {showUnvisitedOnly ? '✓ 안 가본 곳' : '○ 안 가본 곳'}
+              {visited.size > 0 && <span className="favorites-count">{visited.size}곳 방문</span>}
+            </button>
+          </div>
+
+          {/* 3행: 결과 수 + 활성 필터 칩 */}
+          {(activeFilterCount > 0 || searchQuery) && (
+            <div className="header-row-3">
+              <span className="result-count">{filteredData.length}개 결과</span>
+              {searchQuery && (
+                <button className="filter-chip" onClick={() => setSearchQuery('')}>
+                  "{searchQuery}" ×
+                </button>
+              )}
+              {activeRegion !== '전체' && (
+                <button className="filter-chip" onClick={() => setActiveRegion('전체')}>
+                  {activeRegion} ×
+                </button>
+              )}
+              {sortBy !== '평점순' && (
+                <button className="filter-chip" onClick={() => setSortBy('평점순')}>
+                  {sortBy} ×
+                </button>
+              )}
+              {showFavoritesOnly && (
+                <button className="filter-chip" onClick={() => setShowFavoritesOnly(false)}>
+                  즐겨찾기 ×
+                </button>
+              )}
+              {showUnvisitedOnly && (
+                <button className="filter-chip" onClick={() => setShowUnvisitedOnly(false)}>
+                  안 가본 곳 ×
+                </button>
+              )}
+              {userLocation && (
+                <button className="filter-chip" onClick={() => { setUserLocation(null); setSortBy('평점순'); }}>
+                  내 위치 ×
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </header>
 
@@ -530,6 +657,7 @@ function App() {
               onCardClick={handleOpenRestaurant}
               userLocation={userLocation}
               nearbyRadius={nearbyRadius}
+              category={activeCategory}
             />
           </Suspense>
         ) : (
@@ -543,6 +671,8 @@ function App() {
                   onClick={handleOpenRestaurant}
                   isFavorited={favorites.has(favKey(restaurant))}
                   onToggleFavorite={toggleFavorite}
+                  isVisited={visited.has(visitKey(restaurant))}
+                  onToggleVisited={toggleVisited}
                   distance={restaurant.distance}
                 />
               ))}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet';
+import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
 
 // Leaflet 기본 마커 이미지 경로 수정 (Vite 빌드 환경 대응)
@@ -55,7 +56,7 @@ function MapController({ restaurants }) {
   return null;
 }
 
-export default function MapView({ restaurants, onCardClick, userLocation, nearbyRadius }) {
+export default function MapView({ restaurants, onCardClick, userLocation, nearbyRadius, category }) {
   const [activeMarker, setActiveMarker] = useState(null);
 
   const mapped = restaurants.filter(r => r.lat && r.lng);
@@ -93,35 +94,60 @@ export default function MapView({ restaurants, onCardClick, userLocation, nearby
             )}
           </>
         )}
-        {mapped.map((r, i) => (
-          <Marker
-            key={`${r.상호명}-${i}`}
-            position={[r.lat, r.lng]}
-            icon={markerIcon(r.카테고리)}
-            eventHandlers={{
-              click: () => setActiveMarker(activeMarker === i ? null : i),
-            }}
-          >
-            <Popup className="map-popup">
-              <div className="map-popup-inner">
-                <strong>{r.emoji} {r.cleanName}</strong>
-                <span className="map-popup-region">{r.지역}</span>
-                {r.평점 !== '정보 없음' && (
-                  <span className="map-popup-rating">⭐ {r.평점}</span>
-                )}
-                {r.대표메뉴 && (
-                  <span className="map-popup-menu">{r.대표메뉴.split(',').slice(0, 2).join(', ')}</span>
-                )}
-                <button
-                  className="map-popup-btn"
-                  onClick={() => onCardClick(r)}
-                >
-                  자세히 보기 →
-                </button>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
+        <MarkerClusterGroup
+          chunkedLoading
+          maxClusterRadius={50}
+          showCoverageOnHover={false}
+          iconCreateFunction={(cluster) => {
+            const count = cluster.getChildCount();
+            const size = count < 10 ? 32 : count < 50 ? 38 : 44;
+            const color = category === '야장' ? 'rgba(251,146,60,0.88)' : 'rgba(244,63,94,0.88)';
+            return L.divIcon({
+              className: '',
+              html: `<div style="
+                width:${size}px;height:${size}px;
+                background:${color};
+                border:2px solid rgba(255,255,255,0.8);
+                border-radius:50%;
+                display:flex;align-items:center;justify-content:center;
+                color:white;font-size:${count < 100 ? 12 : 10}px;font-weight:700;
+                box-shadow:0 2px 8px rgba(0,0,0,0.4);
+              ">${count}</div>`,
+              iconSize: [size, size],
+              iconAnchor: [size / 2, size / 2],
+            });
+          }}
+        >
+          {mapped.map((r, i) => (
+            <Marker
+              key={`${r.상호명}-${i}`}
+              position={[r.lat, r.lng]}
+              icon={markerIcon(r.카테고리)}
+              eventHandlers={{
+                click: () => setActiveMarker(activeMarker === i ? null : i),
+              }}
+            >
+              <Popup className="map-popup">
+                <div className="map-popup-inner">
+                  <strong>{r.emoji} {r.cleanName}</strong>
+                  <span className="map-popup-region">{r.지역}</span>
+                  {r.평점 !== '정보 없음' && (
+                    <span className="map-popup-rating">⭐ {r.평점}</span>
+                  )}
+                  {r.대표메뉴 && (
+                    <span className="map-popup-menu">{r.대표메뉴.split(',').slice(0, 2).join(', ')}</span>
+                  )}
+                  <button
+                    className="map-popup-btn"
+                    onClick={() => onCardClick(r)}
+                  >
+                    자세히 보기 →
+                  </button>
+                </div>
+              </Popup>
+            </Marker>
+          ))}
+        </MarkerClusterGroup>
       </MapContainer>
     </div>
   );

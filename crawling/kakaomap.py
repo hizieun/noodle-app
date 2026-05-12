@@ -1,6 +1,7 @@
 import os
 import csv
 import time
+import argparse
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -15,8 +16,15 @@ import subprocess
 DB_PATH = os.path.join(os.getcwd(), 'backend', 'restaurants.db')
 
 load_dotenv()
-# 기본적으로 '노포'와 '야장' 두 가지 카테고리를 처리합니다.
-categories = ["노포", "야장"]
+
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    '--categories', nargs='+',
+    default=["노포", "야장"],
+    help='크롤링할 카테고리 목록 (예: --categories 야장)'
+)
+args = parser.parse_args()
+categories = args.categories
 
 file_path = os.path.join(os.getcwd(), "crawling", "keywords.txt")
 
