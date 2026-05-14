@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, lazy, Suspense } from 'react';
 import './index.css';
+import ChatPanel from './ChatPanel.jsx';
 
 const MapView = lazy(() => import('./MapView.jsx'));
 
@@ -231,6 +232,7 @@ function App() {
   const [dataLoading, setDataLoading] = useState(true);
   const [installPrompt, setInstallPrompt] = useState(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
+  const [chatOpen, setChatOpen] = useState(false);
   const [activeRegion, setActiveRegion] = useState('전체');
   const [activeCategory, setActiveCategory] = useState('노포');
   const [searchQuery, setSearchQuery] = useState('');
@@ -477,6 +479,13 @@ function App() {
               <span className="title-suffix"> - 서울의 숨은 맛</span>
             </h1>
             <div className="header-actions">
+              <button
+                className={`chat-open-btn ${chatOpen ? 'active' : ''}`}
+                onClick={() => setChatOpen(prev => !prev)}
+                title="AI 맛집 추천"
+              >
+                🤖 AI 추천
+              </button>
               <div className="category-toggle">
                 <button
                   className={`category-btn ${activeCategory === '노포' ? 'active' : ''}`}
@@ -701,6 +710,8 @@ function App() {
           onClose={handleCloseRestaurant}
         />
       )}
+
+      <ChatPanel isOpen={chatOpen} onClose={() => setChatOpen(false)} />
     </div>
   );
 }
