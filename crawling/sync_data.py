@@ -39,6 +39,10 @@ def export_db_to_json():
                 kakao_link    AS 카카오맵_링크,
                 naver_blog_link AS 네이버블로그_링크,
                 naver_map_link  AS 네이버지도_링크,
+                business_hours AS 영업시간,
+                closed_days    AS 휴무일,
+                payment        AS 결제수단,
+                last_verified_at AS 정보검증일,
                 lat, lng
             FROM restaurants
             ORDER BY CAST(rating AS REAL) DESC
@@ -47,10 +51,22 @@ def export_db_to_json():
     ]
     conn.close()
 
-    # lat/lng가 None인 경우 키 제거 (데이터 크기 절약)
+    # JSON 문자열로 저장된 컬럼은 디코드, None/빈문자열은 제거 (크기 절약)
+    json_columns = ("영업시간", "휴무일", "결제수단")
     cleaned = []
     for r in rows:
-        item = {k: v for k, v in r.items() if v is not None and v != ""}
+        item = {}
+        for k, v in r.items():
+            if v is None or v == "":
+                continue
+            if k in json_columns and isinstance(v, str):
+                try:
+                    item[k] = json.loads(v)
+                except json.JSONDecodeError:
+                    # 잘못된 JSON은 원본 문자열 그대로 유지하지 않고 건너뜀
+                    continue
+            else:
+                item[k] = v
         cleaned.append(item)
 
     with open(DATA_JSON_PATH, "w", encoding="utf-8") as f:

@@ -1,6 +1,9 @@
 import { useState, useMemo, useEffect, lazy, Suspense } from 'react';
 import './index.css';
 import ChatPanel from './ChatPanel.jsx';
+import { isOpenNow, getBusinessHours, isCashOnly, formatHoursForDisplay } from './businessHours.js';
+import { buildShareUrl, readShareListFromLocation, copyToClipboard, PARAM_KEY as SHARE_PARAM_KEY } from './shareList.js';
+import { loadVisits, saveVisits, updateVisit } from './myVisits.js';
 
 const MapView = lazy(() => import('./MapView.jsx'));
 
@@ -30,8 +33,13 @@ const favKey = (r) => `${r.상호명}|${r.주소}`;
 const visitKey = (r) => `${r.상호명}|${r.주소}`;
 
 // --- Modal Component ---
-const RestaurantModal = ({ restaurant, onClose }) => {
+const RestaurantModal = ({ restaurant, onClose, isVisited, onToggleVisited, myVisit, onUpdateMyVisit }) => {
   const [copied, setCopied] = useState(false);
+  const [memoDraft, setMemoDraft] = useState(myVisit?.memo || '');
+
+  useEffect(() => {
+    setMemoDraft(myVisit?.memo || '');
+  }, [restaurant, myVisit]);
 
   useEffect(() => {
     const handler = (e) => { if (e.key === 'Escape') onClose(); };
@@ -43,6 +51,13 @@ const RestaurantModal = ({ restaurant, onClose }) => {
 
   const { emoji, cleanName } = formatRestaurantName(restaurant.상호명);
   const menus = restaurant.대표메뉴 ? restaurant.대표메뉴.split(',').map(m => m.trim()).filter(Boolean) : [];
+  const hours = getBusinessHours(restaurant);
+  const openStatus = isOpenNow(restaurant);
+  const hoursRows = hours ? formatHoursForDisplay(hours) : [];
+  const todayKey = ['sun','mon','tue','wed','thu','fri','sat'][new Date().getDay()];
+  const closedDays = restaurant.휴무일 || restaurant.closed_days;
+  const payment = restaurant.결제수단 || restaurant.payment;
+  const cashOnly = isCashOnly(restaurant);
 
   const kakaoLink = restaurant.카카오맵_링크 || `https://map.kakao.com/?q=${encodeURIComponent(cleanName + ' ' + restaurant.주소)}`;
   const naverBlogLink = restaurant.네이버블로그_링크 || `https://search.naver.com/search.naver?where=blog&query=${encodeURIComponent(cleanName + ' 후기')}`;
@@ -106,6 +121,38 @@ const RestaurantModal = ({ restaurant, onClose }) => {
             </div>
           </div>
 
+          {(hours || closedDays || (payment && payment.length)) && (
+            <div className="modal-section">
+              <h4 className="modal-section-title">
+                🕒 영업 정보
+                {openStatus === 'open' && <span className="open-badge open" style={{ marginLeft: '0.5rem' }}>영업중</span>}
+                {openStatus === 'closed' && <span className="open-badge closed" style={{ marginLeft: '0.5rem' }}>영업종료</span>}
+              </h4>
+              {hoursRows.length > 0 && (
+                <table className="hours-table">
+                  <tbody>
+                    {hoursRows.map(row => (
+                      <tr key={row.key} className={row.key === todayKey ? 'today' : ''}>
+                        <th>{row.day}</th>
+                        <td>{row.text}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+              {Array.isArray(closedDays) && closedDays.length > 0 && (
+                <p className="hours-note">📅 휴무: {closedDays.join(', ')}</p>
+              )}
+              {cashOnly && <p className="hours-note warning">💵 현금만 가능</p>}
+              {Array.isArray(payment) && payment.length > 1 && (
+                <p className="hours-note">💳 결제: {payment.join(', ')}</p>
+              )}
+              {restaurant.정보검증일 && (
+                <p className="hours-note muted">마지막 확인: {restaurant.정보검증일.slice(0, 10)}</p>
+              )}
+            </div>
+          )}
+
           {menus.length > 0 && (
             <div className="modal-section">
               <h4 className="modal-section-title">🍽️ 대표 메뉴</h4>
@@ -145,6 +192,71 @@ const RestaurantModal = ({ restaurant, onClose }) => {
               </a>
             </div>
           </div>
+
+          <div className="modal-section my-visit-section">
+            <h4 className="modal-section-title">
+              📔 내 방문 후기
+              <button
+                className={`my-visit-toggle ${isVisited ? 'active' : ''}`}
+                onClick={() => onToggleVisited && onToggleVisited(restaurant, { stopPropagation: () => {} })}
+              >
+                {isVisited ? '✓ 가봤어요' : '○ 가봤어요 표시'}
+              </button>
+            </h4>
+            {isVisited ? (
+              <>
+                <div className="my-rating-row">
+                  <span className="my-rating-label">내 평점</span>
+                  <div className="my-rating-stars" role="radiogroup" aria-label="내 평점">
+                    {[1, 2, 3, 4, 5].map(n => {
+                      const filled = (myVisit?.rating || 0) >= n;
+                      return (
+                        <button
+                          key={n}
+                          type="button"
+                          role="radio"
+                          aria-checked={filled}
+                          className={`my-rating-star ${filled ? 'filled' : ''}`}
+                          onClick={() => {
+                            // 같은 별점을 다시 누르면 0으로 초기화
+                            const nextRating = myVisit?.rating === n ? 0 : n;
+                            onUpdateMyVisit && onUpdateMyVisit(restaurant, { rating: nextRating });
+                          }}
+                          title={`${n}점`}
+                        >
+                          ★
+                        </button>
+                      );
+                    })}
+                    {myVisit?.rating ? (
+                      <span className="my-rating-value">{myVisit.rating}.0</span>
+                    ) : (
+                      <span className="my-rating-hint">별을 눌러 평가</span>
+                    )}
+                  </div>
+                </div>
+                <textarea
+                  className="my-memo"
+                  placeholder="이 집의 추천 메뉴, 인상 깊었던 점, 다음에 갈 때 기억할 것…"
+                  value={memoDraft}
+                  onChange={(e) => setMemoDraft(e.target.value)}
+                  onBlur={() => {
+                    const next = memoDraft.trim();
+                    if (next !== (myVisit?.memo || '')) {
+                      onUpdateMyVisit && onUpdateMyVisit(restaurant, { memo: next });
+                    }
+                  }}
+                  rows={3}
+                  maxLength={500}
+                />
+                {myVisit?.date && (
+                  <p className="hours-note muted">방문 기록: {myVisit.date}</p>
+                )}
+              </>
+            ) : (
+              <p className="hours-note">방문하셨다면 위 ‘가봤어요 표시’ 버튼을 눌러주세요. 내 평점과 메모를 남길 수 있어요.</p>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -152,12 +264,15 @@ const RestaurantModal = ({ restaurant, onClose }) => {
 };
 
 // --- Card Component ---
-const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite, isVisited, onToggleVisited, distance }) => {
+const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite, isVisited, onToggleVisited, distance, myVisit }) => {
   const { emoji, cleanName } = formatRestaurantName(data.상호명);
 
   const distanceLabel = distance !== null && distance !== undefined
     ? distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km`
     : null;
+
+  const openStatus = isOpenNow(data);
+  const myRating = myVisit?.rating || 0;
 
   return (
     <div
@@ -168,6 +283,8 @@ const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite, i
       <div className="card-header">
         <h3 className="card-title">{emoji} {cleanName}</h3>
         <div className="card-header-right">
+          {openStatus === 'open' && <span className="open-badge open">🟢 영업중</span>}
+          {openStatus === 'closed' && <span className="open-badge closed">🔴 영업종료</span>}
           {isVisited && <span className="visited-badge">방문</span>}
           <span className="card-region">{data.지역}</span>
           <button
@@ -203,6 +320,9 @@ const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite, i
           </svg>
           {data.평점 !== "정보 없음" ? data.평점 : "-"}
         </div>
+        {myRating > 0 && (
+          <span className="my-rating-badge" title="내가 매긴 평점">내 ★ {myRating}</span>
+        )}
         {distanceLabel ? (
           <span className="distance-badge">📍 {distanceLabel}</span>
         ) : (
@@ -259,6 +379,11 @@ function App() {
     }
   });
   const [showUnvisitedOnly, setShowUnvisitedOnly] = useState(false);
+  const [showOpenNowOnly, setShowOpenNowOnly] = useState(false);
+  const [myVisits, setMyVisits] = useState(() => loadVisits());
+  const [sharedListNames, setSharedListNames] = useState(() => readShareListFromLocation());
+  const [shareCopied, setShareCopied] = useState(false);
+  const [importedCount, setImportedCount] = useState(0);
   const [userLocation, setUserLocation] = useState(null); // { lat, lng }
   const [nearbyRadius, setNearbyRadius] = useState(3);    // km
 
@@ -304,7 +429,7 @@ function App() {
   // 필터 변경 시 더 보기 초기화
   useEffect(() => {
     setVisibleCount(ITEMS_PER_PAGE);
-  }, [activeCategory, activeRegion, searchQuery, sortBy, showFavoritesOnly, showUnvisitedOnly, userLocation, nearbyRadius]);
+  }, [activeCategory, activeRegion, searchQuery, sortBy, showFavoritesOnly, showUnvisitedOnly, showOpenNowOnly, userLocation, nearbyRadius]);
 
   const toggleFavorite = (restaurant, e) => {
     e.stopPropagation();
@@ -325,10 +450,11 @@ function App() {
 
   const toggleVisited = (restaurant, e) => {
     e.stopPropagation();
+    const key = visitKey(restaurant);
     setVisited(prev => {
       const next = new Set(prev);
-      const key = visitKey(restaurant);
-      if (next.has(key)) {
+      const willUnvisit = next.has(key);
+      if (willUnvisit) {
         next.delete(key);
       } else {
         next.add(key);
@@ -336,8 +462,76 @@ function App() {
       try {
         localStorage.setItem('nopo-visited', JSON.stringify([...next]));
       } catch {}
+      // 방문 해제 시 평점/메모도 같이 제거 (의도 일관성)
+      if (willUnvisit) {
+        setMyVisits(prevVisits => {
+          if (!(key in prevVisits)) return prevVisits;
+          const nv = { ...prevVisits };
+          delete nv[key];
+          saveVisits(nv);
+          return nv;
+        });
+      }
       return next;
     });
+  };
+
+  const handleUpdateMyVisit = (restaurant, patch) => {
+    const key = visitKey(restaurant);
+    setMyVisits(prev => {
+      const next = updateVisit(prev, key, patch);
+      saveVisits(next);
+      return next;
+    });
+  };
+
+  const handleShareFavorites = async () => {
+    const names = restaurants
+      .filter(r => favorites.has(favKey(r)))
+      .map(r => r.상호명);
+    if (names.length === 0) {
+      alert('공유할 즐겨찾기가 없습니다. ♡ 버튼으로 식당을 저장해주세요.');
+      return;
+    }
+    const url = buildShareUrl(names);
+    if (!url) return;
+    const ok = await copyToClipboard(url);
+    if (ok) {
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2500);
+    } else {
+      prompt('아래 링크를 복사하세요:', url);
+    }
+  };
+
+  const handleClearSharedMode = () => {
+    setSharedListNames([]);
+    setImportedCount(0);
+    const params = new URLSearchParams(window.location.search);
+    params.delete(SHARE_PARAM_KEY);
+    const next = params.toString();
+    window.history.replaceState({}, '', next ? `${window.location.pathname}?${next}` : window.location.pathname);
+  };
+
+  const handleImportShared = () => {
+    if (sharedRestaurants.length === 0) return;
+    let added = 0;
+    setFavorites(prev => {
+      const next = new Set(prev);
+      sharedRestaurants.forEach(r => {
+        const key = favKey(r);
+        if (!next.has(key)) {
+          next.add(key);
+          added += 1;
+        }
+      });
+      try {
+        localStorage.setItem('nopo-favorites', JSON.stringify([...next]));
+      } catch {}
+      return next;
+    });
+    setImportedCount(added);
+    setTimeout(() => setImportedCount(0), 3000);
   };
 
   const handleLocate = () => {
@@ -358,7 +552,27 @@ function App() {
     return ['전체', ...unique.sort()];
   }, [activeCategory, restaurants]);
 
+  const isSharedMode = sharedListNames.length > 0;
+
+  const sharedRestaurants = useMemo(() => {
+    if (!isSharedMode || restaurants.length === 0) return [];
+    const nameToRestaurant = new Map(restaurants.map(r => [r.상호명, r]));
+    return sharedListNames
+      .map(name => nameToRestaurant.get(name))
+      .filter(Boolean)
+      .map(item => ({
+        ...item,
+        distance:
+          userLocation && item.lat && item.lng
+            ? haversine(userLocation.lat, userLocation.lng, item.lat, item.lng)
+            : null,
+      }));
+  }, [isSharedMode, restaurants, sharedListNames, userLocation]);
+
   const filteredData = useMemo(() => {
+    // 공유 리스트 모드: 카테고리/지역/즐겨찾기 등 무시, 공유받은 순서 유지
+    if (isSharedMode) return sharedRestaurants;
+
     let data = restaurants
       .filter(item => item.카테고리 === activeCategory)
       .map(item => ({
@@ -389,6 +603,10 @@ function App() {
       data = data.filter(item => !visited.has(visitKey(item)));
     }
 
+    if (showOpenNowOnly) {
+      data = data.filter(item => isOpenNow(item) === 'open');
+    }
+
     if (userLocation && nearbyRadius < Infinity) {
       data = data.filter(item => item.distance !== null && item.distance <= nearbyRadius);
     }
@@ -403,7 +621,7 @@ function App() {
     }
 
     return sorted;
-  }, [activeCategory, activeRegion, restaurants, searchQuery, showFavoritesOnly, showUnvisitedOnly, sortBy, favorites, visited, userLocation, nearbyRadius]);
+  }, [isSharedMode, sharedRestaurants, activeCategory, activeRegion, restaurants, searchQuery, showFavoritesOnly, showUnvisitedOnly, showOpenNowOnly, sortBy, favorites, visited, userLocation, nearbyRadius]);
 
   const handleRandomPick = () => {
     if (filteredData.length === 0) return;
@@ -431,6 +649,7 @@ function App() {
     setActiveRegion('전체');
     setShowFavoritesOnly(false);
     setShowUnvisitedOnly(false);
+    setShowOpenNowOnly(false);
     setFilterOpen(false);
   };
 
@@ -444,6 +663,7 @@ function App() {
     sortBy !== '평점순',
     showFavoritesOnly,
     showUnvisitedOnly,
+    showOpenNowOnly,
     userLocation !== null,
   ].filter(Boolean).length;
 
@@ -466,6 +686,28 @@ function App() {
           <div className="install-banner-actions">
             <button className="install-banner-btn primary" onClick={handleInstall}>추가하기</button>
             <button className="install-banner-btn" onClick={() => setShowInstallBanner(false)}>✕</button>
+          </div>
+        </div>
+      )}
+      {isSharedMode && (
+        <div className="share-banner">
+          <span className="share-banner-title">
+            🔗 공유받은 리스트 — {sharedRestaurants.length}곳
+            {sharedRestaurants.length < sharedListNames.length && (
+              <span className="share-banner-warning"> (찾을 수 없는 {sharedListNames.length - sharedRestaurants.length}곳 제외)</span>
+            )}
+          </span>
+          <div className="share-banner-actions">
+            {importedCount > 0 ? (
+              <span className="share-banner-toast">✓ {importedCount}곳 즐겨찾기에 추가됨</span>
+            ) : (
+              <button className="share-banner-btn primary" onClick={handleImportShared}>
+                ♥ 내 즐겨찾기에 담기
+              </button>
+            )}
+            <button className="share-banner-btn" onClick={handleClearSharedMode}>
+              전체 보기
+            </button>
           </div>
         </div>
       )}
@@ -593,6 +835,15 @@ function App() {
               {showFavoritesOnly ? '♥' : '♡'}
               {favorites.size > 0 && <span className="favorites-count">{favorites.size}</span>}
             </button>
+            {favorites.size > 0 && (
+              <button
+                className={`share-fav-btn ${shareCopied ? 'copied' : ''}`}
+                onClick={handleShareFavorites}
+                title="즐겨찾기 식당을 친구에게 공유"
+              >
+                {shareCopied ? '✓ 링크 복사됨' : '🔗 공유'}
+              </button>
+            )}
             <button
               className={`unvisited-toggle-btn ${showUnvisitedOnly ? 'active' : ''}`}
               onClick={() => setShowUnvisitedOnly(prev => !prev)}
@@ -600,6 +851,13 @@ function App() {
             >
               {showUnvisitedOnly ? '✓ 안 가본 곳' : '○ 안 가본 곳'}
               {visited.size > 0 && <span className="favorites-count">{visited.size}곳 방문</span>}
+            </button>
+            <button
+              className={`open-now-toggle-btn ${showOpenNowOnly ? 'active' : ''}`}
+              onClick={() => setShowOpenNowOnly(prev => !prev)}
+              title="지금 영업 중인 곳만 보기"
+            >
+              🟢 지금 영업중
             </button>
           </div>
 
@@ -632,6 +890,11 @@ function App() {
                   안 가본 곳 ×
                 </button>
               )}
+              {showOpenNowOnly && (
+                <button className="filter-chip" onClick={() => setShowOpenNowOnly(false)}>
+                  영업중 ×
+                </button>
+              )}
               {userLocation && (
                 <button className="filter-chip" onClick={() => { setUserLocation(null); setSortBy('평점순'); }}>
                   내 위치 ×
@@ -645,7 +908,13 @@ function App() {
       <main className={viewMode === 'map' ? 'main-map' : ''}>
         {filteredData.length === 0 ? (
           <div className="empty-state">
-            {showFavoritesOnly ? (
+            {isSharedMode ? (
+              <>
+                <div className="empty-icon">🔗</div>
+                <h2>공유받은 리스트의 식당을 찾을 수 없습니다.</h2>
+                <p>식당 정보가 변경되었거나 링크가 손상되었을 수 있어요.</p>
+              </>
+            ) : showFavoritesOnly ? (
               <>
                 <div className="empty-icon">🤍</div>
                 <h2>즐겨찾기한 맛집이 없습니다.</h2>
@@ -683,6 +952,7 @@ function App() {
                   isVisited={visited.has(visitKey(restaurant))}
                   onToggleVisited={toggleVisited}
                   distance={restaurant.distance}
+                  myVisit={myVisits[visitKey(restaurant)]}
                 />
               ))}
             </div>
@@ -708,6 +978,10 @@ function App() {
         <RestaurantModal
           restaurant={selectedRestaurant}
           onClose={handleCloseRestaurant}
+          isVisited={visited.has(visitKey(selectedRestaurant))}
+          onToggleVisited={toggleVisited}
+          myVisit={myVisits[visitKey(selectedRestaurant)]}
+          onUpdateMyVisit={handleUpdateMyVisit}
         />
       )}
 

@@ -19,11 +19,51 @@ try {
   console.error('data.json 로드 실패:', e.message);
 }
 
+const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+
+function parseHm(s) {
+  const [h, m] = s.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function isOpenAtServer(hours, now) {
+  if (!hours || typeof hours !== 'object') return null;
+  const minutes = now.getHours() * 60 + now.getMinutes();
+  const todayKey = DAY_KEYS[now.getDay()];
+  const yesterdayKey = DAY_KEYS[(now.getDay() + 6) % 7];
+
+  const matches = (range, cursor) => {
+    const [s, e] = range.split('-').map(parseHm);
+    const end = e === 0 ? 1440 : e;
+    if (end > s) return cursor === 'today' && minutes >= s && minutes < end;
+    if (cursor === 'today') return minutes >= s;
+    if (cursor === 'yesterday') return minutes < end;
+    return false;
+  };
+
+  const checkRanges = (val, cursor) => {
+    if (val === 'closed') return false;
+    if (val === '24h') return true;
+    if (typeof val === 'string') return matches(val, cursor);
+    if (Array.isArray(val)) return val.some(r => matches(r, cursor));
+    return null;
+  };
+
+  const today = checkRanges(hours[todayKey], 'today');
+  if (today === true) return true;
+  const yesterday = checkRanges(hours[yesterdayKey], 'yesterday');
+  if (yesterday === true) return true;
+  if (today === false || yesterday === false) return false;
+  return null;
+}
+
 function findRelevant(query) {
   const q = query.toLowerCase();
   const matchedRegion = REGIONS.find(r => q.includes(r));
   const isYajang = /야장|포차|야외|노천/.test(q);
+  const wantsOpenNow = /지금|영업중|오픈|문 열|열려|열린/.test(q);
 
+  const now = new Date();
   const scored = restaurants.map(r => {
     let score = 0;
     const name = (r.상호명 || '').toLowerCase();
@@ -44,7 +84,13 @@ function findRelevant(query) {
     const rating = parseFloat(r.평점);
     if (!isNaN(rating) && rating >= 4.0) score += 1;
 
-    return { ...r, _score: score };
+    const openStatus = isOpenAtServer(r.영업시간, now);
+    if (wantsOpenNow) {
+      if (openStatus === true) score += 8;
+      else if (openStatus === false) score -= 100; // 휴무 식당 사실상 제외
+    }
+
+    return { ...r, _score: score, _isOpen: openStatus };
   });
 
   const relevant = scored
@@ -60,8 +106,24 @@ function findRelevant(query) {
   return relevant;
 }
 
+function formatHours(hours) {
+  if (!hours) return null;
+  const dayKo = { mon: '월', tue: '화', wed: '수', thu: '목', fri: '금', sat: '토', sun: '일' };
+  return ['mon','tue','wed','thu','fri','sat','sun']
+    .map(k => {
+      const v = hours[k];
+      if (v == null) return null;
+      const txt = v === 'closed' ? '휴무' : v === '24h' ? '24시간' : Array.isArray(v) ? v.join('/') : v;
+      return `${dayKo[k]} ${txt}`;
+    })
+    .filter(Boolean)
+    .join(', ');
+}
+
 function buildSystemPrompt(relevant) {
   const list = relevant.map(r => {
+    const hoursTxt = formatHours(r.영업시간);
+    const statusTxt = r._isOpen === true ? '지금 영업중' : r._isOpen === false ? '지금 영업종료/휴무' : null;
     const parts = [
       `【${r.상호명}】`,
       `지역: ${r.지역}`,
@@ -69,15 +131,22 @@ function buildSystemPrompt(relevant) {
       r.평점 && r.평점 !== '정보 없음' ? `평점: ${r.평점}` : null,
       r.대표메뉴 ? `메뉴: ${r.대표메뉴}` : null,
       r.주소 ? `주소: ${r.주소}` : null,
+      hoursTxt ? `영업시간: ${hoursTxt}` : null,
+      statusTxt,
     ].filter(Boolean).join(' | ');
     return parts;
   }).join('\n');
 
+  const nowTxt = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', weekday: 'short', hour: '2-digit', minute: '2-digit' });
+
   return `당신은 서울 노포·야장 맛집 전문 AI 추천 도우미입니다.
+현재 시각(서울): ${nowTxt}
 아래 식당 데이터를 바탕으로 사용자 질문에 친근하고 자연스럽게 답해주세요.
 
 답변 규칙:
 - 반드시 아래 데이터에 있는 식당만 추천하세요
+- 사용자가 "지금 영업중" 같은 시간 관련 요청을 했다면, 데이터의 '지금 영업중' 표시를 활용해 영업하는 곳만 추천하세요
+- 영업시간 정보가 있으면 답변에 함께 알려주세요 (없으면 추측 금지)
 - 식당명, 지역, 추천 이유를 간결하게 설명하세요
 - 2~4개 식당 추천이 적당합니다
 - 데이터에 없는 정보는 절대 추측하지 마세요

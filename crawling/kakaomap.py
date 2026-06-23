@@ -1,7 +1,10 @@
 import os
 import csv
 import time
+import json
+import re
 import argparse
+from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
@@ -83,10 +86,92 @@ def extract_place_id(place):
     return None
 
 
+DAY_KEY_MAP = {"월": "mon", "화": "tue", "수": "wed", "목": "thu", "금": "fri", "토": "sat", "일": "sun"}
+
+def _normalize_time_range(txt):
+    """카카오맵 영업시간 문자열을 표준화. "17:00 ~ 02:00" → "17:00-02:00"."""
+    m = re.match(r"\s*(\d{1,2}:\d{2})\s*[-~]\s*(\d{1,2}:\d{2})", txt)
+    if not m:
+        return None
+    return f"{m.group(1)}-{m.group(2)}"
+
+def extract_business_info(place_id):
+    """현재 driver가 carko상세페이지에 있다는 전제로 영업시간/휴무일 추출.
+
+    반환: (business_hours_dict|None, closed_days_list|None, payment_list|None)
+    """
+    business_hours = {}
+    closed_days = None
+
+    try:
+        info_op = driver.find_element(By.CSS_SELECTOR, ".info_operation")
+    except Exception:
+        return None, None, None
+
+    # 헤더에 "매주 월요일 휴무" 같은 텍스트가 있으면 추출
+    try:
+        notes = info_op.find_elements(By.CSS_SELECTOR, ".txt_detail3, .txt_detail2")
+        for n in notes:
+            t = (n.text or "").strip()
+            m = re.search(r"매주\s*([월화수목금토일])요일\s*휴무", t)
+            if m:
+                closed_days = [m.group(1)]
+                break
+    except Exception:
+        pass
+
+    # 요일별 풀 패널 (hidden 영역이라 textContent로 읽어야 함)
+    try:
+        rows = info_op.find_elements(By.CSS_SELECTOR, ".fold_detail .line_fold")
+        for row in rows:
+            try:
+                tit_el = row.find_element(By.CSS_SELECTOR, ".tit_fold")
+                tit = (tit_el.get_attribute("textContent") or "").strip()
+                # 예: "월(6/22)" → "월"
+                day_ko = tit[0] if tit and tit[0] in DAY_KEY_MAP else None
+                if not day_ko:
+                    continue
+                day_key = DAY_KEY_MAP[day_ko]
+
+                detail_txts = [
+                    (d.get_attribute("textContent") or "").strip()
+                    for d in row.find_elements(By.CSS_SELECTOR, ".detail_fold .txt_detail")
+                ]
+                # 휴무일 판정
+                if any("휴무" in t for t in detail_txts):
+                    business_hours[day_key] = "closed"
+                    continue
+                # 24시간 영업
+                if any("24" in t and "시간" in t for t in detail_txts):
+                    business_hours[day_key] = "24h"
+                    continue
+                # 시간 범위 추출 (라스트오더 등 부가 정보는 제외)
+                ranges = []
+                for t in detail_txts:
+                    norm = _normalize_time_range(t)
+                    if norm:
+                        ranges.append(norm)
+                if not ranges:
+                    continue
+                business_hours[day_key] = ranges[0] if len(ranges) == 1 else ranges
+            except Exception:
+                continue
+    except Exception:
+        pass
+
+    if not business_hours:
+        business_hours = None
+    # 결제수단: 카카오맵에서 직접 추출 어려움 (별도 필드 없음)
+    return business_hours, closed_days, None
+
+
 def get_menus_from_detail(place_id, current_url):
-    """카카오맵 장소 상세 페이지에서 대표 메뉴명 추출"""
+    """카카오맵 장소 상세 페이지에서 대표 메뉴 + 영업시간 + 휴무일 추출.
+
+    반환: (menus_str, business_hours, closed_days, payment)
+    """
     if not place_id:
-        return ""
+        return "", None, None, None
 
     detail_url = f"https://place.map.kakao.com/{place_id}"
 
@@ -95,19 +180,18 @@ def get_menus_from_detail(place_id, current_url):
         time.sleep(2)
 
         menus = []
-        # 검증된 셀렉터: ul li .tit_item
         try:
             menu_els = driver.find_elements(By.CSS_SELECTOR, "ul li .tit_item")
             menus = [m.text.strip() for m in menu_els if m.text.strip()]
         except:
             pass
 
-        return ", ".join(menus[:5])  # 최대 5개
+        bh, cd, pay = extract_business_info(place_id)
+        return ", ".join(menus[:5]), bh, cd, pay
     except Exception as e:
         print(f"     ⚠️ 상세페이지 접근 실패 (ID: {place_id}): {e}")
-        return ""
+        return "", None, None, None
     finally:
-        # 원래 검색 결과 페이지로 복귀
         driver.get(current_url)
         time.sleep(2)
 
@@ -130,15 +214,24 @@ def save_to_db(data_list):
     """수집된 데이터를 DB에 저장 (Upsert)"""
     if not data_list:
         return
-        
+
     conn = sqlite3.connect(DB_PATH)
     for row in data_list:
         try:
+            bh = row.get('영업시간')
+            cd = row.get('휴무일')
+            pay = row.get('결제수단')
+            bh_json = json.dumps(bh, ensure_ascii=False) if bh else None
+            cd_json = json.dumps(cd, ensure_ascii=False) if cd else None
+            pay_json = json.dumps(pay, ensure_ascii=False) if pay else None
+            verified_at = row.get('정보검증일') or datetime.now().isoformat(timespec='seconds') if bh or cd else None
+
             conn.execute('''
             INSERT INTO restaurants (
-                region, category, name, address, rating, phone, menus, 
-                kakao_link, naver_blog_link, naver_map_link
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                region, category, name, address, rating, phone, menus,
+                kakao_link, naver_blog_link, naver_map_link,
+                business_hours, closed_days, payment, last_verified_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(name, address) DO UPDATE SET
                 region=excluded.region,
                 category=excluded.category,
@@ -148,15 +241,20 @@ def save_to_db(data_list):
                 kakao_link=excluded.kakao_link,
                 naver_blog_link=excluded.naver_blog_link,
                 naver_map_link=excluded.naver_map_link,
+                business_hours=COALESCE(excluded.business_hours, business_hours),
+                closed_days=COALESCE(excluded.closed_days, closed_days),
+                payment=COALESCE(excluded.payment, payment),
+                last_verified_at=COALESCE(excluded.last_verified_at, last_verified_at),
                 updated_at=CURRENT_TIMESTAMP
             ''', (
-                row['지역'], row['카테고리'], row['상호명'], row['주소'], 
+                row['지역'], row['카테고리'], row['상호명'], row['주소'],
                 row['평점'], row['전화번호'], row['대표메뉴'],
-                row['카카오맵_링크'], row['네이버블로그_링크'], row['네이버지도_링크']
+                row['카카오맵_링크'], row['네이버블로그_링크'], row['네이버지도_링크'],
+                bh_json, cd_json, pay_json, verified_at,
             ))
         except Exception as e:
             print(f"❌ DB 저장 실패: {e}")
-            
+
     conn.commit()
     conn.close()
 
@@ -244,8 +342,8 @@ for category_word in categories:
             search_url = driver.current_url
             for info in raw_places:
                 try:
-                    print(f"  📍 {info['name']} → 메뉴 추출 중...")
-                    menus = get_menus_from_detail(info["place_id"], search_url)
+                    print(f"  📍 {info['name']} → 상세정보 추출 중...")
+                    menus, bh, cd, pay = get_menus_from_detail(info["place_id"], search_url)
 
                     kakao_link = f"https://place.map.kakao.com/{info['place_id']}" if info["place_id"] else \
                                  f"https://map.kakao.com/?q={quote(info['name'] + ' ' + info['addr'])}"
@@ -263,6 +361,9 @@ for category_word in categories:
                         "카카오맵_링크": kakao_link,
                         "네이버블로그_링크": naver_blog_link,
                         "네이버지도_링크": naver_map_link,
+                        "영업시간": bh,
+                        "휴무일": cd,
+                        "결제수단": pay,
                     })
                 except:
                     continue
