@@ -27,6 +27,10 @@ def init_db():
         kakao_link TEXT,
         naver_blog_link TEXT,
         naver_map_link TEXT,
+        business_hours TEXT,
+        closed_days TEXT,
+        payment TEXT,
+        last_verified_at DATETIME,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         UNIQUE(name, address)

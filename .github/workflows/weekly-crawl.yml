@@ -31,6 +31,9 @@ jobs:
       - name: Install Python dependencies
         run: pip install -r crawling/requirements.txt
 
+      - name: Migrate DB schema (idempotent)
+        run: python backend/migrate_hours.py
+
       - name: Crawl (노포 + 야장 전체)
         run: python crawling/kakaomap.py
         timeout-minutes: 90
