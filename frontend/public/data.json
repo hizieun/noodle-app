@@ -10,6 +10,16 @@
     "카카오맵_링크": "https://place.map.kakao.com/1545980835",
     "네이버블로그_링크": "https://search.naver.com/search.naver?where=blog&query=%EA%B5%90%EB%8C%80%EC%95%BC%EC%9E%A5%EC%A7%91%20%ED%9B%84%EA%B8%B0",
     "네이버지도_링크": "https://map.naver.com/v5/search/%EA%B5%90%EB%8C%80%EC%95%BC%EC%9E%A5%EC%A7%91%20%EC%84%9C%EC%9A%B8%20%EC%84%9C%EC%B4%88%EA%B5%AC%20%EC%84%9C%EC%B4%88%EB%8C%80%EB%A1%9C50%EA%B8%B8%2062-5",
+    "영업시간": {
+      "mon": "17:00-02:00",
+      "tue": "17:00-02:00",
+      "wed": "17:00-02:00",
+      "thu": "17:00-02:00",
+      "fri": "17:00-02:00",
+      "sat": "17:00-02:00",
+      "sun": "17:00-02:00"
+    },
+    "정보검증일": "2026-06-22T17:01:35",
     "lat": 37.490385,
     "lng": 127.013264
   },
@@ -23,7 +33,20 @@
     "대표메뉴": "후라이드, 유동골뱅소면, 먹태, 닭모래집 500g",
     "카카오맵_링크": "https://place.map.kakao.com/1528007963",
     "네이버블로그_링크": "https://search.naver.com/search.naver?where=blog&query=%EC%B9%98%ED%82%A8%EB%AA%A8%EB%8D%B8%EA%B3%84%ED%83%80%EB%8A%94%EB%82%A0%20%ED%9B%84%EA%B8%B0",
-    "네이버지도_링크": "https://map.naver.com/v5/search/%EC%B9%98%ED%82%A8%EB%AA%A8%EB%8D%B8%EA%B3%84%ED%83%80%EB%8A%94%EB%82%A0%20%EC%84%9C%EC%9A%B8%20%EB%85%B8%EC%9B%90%EA%B5%AC%20%EB%8F%99%EC%9D%BC%EB%A1%9C%201371%20%ED%98%84%EB%8C%80%ED%94%84%EB%9D%BC%EC%9E%90%EB%B9%8C%EB%94%A9%20107%ED%98%B8"
+    "네이버지도_링크": "https://map.naver.com/v5/search/%EC%B9%98%ED%82%A8%EB%AA%A8%EB%8D%B8%EA%B3%84%ED%83%80%EB%8A%94%EB%82%A0%20%EC%84%9C%EC%9A%B8%20%EB%85%B8%EC%9B%90%EA%B5%AC%20%EB%8F%99%EC%9D%BC%EB%A1%9C%201371%20%ED%98%84%EB%8C%80%ED%94%84%EB%9D%BC%EC%9E%90%EB%B9%8C%EB%94%A9%20107%ED%98%B8",
+    "영업시간": {
+      "mon": "closed",
+      "tue": "16:00-22:30",
+      "wed": "16:00-22:30",
+      "thu": "16:00-22:30",
+      "fri": "16:00-22:30",
+      "sat": "16:00-22:30",
+      "sun": "16:00-22:30"
+    },
+    "휴무일": [
+      "월"
+    ],
+    "정보검증일": "2026-06-22T17:01:35"
   },
   {
     "지역": "동대문구",
