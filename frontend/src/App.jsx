@@ -83,10 +83,10 @@ const RestaurantModal = ({ restaurant, onClose, isVisited, onToggleVisited, myVi
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-container" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-container" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="modal-title">
         <div className="modal-header">
           <div>
-            <div className="modal-title">
+            <div className="modal-title" id="modal-title">
               <span className="modal-emoji">{emoji}</span>
               {cleanName}
             </div>
@@ -662,6 +662,16 @@ function App() {
     setFilterOpen(false);
   };
 
+  const handleResetFilters = () => {
+    setActiveRegion('전체');
+    setSortBy('평점순');
+    setSearchQuery('');
+    setShowFavoritesOnly(false);
+    setShowUnvisitedOnly(false);
+    setShowOpenNowOnly(false);
+    setUserLocation(null);
+  };
+
   const handleViewMode = (mode) => {
     setViewMode(mode);
     setVisibleCount(ITEMS_PER_PAGE);
@@ -780,6 +790,15 @@ function App() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
+              {searchQuery && (
+                <button
+                  className="search-clear"
+                  onClick={() => setSearchQuery('')}
+                  aria-label="검색어 지우기"
+                >
+                  ✕
+                </button>
+              )}
             </div>
             <button
               className={`location-btn ${userLocation ? 'active' : ''}`}
@@ -804,6 +823,7 @@ function App() {
             <div className="filter-container">
               <select
                 className="filter-select"
+                aria-label="지역 선택"
                 value={activeRegion}
                 onChange={(e) => setActiveRegion(e.target.value)}
               >
@@ -815,8 +835,16 @@ function App() {
             <div className="filter-container">
               <select
                 className="filter-select"
+                aria-label="정렬 기준"
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
+                onChange={(e) => {
+                  // 거리순은 위치 정보가 있어야 의미가 있음 — 위치 OFF면 먼저 위치 요청
+                  if (e.target.value === '거리순' && !userLocation) {
+                    handleLocate();
+                  } else {
+                    setSortBy(e.target.value);
+                  }
+                }}
               >
                 <option value="평점순">⭐ 평점순</option>
                 <option value="이름순">가나다순</option>
@@ -827,6 +855,7 @@ function App() {
               <div className="filter-container">
                 <select
                   className="filter-select"
+                  aria-label="반경 선택"
                   value={nearbyRadius}
                   onChange={(e) => setNearbyRadius(Number(e.target.value))}
                 >
@@ -872,10 +901,10 @@ function App() {
             )}
           </div>
 
-          {/* 3행: 결과 수 + 활성 필터 칩 */}
-          {(activeFilterCount > 0 || searchQuery) && (
+          {/* 3행: 결과 수(항상 표시) + 활성 필터 칩 */}
+          {!isSharedMode && (
             <div className="header-row-3">
-              <span className="result-count">{filteredData.length}개 결과</span>
+              <span className="result-count">{filteredData.length.toLocaleString()}개 결과</span>
               {searchQuery && (
                 <button className="filter-chip" onClick={() => setSearchQuery('')}>
                   "{searchQuery}" ×
@@ -934,8 +963,23 @@ function App() {
             ) : (
               <>
                 <div className="empty-icon">🍽️</div>
-                <h2>검색 결과가 없습니다.</h2>
-                <p>선택한 지역의 맛집 정보를 찾을 수 없습니다.</p>
+                <h2>
+                  {searchQuery
+                    ? `"${searchQuery}" 검색 결과가 없습니다`
+                    : showOpenNowOnly
+                    ? '지금 영업 중인 곳이 없습니다'
+                    : showUnvisitedOnly
+                    ? '조건에 맞는 안 가본 곳이 없습니다'
+                    : userLocation
+                    ? '이 반경 안에 맛집이 없습니다'
+                    : '조건에 맞는 맛집이 없습니다'}
+                </h2>
+                <p>필터를 바꾸거나 초기화해 보세요.</p>
+                {(activeFilterCount > 0 || searchQuery) && (
+                  <button className="empty-reset-btn" onClick={handleResetFilters}>
+                    필터 초기화
+                  </button>
+                )}
               </>
             )}
           </div>
@@ -981,7 +1025,7 @@ function App() {
         )}
       </main>
 
-      <button className="random-fab" onClick={handleRandomPick} title="랜덤 맛집 뽑기">
+      <button className="random-fab" onClick={handleRandomPick} title="랜덤 맛집 뽑기" aria-label="랜덤 맛집 뽑기">
         🎲
       </button>
 

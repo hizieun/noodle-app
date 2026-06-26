@@ -611,13 +611,39 @@ a:hover {
   align-items: center;
   flex: 1;
   min-width: 0;
+  position: relative;
+}
+
+.search-clear {
+  position: absolute;
+  right: 0.55rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  border: none;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: all var(--transition-fast);
+}
+
+.search-clear:hover {
+  background: var(--text-accent);
+  color: #fff;
 }
 
 .search-input {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
-  padding: 0.6rem 1rem;
+  padding: 0.6rem 2.2rem 0.6rem 1rem;
   border-radius: 9999px;
   font-size: 0.875rem;
   font-weight: 500;
@@ -1076,6 +1102,35 @@ a:hover {
   opacity: 0.5;
 }
 
+.empty-reset-btn {
+  margin-top: var(--spacing-md);
+  background: var(--bg-secondary);
+  border: 1px solid var(--text-accent);
+  color: var(--text-accent);
+  font-family: var(--font-family);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.5rem 1.1rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.empty-reset-btn:hover {
+  background: var(--text-accent);
+  color: #fff;
+}
+
+.yajang-theme .empty-reset-btn {
+  border-color: var(--text-accent-yajang);
+  color: var(--text-accent-yajang);
+}
+
+.yajang-theme .empty-reset-btn:hover {
+  background: var(--text-accent-yajang);
+  color: #fff;
+}
+
 /* Animations */
 @keyframes fadeIn {
   from {
@@ -1389,6 +1444,7 @@ a:hover {
 
   .title {
     font-size: 1.25rem;
+    white-space: nowrap;
   }
 
   .title-icon {
@@ -1412,6 +1468,8 @@ a:hover {
 
   .restaurant-grid {
     grid-template-columns: 1fr;
+    /* 마지막 카드가 랜덤 FAB에 가리지 않도록 하단 여백 확보 */
+    padding-bottom: 4.5rem;
   }
 }
 
