@@ -168,23 +168,17 @@ export default async function handler(req, res) {
   const relevant = findRelevant(message);
   const systemPrompt = buildSystemPrompt(relevant);
 
-  const contents = [];
-
-  history.forEach(({ role, text }) => {
-    contents.push({ role, parts: [{ text }] });
-  });
-
-  if (contents.length === 0) {
-    contents.push({ role: 'user', parts: [{ text: `${systemPrompt}\n\n질문: ${message}` }] });
-  } else {
-    contents.push({ role: 'user', parts: [{ text: message }] });
-  }
+  // 식당 데이터는 systemInstruction으로 항상 주입 — 이전엔 첫 턴 메시지에만 넣어
+  // 후속 질문에선 grounding 데이터가 사라져 모델이 환각했음.
+  const contents = history.map(({ role, text }) => ({ role, parts: [{ text }] }));
+  contents.push({ role: 'user', parts: [{ text: message }] });
 
   try {
     const geminiRes = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        systemInstruction: { parts: [{ text: systemPrompt }] },
         contents,
         generationConfig: {
           temperature: 0.7,

@@ -45,8 +45,12 @@ def init_driver(retries=3):
             options.add_argument("--no-sandbox")
             options.add_argument("--disable-dev-shm-usage")
             options.add_argument("--disable-gpu")
-            
-            service = Service(ChromeDriverManager().install())
+
+            # CHROMEDRIVER_PATH가 있으면 그 드라이버를 직접 사용 — 로컬에서
+            # ChromeDriverManager().install()가 storage.googleapis.com 네트워크를
+            # 무한 대기하며 멈추는 문제 회피. 미설정 시(CI 등) 기존 자동 해석.
+            driver_path = os.getenv("CHROMEDRIVER_PATH")
+            service = Service(driver_path) if driver_path else Service(ChromeDriverManager().install())
             driver = webdriver.Chrome(service=service, options=options)
             driver.set_page_load_timeout(60)
             return driver
@@ -272,7 +276,8 @@ def save_to_csv(data_dict, file_name):
     output_path = os.path.join(os.getcwd(), file_name)
     with open(output_path, "w", newline="", encoding="utf-8-sig") as csvfile:
         fieldnames = ["지역", "카테고리", "상호명", "주소", "평점", "전화번호", "대표메뉴", "카카오맵_링크", "네이버블로그_링크", "네이버지도_링크"]
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        # 영업시간/휴무일/결제수단은 DB에만 저장하고 CSV엔 안 씀 → 추가 키 무시
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames, extrasaction='ignore')
         writer.writeheader()
         writer.writerows(final_list)
     return output_path

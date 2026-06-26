@@ -552,6 +552,15 @@ function App() {
     return ['전체', ...unique.sort()];
   }, [activeCategory, restaurants]);
 
+  // 영업시간 데이터 커버리지 — 너무 낮으면 "지금 영업중" 필터가 결과를 0에 수렴시켜
+  // 사용자를 혼란시킨다. 30% 이상 채워질 때만 노출 (주간 크롤이 채우면 자동 활성화).
+  // ponytail: 30% 임계값, 데이터 풍부해지면 상수 조정
+  const showOpenNowFeature = useMemo(() => {
+    if (restaurants.length === 0) return false;
+    const withHours = restaurants.filter(r => getBusinessHours(r)).length;
+    return withHours / restaurants.length >= 0.3;
+  }, [restaurants]);
+
   const isSharedMode = sharedListNames.length > 0;
 
   const sharedRestaurants = useMemo(() => {
@@ -852,13 +861,15 @@ function App() {
               {showUnvisitedOnly ? '✓ 안 가본 곳' : '○ 안 가본 곳'}
               {visited.size > 0 && <span className="favorites-count">{visited.size}곳 방문</span>}
             </button>
-            <button
-              className={`open-now-toggle-btn ${showOpenNowOnly ? 'active' : ''}`}
-              onClick={() => setShowOpenNowOnly(prev => !prev)}
-              title="지금 영업 중인 곳만 보기"
-            >
-              🟢 지금 영업중
-            </button>
+            {showOpenNowFeature && (
+              <button
+                className={`open-now-toggle-btn ${showOpenNowOnly ? 'active' : ''}`}
+                onClick={() => setShowOpenNowOnly(prev => !prev)}
+                title="지금 영업 중인 곳만 보기"
+              >
+                🟢 지금 영업중
+              </button>
+            )}
           </div>
 
           {/* 3행: 결과 수 + 활성 필터 칩 */}
@@ -890,7 +901,7 @@ function App() {
                   안 가본 곳 ×
                 </button>
               )}
-              {showOpenNowOnly && (
+              {showOpenNowFeature && showOpenNowOnly && (
                 <button className="filter-chip" onClick={() => setShowOpenNowOnly(false)}>
                   영업중 ×
                 </button>
