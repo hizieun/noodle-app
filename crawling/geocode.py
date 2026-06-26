@@ -28,8 +28,19 @@ def clean_address(address: str) -> str:
     return addr
 
 
+def road_level(address: str) -> str | None:
+    """도로명+건물번호까지만 남기고 건물명/층/호 절단.
+    "서울 중랑구 동일로 631-3 1층 102호" → "서울 중랑구 동일로 631-3"
+    Nominatim이 못 푸는 상세 주소를 건물/거리 단위로 떨어뜨려 매칭률을 높인다."""
+    # 그리디: "고산자로36길" 처럼 도로명에 숫자가 박힌 복합 도로명까지 포함하도록
+    # 마지막 로/길 뒤의 건물번호까지 잡는다.
+    m = re.match(r'(.*(?:로|길)\s*\d+(?:-\d+)?)', address)
+    return m.group(1).strip() if m else None
+
+
 def geocode(address: str) -> tuple[float, float] | None:
-    queries = [address, clean_address(address)]
+    queries = [address, clean_address(address), road_level(address)]
+    queries = [q for q in queries if q]
     for q in dict.fromkeys(queries):  # 중복 제거
         try:
             r = requests.get(

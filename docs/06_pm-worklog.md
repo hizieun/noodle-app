@@ -17,7 +17,7 @@
 | frontend | React 19 + Vite 7, `public/data.json` 런타임 fetch | `App.jsx` 993줄에 로직 집중 |
 | AI 추천 | Vercel 서버리스 `api/chat.js` + Gemini 2.5 Flash | 키워드 스코어링으로 식당 추려 grounding |
 | 크롤러 | Python + Selenium → SQLite → `data.json` + git push | 영업시간 추출 코드 보유 |
-| backend | FastAPI(`backend/main.py`, Railway) `/api/restaurants` | **프론트가 사용하지 않음 — 사용 여부 확인 필요** |
+| backend | `restaurants.db` + `init_db.py`/`migrate_hours.py` (크롤러·CI용) | FastAPI 서버는 미사용 확인 후 제거함 (아래 6.5 참고) |
 | 자동화 | GitHub Actions 주간 크롤(월 03:00 KST) | `weekly-crawl.yml` |
 
 ---
@@ -90,8 +90,7 @@
 - [ ] **`정보검증일` 노출 강화** — 오래된 데이터일수록 신뢰도 표시(이미 모달엔 있음, 카드에도?).
 
 ### 🟡 P2 — 기술 부채 / 유지보수
-- [ ] **`backend/` FastAPI 사용 여부 확정** — 프론트가 `data.json`만 fetch하고
-  `/api/restaurants`는 안 씀. 미사용이면 삭제(Railway 비용·혼란 제거), 쓸 거면 프론트 연동.
+- [x] ~~**`backend/` FastAPI 사용 여부 확정**~~ — 미사용 확인 후 서버 파일 제거 완료 (6.5).
 - [ ] **기존 lint 에러 6건 정리** — 빈 `catch {}` 3곳, `Math.random` 순수성 경고 등
   (`npm run lint`). 이번 세션 변경분이 아닌 기존 문제.
 - [ ] **`App.jsx`(993줄) 분리** — 모달/카드/필터 컴포넌트 추출. **단, 현재 정상 작동하므로
@@ -110,3 +109,33 @@
   `sync_data.py`(→ `public/data.json` + git push). 프론트는 `data.json`만 읽음.
 - **upsert 키**: `(name, address)`. 영업시간/좌표는 `COALESCE`로 **기존 값 보존**(새 값 있을 때만 덮음).
 - **배포**: 반드시 `frontend/` 디렉토리에서 `vercel --prod`.
+
+---
+
+## 6.5 후속 과제 처리 (2차 세션)
+
+### ① 좌표 보강 (geocode.py 개선)
+- 재크롤로 신규 324곳이 들어오며 좌표 미해결이 455곳까지 늘었고, 1차 지오코딩으로 244곳 해결(잔여 211).
+- 잔여 211곳은 전부 `"...로 631-3 1층 102호"`처럼 **건물명/층/호 상세주소**라 Nominatim이 못 풂.
+- **수정** — `geocode.py`에 `road_level()` 추가: 도로명+건물번호까지만 남기고 절단하는 3차 쿼리 폴백.
+  `"고산자로36길"`처럼 도로명에 숫자가 박힌 복합 도로명은 그리디 매칭으로 처리.
+- 잔여분 재지오코딩으로 좌표 커버리지 추가 확보 (결과는 커밋 메시지 참고).
+
+### ② 평점 5.0 쏠림 — **데이터 부족으로 보류 (수정 안 함)**
+- 신규 야장에 평점 5.0이 몰려 평점순 상단을 차지하는 현상. 단, 5.0은 43/1029곳으로 분포 자체는 완만.
+- **근본 한계**: 크롤러가 **리뷰 수를 수집하지 않음** → 리뷰 5개짜리 5.0과 500개짜리 4.5를 구분할 근거가 없음.
+  리뷰 수 없이 정렬을 손대는 건 근거 없는 추측이라 **하지 않음**.
+- **제대로 고치려면**: `kakaomap.py`가 리뷰 수도 수집 → 베이지안 평균(가중 평점)으로 정렬.
+  크롤러 수정 + 전체 재크롤이 필요한 별도 작업이라 백로그로 분리.
+
+### ③ backend FastAPI 서버 제거
+- 프론트는 `/api/chat`(Vercel)·`/data.json`(static)만 호출. FastAPI(`/api/restaurants`,`/api/stats`)는
+  코드 어디서도 참조 안 됨 → 죽은 코드 확인.
+- **제거**: `main.py`, `Procfile`, `railway.toml`, `requirements.txt`, `.env.example`, `server.log`.
+- **유지**: `restaurants.db`(데이터), `init_db.py`/`migrate_hours.py`(크롤러·CI가 사용).
+
+### 남은 백로그 (다음 세션)
+- [ ] 리뷰 수 크롤링 + 가중 평점 정렬 (②의 근본 해결)
+- [ ] 좌표 끝까지 못 푸는 소수 — 카카오 로컬 API 등 대체 지오코더 검토
+- [ ] 기존 lint 에러 6건 정리
+- [ ] 폐업 식당 감지/정리 전략
