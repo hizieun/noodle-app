@@ -62,10 +62,15 @@ export default function ChatPanel({ isOpen, onClose }) {
   return (
     <>
       {isOpen && <div className="chat-overlay" onClick={onClose} />}
-      <div className={`chat-panel ${isOpen ? 'open' : ''}`}>
+      <div
+        className={`chat-panel ${isOpen ? 'open' : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="chat-panel-title"
+      >
         <div className="chat-panel-header">
           <div className="chat-panel-title-group">
-            <span className="chat-panel-title">🤖 AI 맛집 추천</span>
+            <span id="chat-panel-title" className="chat-panel-title">🤖 AI 맛집 추천</span>
             <span className="chat-panel-subtitle">Gemini 2.5 Flash · 노포지도 데이터 기반</span>
           </div>
           <button className="chat-close-btn" onClick={onClose} aria-label="닫기">✕</button>
@@ -78,7 +83,7 @@ export default function ChatPanel({ isOpen, onClose }) {
               <p className="chat-welcome-text">노포·야장 맛집을 AI에게 물어보세요</p>
               <div className="chat-examples">
                 {EXAMPLES.map((ex, i) => (
-                  <button key={i} className="chat-example-chip" onClick={() => send(ex)}>
+                  <button key={i} type="button" className="chat-example-chip" onClick={() => send(ex)}>
                     {ex}
                   </button>
                 ))}
@@ -104,8 +109,10 @@ export default function ChatPanel({ isOpen, onClose }) {
         </div>
 
         <div className="chat-input-area">
+          <label htmlFor="chat-input" className="sr-only">맛집 추천 질문</label>
           <input
             ref={inputRef}
+            id="chat-input"
             className="chat-input"
             placeholder="맛집 추천 질문을 입력하세요..."
             value={input}

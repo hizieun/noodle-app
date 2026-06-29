@@ -99,6 +99,19 @@ a:hover {
   border: 1px solid var(--glass-border);
 }
 
+/* Screen-reader only — 시각적으로 숨기되 접근성 트리에는 유지 */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
 /* Base App Layout */
 .app-container {
   max-width: var(--max-width);
@@ -616,14 +629,14 @@ a:hover {
 
 .search-clear {
   position: absolute;
-  right: 0.55rem;
+  right: 0.35rem;
   top: 50%;
   transform: translateY(-50%);
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 2.75rem;
+  height: 2.75rem;
   border-radius: 50%;
   border: none;
-  background: var(--bg-tertiary);
+  background: transparent;
   color: var(--text-secondary);
   font-size: 0.7rem;
   cursor: pointer;
@@ -643,7 +656,7 @@ a:hover {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   color: var(--text-primary);
-  padding: 0.6rem 2.2rem 0.6rem 1rem;
+  padding: 0.6rem 3.2rem 0.6rem 1rem;
   border-radius: 9999px;
   font-size: 0.875rem;
   font-weight: 500;
@@ -754,7 +767,7 @@ a:hover {
   cursor: pointer;
   font-size: 1rem;
   color: var(--text-secondary);
-  padding: 0.1rem 0.2rem;
+  padding: 0.55rem 0.6rem;
   border-radius: 0.25rem;
   transition: color var(--transition-fast), transform var(--transition-fast);
   line-height: 1;
@@ -769,13 +782,13 @@ a:hover {
   color: #22c55e;
 }
 
-/* Visited card state */
+/* Visited card state — opacity 대신 배경색으로 방문 상태 표현해 텍스트 대비 유지 */
 .card.visited {
-  opacity: 0.6;
+  background: var(--bg-tertiary);
 }
 
 .card.visited:hover {
-  opacity: 0.85;
+  background: var(--bg-card-hover);
 }
 
 /* Visited badge on card */
@@ -918,7 +931,7 @@ a:hover {
   cursor: pointer;
   font-size: 1.1rem;
   color: var(--text-secondary);
-  padding: 0.1rem 0.2rem;
+  padding: 0.55rem 0.6rem;
   border-radius: 0.25rem;
   transition: color var(--transition-fast), transform var(--transition-fast);
   line-height: 1;
@@ -1061,6 +1074,13 @@ a:hover {
 
 .card:hover .card-detail-hint {
   opacity: 1;
+}
+
+/* 터치 기기(hover 미지원)에서는 항상 힌트 표시 */
+@media (hover: none) {
+  .card-detail-hint {
+    opacity: 1;
+  }
 }
 
 /* Loading State */
@@ -1247,8 +1267,8 @@ a:hover {
   background: var(--bg-tertiary);
   border: 1px solid var(--border-color);
   color: var(--text-secondary);
-  width: 2rem;
-  height: 2rem;
+  width: 2.75rem;
+  height: 2.75rem;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -1871,5 +1891,13 @@ a:hover {
 @media (max-width: 480px) {
   .chat-panel {
     width: 100vw;
+  }
+
+  /* 헤더 과밀 완화 — 텍스트 노드가 분리되지 않아 CSS로 텍스트만 숨기기 불가.
+     font-size/padding 축소로 폭만 줄임. 아이콘 단독 노출은 App.jsx span 래핑 필요. */
+  .chat-open-btn {
+    font-size: 0.72rem;
+    padding: 0.4rem 0.6rem;
+    gap: 0.2rem;
   }
 }
