@@ -214,6 +214,46 @@ def extract_phone(place):
         return ""
 
 
+def extract_review_count(place):
+    """PlaceItem에서 카카오 자체 후기 수 추출. 실패 시 None 반환.
+
+    카카오맵 .rating 블록 구조 (2025 기준):
+      .numberofscore  — "240건" 형태 (카카오 자체 별점 후기 수) ← 1순위
+      em[data-id="numberofreview"]  — 블로그 리뷰 수 (참고용) ← 2순위 폴백
+
+    headless 환경에서 .text가 빈 문자열을 반환하는 경우를 대비해
+    textContent(JS 속성)를 우선 사용한다.
+    """
+    def _get_text(el):
+        """headless에서도 안정적인 텍스트 추출 (.text → textContent 순)."""
+        t = el.text.strip()
+        if not t:
+            t = (el.get_attribute("textContent") or "").strip()
+        return t
+
+    # 1순위: 카카오 자체 후기 수 (".numberofscore" → "240건")
+    try:
+        el = place.find_element(By.CSS_SELECTOR, ".rating .numberofscore")
+        raw = _get_text(el)
+        nums = re.findall(r"\d+", raw)
+        if nums:
+            return int(nums[0])
+    except:
+        pass
+
+    # 2순위 폴백: 블로그 리뷰 수 (em[data-id="numberofreview"])
+    try:
+        el = place.find_element(By.CSS_SELECTOR, ".rating em[data-id='numberofreview']")
+        raw = _get_text(el)
+        nums = re.findall(r"\d+", raw)
+        if nums:
+            return int(nums[0])
+    except:
+        pass
+
+    return None
+
+
 def save_to_db(data_list):
     """수집된 데이터를 DB에 저장 (Upsert)"""
     if not data_list:
@@ -234,8 +274,9 @@ def save_to_db(data_list):
             INSERT INTO restaurants (
                 region, category, name, address, rating, phone, menus,
                 kakao_link, naver_blog_link, naver_map_link,
-                business_hours, closed_days, payment, last_verified_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                business_hours, closed_days, payment, last_verified_at,
+                review_count
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(name, address) DO UPDATE SET
                 region=excluded.region,
                 category=excluded.category,
@@ -249,12 +290,14 @@ def save_to_db(data_list):
                 closed_days=COALESCE(excluded.closed_days, closed_days),
                 payment=COALESCE(excluded.payment, payment),
                 last_verified_at=COALESCE(excluded.last_verified_at, last_verified_at),
+                review_count=COALESCE(excluded.review_count, review_count),
                 updated_at=CURRENT_TIMESTAMP
             ''', (
                 row['지역'], row['카테고리'], row['상호명'], row['주소'],
                 row['평점'], row['전화번호'], row['대표메뉴'],
                 row['카카오맵_링크'], row['네이버블로그_링크'], row['네이버지도_링크'],
                 bh_json, cd_json, pay_json, verified_at,
+                row.get('리뷰수'),
             ))
         except Exception as e:
             print(f"❌ DB 저장 실패: {e}")
@@ -332,6 +375,7 @@ for category_word in categories:
 
                     phone = extract_phone(place)
                     place_id = extract_place_id(place)
+                    review_count = extract_review_count(place)
 
                     raw_places.append({
                         "name": name,
@@ -339,6 +383,7 @@ for category_word in categories:
                         "rating": rating,
                         "phone": phone,
                         "place_id": place_id,
+                        "review_count": review_count,
                     })
                 except Exception as e:
                     continue
@@ -369,6 +414,7 @@ for category_word in categories:
                         "영업시간": bh,
                         "휴무일": cd,
                         "결제수단": pay,
+                        "리뷰수": info["review_count"],
                     })
                 except:
                     continue

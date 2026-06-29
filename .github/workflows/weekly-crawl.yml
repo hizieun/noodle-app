@@ -32,7 +32,9 @@ jobs:
         run: pip install -r crawling/requirements.txt
 
       - name: Migrate DB schema (idempotent)
-        run: python backend/migrate_hours.py
+        run: |
+          python backend/migrate_hours.py
+          python backend/migrate_review_count.py
 
       - name: Crawl (노포 + 야장 전체)
         run: python crawling/kakaomap.py

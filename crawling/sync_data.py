@@ -43,6 +43,7 @@ def export_db_to_json():
                 closed_days    AS 휴무일,
                 payment        AS 결제수단,
                 last_verified_at AS 정보검증일,
+                review_count   AS 리뷰수,
                 lat, lng
             FROM restaurants
             ORDER BY CAST(rating AS REAL) DESC
