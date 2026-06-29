@@ -120,12 +120,14 @@ GitHub Actions에 의해 **매주 월요일 새벽 3시** 자동으로 실행됩
 
 ## 🌐 배포
 
+`main` 브랜치에 push하면 Vercel이 **자동 배포**합니다 (noodle 프로젝트, Root Directory `frontend` / Framework Vite).
+
+수동 배포가 필요하면 `frontend/` 디렉토리에서:
+
 ```bash
 cd frontend
 vercel --prod
 ```
-
-> ⚠️ 루트(`/noodle`)가 아닌 반드시 `frontend/` 디렉토리에서 실행해야 합니다.
 
 ---
 
