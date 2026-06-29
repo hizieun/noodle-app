@@ -38,6 +38,7 @@ const RestaurantModal = ({ restaurant, onClose, isVisited, onToggleVisited, myVi
   const [memoDraft, setMemoDraft] = useState(myVisit?.memo || '');
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: reset draft when restaurant prop changes (derived-state pattern)
     setMemoDraft(myVisit?.memo || '');
   }, [restaurant, myVisit]);
 
@@ -424,7 +425,7 @@ function App() {
           if (found) setSelectedRestaurant(found);
         }
       });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   // 필터 변경 시 더 보기 초기화
   useEffect(() => {
@@ -443,7 +444,7 @@ function App() {
       }
       try {
         localStorage.setItem('nopo-favorites', JSON.stringify([...next]));
-      } catch {}
+      } catch { /* intentionally ignored: localStorage unavailable (private mode, quota exceeded) */ }
       return next;
     });
   };
@@ -461,7 +462,7 @@ function App() {
       }
       try {
         localStorage.setItem('nopo-visited', JSON.stringify([...next]));
-      } catch {}
+      } catch { /* intentionally ignored: localStorage unavailable (private mode, quota exceeded) */ }
       // 방문 해제 시 평점/메모도 같이 제거 (의도 일관성)
       if (willUnvisit) {
         setMyVisits(prevVisits => {
@@ -527,7 +528,7 @@ function App() {
       });
       try {
         localStorage.setItem('nopo-favorites', JSON.stringify([...next]));
-      } catch {}
+      } catch { /* intentionally ignored: localStorage unavailable (private mode, quota exceeded) */ }
       return next;
     });
     setImportedCount(added);
@@ -634,6 +635,7 @@ function App() {
 
   const handleRandomPick = () => {
     if (filteredData.length === 0) return;
+    // eslint-disable-next-line react-hooks/purity -- Math.random is intentional here; this is an event handler, not a render-time call
     const pick = filteredData[Math.floor(Math.random() * filteredData.length)];
     handleOpenRestaurant(pick);
   };

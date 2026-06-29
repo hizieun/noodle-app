@@ -23,7 +23,7 @@ export function loadVisits() {
 export function saveVisits(visitsObj) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(visitsObj));
-  } catch {}
+  } catch { /* intentionally ignored: localStorage unavailable (private mode, quota exceeded) */ }
 }
 
 export function getVisit(visits, key) {
