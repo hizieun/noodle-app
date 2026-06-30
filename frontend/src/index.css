@@ -1642,6 +1642,212 @@ a:hover {
   transform: translateY(-1px);
 }
 
+/* ── Section Header ────────────────────────────────────────────────────────── */
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: var(--spacing-lg);
+}
+
+.section-header-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border-color);
+}
+
+.section-header-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ── Featured "오늘의 발견" Card ────────────────────────────────────────────── */
+
+.featured-card {
+  background: var(--bg-secondary);
+  border-radius: 1.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: var(--spacing-xl);
+  margin-bottom: var(--spacing-lg);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--transition-default), box-shadow var(--transition-default), border-color var(--transition-default);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.featured-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background: linear-gradient(to right, var(--text-accent), rgba(244, 63, 94, 0.2), transparent);
+  opacity: 0.8;
+  transition: opacity var(--transition-default);
+}
+
+.featured-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.featured-card:hover::before {
+  opacity: 1;
+}
+
+.featured-card:focus-visible {
+  outline: 2px solid var(--text-accent);
+  outline-offset: 2px;
+}
+
+.featured-label-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.featured-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-accent);
+  background: rgba(244, 63, 94, 0.12);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+}
+
+.yajang-theme .featured-label {
+  color: var(--text-accent-yajang);
+  background: rgba(251, 146, 60, 0.12);
+  border-color: rgba(251, 146, 60, 0.3);
+}
+
+.featured-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.featured-emoji {
+  font-size: 2.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.featured-name {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.featured-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.featured-rating {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fbbf24;
+}
+
+.featured-address {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.featured-menus {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.25rem;
+}
+
+.featured-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.5rem;
+}
+
+.featured-hint {
+  font-size: 0.8rem;
+  color: var(--text-accent);
+  font-weight: 600;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.featured-card:hover .featured-hint {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .featured-hint {
+    opacity: 1;
+  }
+}
+
+.featured-reshuffle-btn {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 0.4rem 0.9rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-family: var(--font-family);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.featured-reshuffle-btn:hover {
+  border-color: var(--text-accent);
+  color: var(--text-accent);
+}
+
+.yajang-theme .featured-reshuffle-btn:hover {
+  border-color: var(--text-accent-yajang);
+  color: var(--text-accent-yajang);
+}
+
+/* featured 카드 모바일 반응형 */
+@media (max-width: 768px) {
+  .featured-card {
+    padding: var(--spacing-lg);
+  }
+
+  .featured-name {
+    font-size: 1.4rem;
+  }
+
+  .featured-emoji {
+    font-size: 2rem;
+  }
+}
+
 .chat-overlay {
   position: fixed;
   inset: 0;

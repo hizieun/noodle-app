@@ -264,6 +264,77 @@ const RestaurantModal = ({ restaurant, onClose, isVisited, onToggleVisited, myVi
   );
 };
 
+// --- Featured "오늘의 발견" Card Component ---
+const FeaturedCard = ({ restaurant, onOpen, onReshuffle }) => {
+  const { emoji, cleanName } = formatRestaurantName(restaurant.상호명);
+  const menus = restaurant.대표메뉴
+    ? restaurant.대표메뉴.split(',').map(m => m.trim()).filter(Boolean)
+    : [];
+  const openStatus = isOpenNow(restaurant);
+
+  const distanceLabel = restaurant.distance !== null && restaurant.distance !== undefined
+    ? restaurant.distance < 1
+      ? `${Math.round(restaurant.distance * 1000)}m`
+      : `${restaurant.distance.toFixed(1)}km`
+    : null;
+
+  return (
+    <div
+      className="featured-card animate-fade-in"
+      onClick={() => onOpen(restaurant)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onOpen(restaurant); }}
+      aria-label={`오늘의 발견: ${cleanName}`}
+    >
+      <div className="featured-label-row">
+        <span className="featured-label">오늘의 발견</span>
+        {openStatus === 'open' && <span className="open-badge open">🟢 영업중</span>}
+        {openStatus === 'closed' && <span className="open-badge closed">🔴 영업종료</span>}
+      </div>
+
+      <div className="featured-title-row">
+        <span className="featured-emoji">{emoji}</span>
+        <h2 className="featured-name">{cleanName}</h2>
+      </div>
+
+      <div className="featured-meta">
+        <span className="card-region">{restaurant.지역}</span>
+        <span className="featured-rating">⭐ {restaurant.평점 !== '정보 없음' ? restaurant.평점 : '-'}</span>
+        {distanceLabel && <span className="distance-badge">📍 {distanceLabel}</span>}
+      </div>
+
+      <div className="featured-address">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="14" height="14">
+          <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+          <circle cx="12" cy="10" r="3"></circle>
+        </svg>
+        {restaurant.주소}
+      </div>
+
+      {menus.length > 0 && (
+        <div className="featured-menus">
+          {menus.slice(0, 5).map((menu, i) => (
+            <span key={i} className="menu-tag">{menu}</span>
+          ))}
+        </div>
+      )}
+
+      <div className="featured-footer">
+        <span className="featured-hint">자세히 보기 →</span>
+        <button
+          className="featured-reshuffle-btn"
+          onClick={(e) => { e.stopPropagation(); onReshuffle(); }}
+          title="같은 카테고리 내 다른 식당으로 교체"
+          aria-label="다른 식당 추천"
+        >
+          🎲 다른 곳
+        </button>
+      </div>
+    </div>
+  );
+};
+
 // --- Card Component ---
 const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite, isVisited, onToggleVisited, distance, myVisit }) => {
   const { emoji, cleanName } = formatRestaurantName(data.상호명);
@@ -334,6 +405,17 @@ const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite, i
   );
 };
 
+// 날짜 문자열(YYYY-MM-DD 등)을 결정적 정수로 해시 → pool 크기 modulo
+// Math.random 없이 오늘 하루 고정, 매일 변경되는 인덱스 생성
+const dateHashIndex = (poolLength, seed) => {
+  if (poolLength === 0) return 0;
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) {
+    h = (h * 31 + seed.charCodeAt(i)) & 0xffffff;
+  }
+  return h % poolLength;
+};
+
 const toRad = (d) => (d * Math.PI) / 180;
 const haversine = (lat1, lng1, lat2, lng2) => {
   const R = 6371;
@@ -387,6 +469,7 @@ function App() {
   const [importedCount, setImportedCount] = useState(0);
   const [userLocation, setUserLocation] = useState(null); // { lat, lng }
   const [nearbyRadius, setNearbyRadius] = useState(3);    // km
+  const [reshuffleIdx, setReshuffleIdx] = useState(null); // null = 날짜픽, 숫자 = 리셔플 인덱스
 
   // PWA 설치 프롬프트
   useEffect(() => {
@@ -574,6 +657,37 @@ function App() {
 
   const isSharedMode = sharedListNames.length > 0;
 
+  // 홈 상태: 의도적 탐색(검색/필터/지도/공유모드) 중 하나라도 active면 false
+  const isHomeState =
+    !searchQuery &&
+    activeRegion === '전체' &&
+    sortBy === '평점순' &&
+    !showFavoritesOnly &&
+    !showUnvisitedOnly &&
+    !showOpenNowOnly &&
+    !userLocation &&
+    viewMode !== 'map' &&
+    !isSharedMode;
+
+  // featured 카드 선정 풀: 카테고리만 적용 (필터/정렬 무관하게 전체 카테고리)
+  const categoryPool = useMemo(() => {
+    const inCategory = restaurants.filter(r => r.카테고리 === activeCategory);
+    // "오늘의 발견" 히어로 품질 확보: 평점 4.0 이상만 후보. 후보가 너무 적으면 전체로 폴백.
+    const highRated = inCategory.filter(r => (parseFloat(r.평점) || 0) >= 4.0);
+    return highRated.length >= 10 ? highRated : inCategory;
+  }, [restaurants, activeCategory]);
+
+  // featured 카드: 날짜+카테고리 시드로 결정적 픽, 리셔플 시 인덱스 덮어씀
+  const featuredRestaurant = useMemo(() => {
+    if (!isHomeState || categoryPool.length === 0) return null;
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const dateIdx = dateHashIndex(categoryPool.length, activeCategory + today);
+    const idx = reshuffleIdx !== null
+      ? (reshuffleIdx % categoryPool.length)
+      : dateIdx;
+    return categoryPool[idx] ?? null;
+  }, [isHomeState, categoryPool, activeCategory, reshuffleIdx]);
+
   const sharedRestaurants = useMemo(() => {
     if (!isSharedMode || restaurants.length === 0) return [];
     const nameToRestaurant = new Map(restaurants.map(r => [r.상호명, r]));
@@ -684,6 +798,7 @@ function App() {
     setShowUnvisitedOnly(false);
     setShowOpenNowOnly(false);
     setFilterOpen(false);
+    setReshuffleIdx(null); // 카테고리 변경 시 날짜픽으로 리셋
   };
 
   const handleResetFilters = () => {
@@ -710,7 +825,12 @@ function App() {
     userLocation !== null,
   ].filter(Boolean).length;
 
-  const visibleData = filteredData.slice(0, visibleCount);
+  // featured 카드와 같은 항목은 그리드에서 제외 (홈 상태에서만, 비홈이면 전부 표시)
+  const featuredKey = featuredRestaurant ? favKey(featuredRestaurant) : null;
+  const gridData = featuredKey
+    ? filteredData.filter(r => favKey(r) !== featuredKey)
+    : filteredData;
+  const visibleData = gridData.slice(0, visibleCount);
 
   if (dataLoading) {
     return (
@@ -1019,6 +1139,24 @@ function App() {
           </Suspense>
         ) : (
           <>
+            {/* featured "오늘의 발견" 카드: 홈 상태에서만 */}
+            {featuredRestaurant && (
+              <FeaturedCard
+                restaurant={featuredRestaurant}
+                onOpen={handleOpenRestaurant}
+                onReshuffle={() => {
+                  setReshuffleIdx(Math.floor(Math.random() * categoryPool.length));
+                }}
+              />
+            )}
+
+            {/* 섹션 헤더: 그리드 위 항상 */}
+            <div className="section-header">
+              <span className="section-header-line" />
+              <span className="section-header-text">{sortBy} · {filteredData.length}곳</span>
+              <span className="section-header-line" />
+            </div>
+
             <div className="restaurant-grid">
               {visibleData.map((restaurant, index) => (
                 <RestaurantCard
@@ -1035,13 +1173,13 @@ function App() {
                 />
               ))}
             </div>
-            {visibleCount < filteredData.length && (
+            {visibleCount < gridData.length && (
               <div className="load-more-container">
                 <button
                   className="load-more-btn"
                   onClick={() => setVisibleCount(prev => prev + ITEMS_PER_PAGE)}
                 >
-                  더 보기 ({visibleCount} / {filteredData.length})
+                  더 보기 ({visibleCount} / {gridData.length})
                 </button>
               </div>
             )}
