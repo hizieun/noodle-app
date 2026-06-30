@@ -32,8 +32,7 @@
 
 ### Must (P0) — 데이터 정합성·신선도
 
-_현재 비어 있음._
-- ⏳ **남은 수동 1건**: GitHub 저장소에 Secret `KAKAO_REST_API_KEY` 추가 (Settings→Secrets→Actions). 추가하면 주간 크롤이 Nominatim 잔여분을 Kakao로 자동 보강. 미설정이어도 워크플로는 graceful skip.
+_현재 비어 있음. (Kakao CI 폴백 secret 등록 완료 — 다음 크롤 로그에서 동작 확인 예정)_
 
 ### Should (P1) — 기술 부채
 
