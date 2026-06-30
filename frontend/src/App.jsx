@@ -562,6 +562,16 @@ function App() {
     return withHours / restaurants.length >= 0.3;
   }, [restaurants]);
 
+  // 베이지안 가중 평점 정렬용 전역 평균 (카테고리 기준, 필터와 무관하게 안정적인 C값 보장)
+  // WR = (v/(v+m))*R + (m/(v+m))*C  (m=15: 리뷰 15개 미만은 평균 쪽으로 수렴)
+  const BAYESIAN_M = 15;
+  const globalAvgRating = useMemo(() => {
+    const categoryData = restaurants.filter(r => r.카테고리 === activeCategory);
+    const ratings = categoryData.map(r => parseFloat(r.평점)).filter(v => !isNaN(v) && v > 0);
+    if (ratings.length === 0) return 0;
+    return ratings.reduce((sum, v) => sum + v, 0) / ratings.length;
+  }, [restaurants, activeCategory]);
+
   const isSharedMode = sharedListNames.length > 0;
 
   const sharedRestaurants = useMemo(() => {
@@ -627,11 +637,23 @@ function App() {
     } else if (sortBy === '거리순') {
       sorted.sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
     } else {
-      sorted.sort((a, b) => (parseFloat(b.평점) || 0) - (parseFloat(a.평점) || 0));
+      // 베이지안 가중 평점 정렬: WR = (v/(v+m))*R + (m/(v+m))*C
+      // 폴백: 리뷰수(v) 없으면 원래 평점 R로 정렬 — review_count 미수집 상태(데이터 0건)에선
+      // 기존 평점순과 동일하게 동작(회귀 없음). 주간 크롤로 리뷰수가 차면 가중치 자동 활성화.
+      const C = globalAvgRating;
+      const m = BAYESIAN_M;
+      const bayesian = (item) => {
+        const R = parseFloat(item.평점) || 0;
+        const v = item.리뷰수 ?? 0;
+        if (R === 0) return 0;
+        if (v === 0) return R;
+        return (v / (v + m)) * R + (m / (v + m)) * C;
+      };
+      sorted.sort((a, b) => bayesian(b) - bayesian(a));
     }
 
     return sorted;
-  }, [isSharedMode, sharedRestaurants, activeCategory, activeRegion, restaurants, searchQuery, showFavoritesOnly, showUnvisitedOnly, showOpenNowOnly, sortBy, favorites, visited, userLocation, nearbyRadius]);
+  }, [isSharedMode, sharedRestaurants, activeCategory, activeRegion, restaurants, searchQuery, showFavoritesOnly, showUnvisitedOnly, showOpenNowOnly, sortBy, favorites, visited, userLocation, nearbyRadius, globalAvgRating]);
 
   const handleRandomPick = () => {
     if (filteredData.length === 0) return;
