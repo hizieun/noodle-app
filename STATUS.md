@@ -13,7 +13,7 @@
 | 배포 방식 | `main` push → Vercel 자동 배포 (Root Dir: `frontend`, Framework: Vite) |
 | 식당 수 | **1,029곳** (노포 + 야장, 서울 25개 구) |
 | 영업시간 커버리지 | **60%** (622곳) — "지금 영업중" 필터 30% 게이트 통과, 실제 작동 |
-| 좌표 커버리지 | **89%** (916곳) — 미해결 103곳은 상세주소 미파싱 |
+| 좌표 커버리지 | **100%** (1,030곳) — Kakao Local API로 잔여분 보강 완료 |
 | AI 챗봇 | Gemini 2.5 Flash, `systemInstruction` grounding, 모든 턴 작동 |
 | 자동 크롤링 | GitHub Actions 매주 월요일 03:00 KST |
 | PWA | Service Worker 오프라인 캐시, 홈화면 추가 |
@@ -32,9 +32,7 @@
 
 ### Must (P0) — 데이터 정합성·신선도
 
-| 작업 | 배경 | 예상 시간 |
-|------|------|-----------|
-| 좌표 미해결 103곳 — 대체 지오코더 검토 | 카카오 로컬 API 등 Nominatim 이후 대안 | 저녁 1–2h (조사) + 주말 (적용) |
+_현재 비어 있음. (선택 후속: 주간 크롤 CI에 Kakao 지오코더를 폴백으로 통합 — KAKAO_REST_API_KEY를 GitHub Secret으로)_
 
 ### Should (P1) — 기술 부채
 
@@ -73,6 +71,8 @@ _현재 비어 있음 (챗봇 식당명 링크 완료 — 마일스톤 참고)_
 | 2026-06-30 | 리팩토링: App.jsx 1300→825줄, 컴포넌트(Modal/Card/Featured/Skeleton)·유틸(format/geo) 분리 (동작 무변경, 스모크 16/16) |
 | 2026-06-30 | 폐업 식당 소프트 정리 배포: last_seen/active/missed_crawls, 연속 3회 미발견 시 숨김(재발견 복구, 0건 가드), data.json은 active만. 다음 주 크롤부터 점진 정리 |
 | 2026-06-30 | 챗봇 식당명 링크 배포: AI 답변 속 식당명 클릭 → 상세 모달(grounded set 매칭, 단위 7/7) |
+| 2026-06-30 | 챗봇 API 키 복구: noodle 프로젝트에 GEMINI_API_KEY 누락(도메인 이전 영향) → 재설정·검증 |
+| 2026-06-30 | 대체 지오코더(Kakao Local API): 잔여 104곳 보강 → 좌표 커버리지 100% |
 
 ---
 
