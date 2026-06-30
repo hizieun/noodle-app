@@ -137,8 +137,10 @@ a:hover {
   background: radial-gradient(circle, rgba(251, 146, 60, 0.1) 0%, transparent 70%);
 }
 
-/* PWA Install Banner */
+/* PWA Install Banner — #root 직계 자식으로 full-width 블록 */
 .install-banner {
+  width: 100%;
+  box-sizing: border-box;
   background: linear-gradient(135deg, rgba(244,63,94,0.15), rgba(251,146,60,0.1));
   border-bottom: 1px solid rgba(244,63,94,0.25);
   padding: 0.6rem var(--spacing-md);
@@ -1056,6 +1058,70 @@ a:hover {
   }
 }
 
+/* Skeleton Loading */
+@keyframes shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+.skeleton-screen {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: var(--spacing-xl) var(--spacing-md);
+  min-height: 100vh;
+}
+
+.skeleton-bar {
+  background: var(--bg-tertiary);
+  background-image: linear-gradient(
+    120deg,
+    var(--bg-tertiary) 0%,
+    rgba(255, 255, 255, 0.06) 40%,
+    var(--bg-tertiary) 80%
+  );
+  background-size: 800px 100%;
+  background-repeat: no-repeat;
+  border-radius: 0.4rem;
+  animation: shimmer 1.4s linear infinite;
+}
+
+.skeleton-logo-bar {
+  width: 180px;
+  height: 2rem;
+  margin-bottom: var(--spacing-md);
+  border-radius: 0.5rem;
+}
+
+.skeleton-card {
+  background: var(--bg-secondary);
+  border-radius: 1rem;
+  border: 1px solid var(--border-color);
+  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.skeleton-card .title-bar {
+  width: 65%;
+  height: 1.25rem;
+}
+
+.skeleton-card .address-bar {
+  width: 85%;
+  height: 0.875rem;
+}
+
+.skeleton-card .footer-bar {
+  width: 40%;
+  height: 0.875rem;
+  margin-top: 0.5rem;
+}
+
 /* Empty State */
 .empty-state {
   text-align: center;
@@ -1482,11 +1548,40 @@ a:hover {
 /* Map Layout */
 .main-map {
   padding: 0 !important;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
+
+/* map-mode: body/root 여백 제거 후 app-container를 flex column + 고정 높이.
+   리스트뷰에는 이 클래스가 없으므로 리스트 레이아웃에 영향 없음. */
+body.map-mode {
+  padding-bottom: 0;
+  overflow: hidden;
+}
+
+body.map-mode #root {
+  padding-bottom: 0;
+}
+
+.app-container.map-mode {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  padding-left: 0;
+  padding-right: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* map-mode 일 때 header는 shrink 허용(flex 기본), main-map 이 flex:1로 나머지 높이 가져감. */
 
 .map-wrapper {
   position: relative;
-  height: calc(100vh - 80px);
+  height: 100%;
+  min-height: 0;
+  flex: 1;
 }
 
 .leaflet-map {

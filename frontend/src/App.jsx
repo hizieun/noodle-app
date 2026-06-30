@@ -468,6 +468,39 @@ const haversine = (lat1, lng1, lat2, lng2) => {
 
 const ITEMS_PER_PAGE = 30;
 
+// --- Skeleton Loading ---
+const SkeletonCard = () => (
+  <div className="skeleton-card">
+    <div className="skeleton-bar title-bar"></div>
+    <div className="skeleton-bar address-bar"></div>
+    <div className="skeleton-bar footer-bar"></div>
+  </div>
+);
+
+const SkeletonGrid = () => (
+  <div className="skeleton-screen">
+    <div className="skeleton-logo-bar skeleton-bar"></div>
+    <div className="restaurant-grid" style={{ marginTop: '1.5rem' }}>
+      {Array.from({ length: 6 }).map((_, i) => (
+        <SkeletonCard key={i} />
+      ))}
+    </div>
+  </div>
+);
+
+// 설치 배너 억제: 7일 이내 닫은 적 있으면 숨김
+const INSTALL_DISMISSED_KEY = 'nopo-install-dismissed';
+const INSTALL_SUPPRESS_MS = 7 * 24 * 60 * 60 * 1000;
+const isInstallBannerSuppressed = () => {
+  try {
+    const ts = localStorage.getItem(INSTALL_DISMISSED_KEY);
+    if (!ts) return false;
+    return Date.now() - Number(ts) < INSTALL_SUPPRESS_MS;
+  } catch {
+    return false;
+  }
+};
+
 // --- App Main ---
 function App() {
   const [restaurants, setRestaurants] = useState([]);
@@ -510,12 +543,14 @@ function App() {
   const [nearbyRadius, setNearbyRadius] = useState(3);    // km
   const [reshuffleIdx, setReshuffleIdx] = useState(null); // null = 날짜픽, 숫자 = 리셔플 인덱스
 
-  // PWA 설치 프롬프트
+  // PWA 설치 프롬프트 — 7일 이내 닫은 이력 있으면 표시 안 함
   useEffect(() => {
     const handler = (e) => {
       e.preventDefault();
       setInstallPrompt(e);
-      setShowInstallBanner(true);
+      if (!isInstallBannerSuppressed()) {
+        setShowInstallBanner(true);
+      }
     };
     window.addEventListener('beforeinstallprompt', handler);
     return () => window.removeEventListener('beforeinstallprompt', handler);
@@ -527,6 +562,13 @@ function App() {
     const { outcome } = await installPrompt.userChoice;
     if (outcome === 'accepted') setShowInstallBanner(false);
     setInstallPrompt(null);
+  };
+
+  const handleDismissInstallBanner = () => {
+    setShowInstallBanner(false);
+    try {
+      localStorage.setItem(INSTALL_DISMISSED_KEY, String(Date.now()));
+    } catch { /* localStorage unavailable */ }
   };
 
   // data.json fetch + URL ?r= 파라미터 처리
@@ -548,6 +590,16 @@ function App() {
         }
       });
   }, []);
+
+  // 지도뷰일 때 body 여백 제거 (map-mode class)
+  useEffect(() => {
+    if (viewMode === 'map') {
+      document.body.classList.add('map-mode');
+    } else {
+      document.body.classList.remove('map-mode');
+    }
+    return () => document.body.classList.remove('map-mode');
+  }, [viewMode]);
 
   // 필터 변경 시 더 보기 초기화
   useEffect(() => {
@@ -872,25 +924,22 @@ function App() {
   const visibleData = gridData.slice(0, visibleCount);
 
   if (dataLoading) {
-    return (
-      <div className="loading" style={{ minHeight: '100vh' }}>
-        <div className="spinner"></div>
-        <span>맛집 불러오는 중...</span>
-      </div>
-    );
+    return <SkeletonGrid />;
   }
 
   return (
-    <div className={`app-container ${activeCategory === '야장' ? 'yajang-theme' : ''}`}>
-      {showInstallBanner && (
+    <>
+      {/* 설치 배너: app-container 밖 full-width 블록, 공유 배너와 동시엔 숨김 */}
+      {showInstallBanner && !isSharedMode && (
         <div className="install-banner">
           <span>📱 홈화면에 추가하면 앱처럼 사용할 수 있어요</span>
           <div className="install-banner-actions">
             <button className="install-banner-btn primary" onClick={handleInstall}>추가하기</button>
-            <button className="install-banner-btn" onClick={() => setShowInstallBanner(false)}>✕</button>
+            <button className="install-banner-btn" onClick={handleDismissInstallBanner}>✕</button>
           </div>
         </div>
       )}
+      <div className={`app-container ${activeCategory === '야장' ? 'yajang-theme' : ''} ${viewMode === 'map' ? 'map-mode' : ''}`}>
       {isSharedMode && (
         <div className="share-banner">
           <span className="share-banner-title">
@@ -1244,6 +1293,7 @@ function App() {
 
       <ChatPanel isOpen={chatOpen} onClose={() => setChatOpen(false)} />
     </div>
+    </>
   );
 }
 
