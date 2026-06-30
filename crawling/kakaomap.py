@@ -29,12 +29,16 @@ parser.add_argument(
 args = parser.parse_args()
 categories = args.categories
 
+RUN_STARTED_AT = datetime.now().isoformat(timespec='seconds')
+
 file_path = os.path.join(os.getcwd(), "crawling", "keywords.txt")
 
 with open(file_path, "r", encoding="utf-8") as f:
     keywords = [line.strip() for line in f if line.strip()]
 
 results_by_region = defaultdict(list)
+# (category, keyword) 쌍별 수집 건수 추적 — sweep 가드에 사용
+crawl_counts = {}
 
 def init_driver(retries=3):
     """드라이버 초기화 및 옵션 설정"""
@@ -275,8 +279,8 @@ def save_to_db(data_list):
                 region, category, name, address, rating, phone, menus,
                 kakao_link, naver_blog_link, naver_map_link,
                 business_hours, closed_days, payment, last_verified_at,
-                review_count
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                review_count, last_seen_at, active, missed_crawls
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0)
             ON CONFLICT(name, address) DO UPDATE SET
                 region=excluded.region,
                 category=excluded.category,
@@ -291,13 +295,14 @@ def save_to_db(data_list):
                 payment=COALESCE(excluded.payment, payment),
                 last_verified_at=COALESCE(excluded.last_verified_at, last_verified_at),
                 review_count=COALESCE(excluded.review_count, review_count),
+                last_seen_at=excluded.last_seen_at,
                 updated_at=CURRENT_TIMESTAMP
             ''', (
                 row['지역'], row['카테고리'], row['상호명'], row['주소'],
                 row['평점'], row['전화번호'], row['대표메뉴'],
                 row['카카오맵_링크'], row['네이버블로그_링크'], row['네이버지도_링크'],
                 bh_json, cd_json, pay_json, verified_at,
-                row.get('리뷰수'),
+                row.get('리뷰수'), RUN_STARTED_AT,
             ))
         except Exception as e:
             print(f"❌ DB 저장 실패: {e}")
@@ -420,6 +425,8 @@ for category_word in categories:
                     continue
 
             # 지역 하나 끝날 때마다 임시 저장 (CSV & DB)
+            # raw_places 길이로 이번 이터레이션 수집 건수 기록 (sweep 가드용)
+            crawl_counts[(category_word, keyword)] = len(raw_places)
             save_to_csv(results_by_region, "맛집_평점순_정렬.csv")
             save_to_db(results_by_region[keyword])
             print(f"✅ {keyword} 저장 완료 (CSV & DB)")
@@ -437,3 +444,70 @@ for category_word in categories:
 driver.quit()
 save_to_csv(results_by_region, "맛집_평점순_정렬.csv")
 print("\n✨ 모든 크롤링 및 저장 완료!")
+
+
+def run_sweep(crawl_counts, run_started_at):
+    """정리 sweep — 이번 크롤 scope에서만 미발견 카운트 증가·폐업 숨김·재발견 복구.
+
+    crawl_counts: {(category, region): int} — 이번 실행에서 수집된 PlaceItem 수.
+    0건인 쌍은 차단/에러로 수집 실패일 수 있으므로 sweep에서 제외(가드).
+    """
+    # 0건 제외 — 가드 적용
+    valid_pairs = [(cat, reg) for (cat, reg), cnt in crawl_counts.items() if cnt > 0]
+    if not valid_pairs:
+        print("\n[sweep] 유효 scope 없음 — sweep 건너뜀")
+        return
+
+    categories_in_scope = list({cat for cat, reg in valid_pairs})
+    regions_in_scope = list({reg for cat, reg in valid_pairs})
+
+    # 플레이스홀더 생성 (IN 절용)
+    cat_placeholders = ",".join("?" * len(categories_in_scope))
+    reg_placeholders = ",".join("?" * len(regions_in_scope))
+
+    conn = sqlite3.connect(DB_PATH)
+
+    # 1) 발견 행: missed_crawls=0, active=1 (복구)
+    conn.execute(f"""
+        UPDATE restaurants
+        SET missed_crawls = 0, active = 1
+        WHERE category IN ({cat_placeholders})
+          AND region IN ({reg_placeholders})
+          AND last_seen_at >= ?
+    """, categories_in_scope + regions_in_scope + [run_started_at])
+    recovered = conn.execute("""SELECT changes()""").fetchone()[0]
+
+    # 2) 미발견 행: missed_crawls + 1
+    conn.execute(f"""
+        UPDATE restaurants
+        SET missed_crawls = missed_crawls + 1
+        WHERE category IN ({cat_placeholders})
+          AND region IN ({reg_placeholders})
+          AND (last_seen_at IS NULL OR last_seen_at < ?)
+    """, categories_in_scope + regions_in_scope + [run_started_at])
+
+    # 3) missed_crawls >= 3 이면 active=0 (숨김)
+    conn.execute(f"""
+        UPDATE restaurants
+        SET active = 0
+        WHERE category IN ({cat_placeholders})
+          AND region IN ({reg_placeholders})
+          AND missed_crawls >= 3
+    """, categories_in_scope + regions_in_scope)
+    hidden = conn.execute("""
+        SELECT COUNT(*) FROM restaurants
+        WHERE active = 0
+    """).fetchone()[0]
+
+    conn.commit()
+    conn.close()
+
+    skipped_pairs = [(cat, reg) for (cat, reg), cnt in crawl_counts.items() if cnt == 0]
+    print(f"\n[sweep] 완료")
+    print(f"  scope: {len(valid_pairs)}쌍 ({len(categories_in_scope)}카테고리 × {len(regions_in_scope)}지역)")
+    print(f"  복구(재발견): {recovered}건 / 누적 숨김(active=0): {hidden}건")
+    if skipped_pairs:
+        print(f"  가드로 제외된 0건 쌍: {skipped_pairs}")
+
+
+run_sweep(crawl_counts, RUN_STARTED_AT)

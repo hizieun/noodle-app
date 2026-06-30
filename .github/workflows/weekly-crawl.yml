@@ -35,6 +35,7 @@ jobs:
         run: |
           python backend/migrate_hours.py
           python backend/migrate_review_count.py
+          python backend/migrate_active.py
 
       - name: Crawl (노포 + 야장 전체)
         run: python crawling/kakaomap.py

@@ -46,6 +46,7 @@ def export_db_to_json():
                 review_count   AS 리뷰수,
                 lat, lng
             FROM restaurants
+            WHERE (active IS NULL OR active = 1)
             ORDER BY CAST(rating AS REAL) DESC
             """
         )
