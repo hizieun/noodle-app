@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, lazy, Suspense } from 'react';
+import { useState, useMemo, useEffect, useRef, lazy, Suspense } from 'react';
 import './index.css';
 import ChatPanel from './ChatPanel.jsx';
 import { isOpenNow, getBusinessHours, isCashOnly, formatHoursForDisplay } from './businessHours.js';
@@ -33,17 +33,57 @@ const favKey = (r) => `${r.상호명}|${r.주소}`;
 const visitKey = (r) => `${r.상호명}|${r.주소}`;
 
 // --- Modal Component ---
+const FOCUSABLE_SELECTORS = 'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
+
 const RestaurantModal = ({ restaurant, onClose, isVisited, onToggleVisited, myVisit, onUpdateMyVisit }) => {
   const [copied, setCopied] = useState(false);
   const [memoDraft, setMemoDraft] = useState(myVisit?.memo || '');
+  const containerRef = useRef(null);
+  const previousFocusRef = useRef(null);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: reset draft when restaurant prop changes (derived-state pattern)
     setMemoDraft(myVisit?.memo || '');
   }, [restaurant, myVisit]);
 
+  // 마운트 시 이전 포커스 기억 + 초기 포커스 이동; 언마운트 시 포커스 복귀
   useEffect(() => {
-    const handler = (e) => { if (e.key === 'Escape') onClose(); };
+    previousFocusRef.current = document.activeElement;
+    const closeBtn = containerRef.current?.querySelector('.modal-close-btn');
+    (closeBtn || containerRef.current)?.focus();
+
+    return () => {
+      previousFocusRef.current?.focus();
+    };
+  }, []);
+
+  // Escape 핸들러 + Tab/Shift+Tab 포커스 트랩
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key === 'Tab' && containerRef.current) {
+        const focusable = Array.from(containerRef.current.querySelectorAll(FOCUSABLE_SELECTORS)).filter(
+          (el) => el.offsetParent !== null
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
+    };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [onClose]);
@@ -84,7 +124,7 @@ const RestaurantModal = ({ restaurant, onClose, isVisited, onToggleVisited, myVi
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-container" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div className="modal-container" ref={containerRef} onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="modal-title">
         <div className="modal-header">
           <div>
             <div className="modal-title" id="modal-title">
@@ -97,7 +137,7 @@ const RestaurantModal = ({ restaurant, onClose, isVisited, onToggleVisited, myVi
             <button className={`share-btn ${copied ? 'copied' : ''}`} onClick={handleCopyLink} title="링크 복사">
               {copied ? '✓ 복사됨' : '🔗 공유'}
             </button>
-            <button className="modal-close-btn" onClick={onClose}>✕</button>
+            <button className="modal-close-btn" onClick={onClose} aria-label="닫기">✕</button>
           </div>
         </div>
 
@@ -889,7 +929,7 @@ function App() {
                 onClick={() => setChatOpen(prev => !prev)}
                 title="AI 맛집 추천"
               >
-                🤖 AI 추천
+                <span aria-hidden="true">🤖</span><span className="btn-text"> AI 추천</span>
               </button>
               <div className="category-toggle">
                 <button

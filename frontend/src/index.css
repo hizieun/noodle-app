@@ -2099,11 +2099,14 @@ a:hover {
     width: 100vw;
   }
 
-  /* 헤더 과밀 완화 — 텍스트 노드가 분리되지 않아 CSS로 텍스트만 숨기기 불가.
-     font-size/padding 축소로 폭만 줄임. 아이콘 단독 노출은 App.jsx span 래핑 필요. */
+  /* 헤더 과밀 완화 — span 래핑으로 텍스트 숨기고 아이콘만 노출. */
   .chat-open-btn {
     font-size: 0.72rem;
-    padding: 0.4rem 0.6rem;
-    gap: 0.2rem;
+    padding: 0.45rem 0.55rem;
+    gap: 0;
+  }
+
+  .chat-open-btn .btn-text {
+    display: none;
   }
 }
