@@ -66,7 +66,9 @@ def geocode_kakao(name, address, session):
 
 def main():
     if not os.environ.get("KAKAO_REST_API_KEY"):
-        raise SystemExit("❌ KAKAO_REST_API_KEY 환경변수가 없습니다.")
+        # CI에서 secret 미설정 시 파이프라인 깨지 않고 스킵(exit 0)
+        print("⏭️  KAKAO_REST_API_KEY 없음 — Kakao 지오코딩 스킵")
+        return
 
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()

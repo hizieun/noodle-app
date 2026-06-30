@@ -45,6 +45,13 @@ jobs:
         run: python crawling/geocode.py
         timeout-minutes: 20
 
+      - name: Geocode 폴백 (Kakao Local API — Nominatim 잔여분)
+        run: python crawling/geocode_kakao.py
+        env:
+          KAKAO_REST_API_KEY: ${{ secrets.KAKAO_REST_API_KEY }}
+        continue-on-error: true
+        timeout-minutes: 20
+
       - name: Export data.json
         run: python crawling/sync_data.py
 
