@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { favKey } from './utils/format.js';
 
 const EXAMPLES = [
   '비 오는 날 종로구 노포 술집 추천해줘',
@@ -7,7 +8,7 @@ const EXAMPLES = [
   '혼자 가기 좋은 야장 추천해줘',
 ];
 
-export default function ChatPanel({ isOpen, onClose }) {
+export default function ChatPanel({ isOpen, onClose, onOpenRestaurant, restaurants = [] }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -41,6 +42,7 @@ export default function ChatPanel({ isOpen, onClose }) {
       setMessages(prev => [...prev, {
         role: 'model',
         text: data.text || '죄송합니다, 응답을 받지 못했습니다.',
+        restaurants: data.restaurants || [],
       }]);
     } catch {
       setMessages(prev => [...prev, {
@@ -93,7 +95,28 @@ export default function ChatPanel({ isOpen, onClose }) {
             messages.map((m, i) => (
               <div key={i} className={`chat-message ${m.role}`}>
                 {m.role === 'model' && <span className="chat-avatar">🤖</span>}
-                <div className="chat-bubble">{m.text}</div>
+                <div className="chat-bubble-group">
+                  <div className="chat-bubble">{m.text}</div>
+                  {m.role === 'model' && m.restaurants && m.restaurants.length > 0 && (
+                    <div className="chat-result-links">
+                      {m.restaurants.map((chip, ci) => {
+                        const full = restaurants.find(r => favKey(r) === favKey(chip));
+                        return (
+                          <button
+                            key={ci}
+                            type="button"
+                            className="chat-result-chip"
+                            onClick={() => full && onOpenRestaurant && onOpenRestaurant(full)}
+                            disabled={!full}
+                            title={full ? `${chip.상호명} 상세 보기` : '식당 정보를 찾을 수 없습니다'}
+                          >
+                            {chip.상호명}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
             ))
           )}

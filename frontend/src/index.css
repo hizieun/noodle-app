@@ -2036,6 +2036,47 @@ body.map-mode #root {
   flex-direction: row-reverse;
 }
 
+/* 버블 + 링크칩을 세로로 묶는 그룹 — model 버블 쪽에서만 사용 */
+.chat-bubble-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-width: 80%;
+}
+
+/* model 버블 아래 추천 식당 링크 칩 컨테이너 */
+.chat-result-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding-left: 0.1rem;
+}
+
+/* 개별 식당 칩 — 로즈 accent 계열 */
+.chat-result-chip {
+  background: rgba(244, 63, 94, 0.12);
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  color: #f43f5e;
+  border-radius: 1.5rem;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.76rem;
+  font-family: var(--font-family);
+  cursor: pointer;
+  transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+  white-space: nowrap;
+}
+
+.chat-result-chip:hover:not(:disabled) {
+  background: rgba(244, 63, 94, 0.22);
+  border-color: rgba(244, 63, 94, 0.5);
+  color: #fb5c78;
+}
+
+.chat-result-chip:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 .chat-avatar {
   font-size: 1.1rem;
   flex-shrink: 0;
@@ -2050,6 +2091,11 @@ body.map-mode #root {
   line-height: 1.55;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+/* model 버블은 chat-bubble-group이 max-width를 제어하므로 내부에서 100% */
+.chat-bubble-group .chat-bubble {
+  max-width: 100%;
 }
 
 .chat-message.user .chat-bubble {

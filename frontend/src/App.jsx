@@ -816,7 +816,12 @@ function App() {
         />
       )}
 
-      <ChatPanel isOpen={chatOpen} onClose={() => setChatOpen(false)} />
+      <ChatPanel
+        isOpen={chatOpen}
+        onClose={() => setChatOpen(false)}
+        onOpenRestaurant={handleOpenRestaurant}
+        restaurants={restaurants}
+      />
     </div>
     </>
   );

@@ -198,7 +198,19 @@ export default async function handler(req, res) {
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!text) return res.status(502).json({ error: '빈 응답' });
 
-    return res.status(200).json({ text });
+    // relevant(grounded set) 중 응답 텍스트에 상호명이 등장하는 것만 추출
+    // 전체 DB 파싱 금지 — grounded set으로 한정해 오탐↓
+    const seenNames = new Set();
+    const mentioned = relevant
+      .filter(r => {
+        if (!r.상호명 || !text.includes(r.상호명)) return false;
+        if (seenNames.has(r.상호명)) return false;
+        seenNames.add(r.상호명);
+        return true;
+      })
+      .map(r => ({ 상호명: r.상호명, 주소: r.주소 || '' }));
+
+    return res.status(200).json({ text, restaurants: mentioned });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: '서버 오류' });
