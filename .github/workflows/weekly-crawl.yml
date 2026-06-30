@@ -5,6 +5,11 @@ on:
     - cron: '0 18 * * 0'  # 매주 일요일 18:00 UTC = 월요일 03:00 KST
   workflow_dispatch:        # 수동 트리거
 
+# data.json·restaurants.db 자동 커밋/푸시를 위해 쓰기 권한 부여
+# (이게 없으면 GITHUB_TOKEN이 read-only라 push 시 403)
+permissions:
+  contents: write
+
 jobs:
   crawl-and-update:
     runs-on: ubuntu-latest
