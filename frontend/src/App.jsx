@@ -395,9 +395,6 @@ const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite, i
       <div className="card-header">
         <h3 className="card-title">{emoji} {cleanName}</h3>
         <div className="card-header-right">
-          {openStatus === 'open' && <span className="open-badge open">🟢 영업중</span>}
-          {openStatus === 'closed' && <span className="open-badge closed">🔴 영업종료</span>}
-          {isVisited && <span className="visited-badge">방문</span>}
           <span className="card-region">{data.지역}</span>
           <button
             className={`visit-btn ${isVisited ? 'active' : ''}`}
@@ -405,7 +402,7 @@ const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite, i
             aria-label={isVisited ? '방문 취소' : '방문했어요'}
             title={isVisited ? '방문 취소' : '가봤어요'}
           >
-            {isVisited ? '✓' : '○'}
+            {isVisited ? '✓ 방문' : '방문'}
           </button>
           <button
             className={`favorite-btn ${isFavorited ? 'active' : ''}`}
@@ -432,7 +429,9 @@ const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite, i
           </svg>
           {data.평점 !== "정보 없음" ? data.평점 : "-"}
         </div>
-        {myRating > 0 && (
+        {openStatus === 'open' && <span className="open-badge open">🟢 영업중</span>}
+        {openStatus === 'closed' && <span className="open-badge closed">🔴 영업종료</span>}
+        {myRating > 0 && !distanceLabel && (
           <span className="my-rating-badge" title="내가 매긴 평점">내 ★ {myRating}</span>
         )}
         {distanceLabel ? (
@@ -924,13 +923,6 @@ function App() {
               <span className="title-suffix"> - 서울의 숨은 맛</span>
             </h1>
             <div className="header-actions">
-              <button
-                className={`chat-open-btn ${chatOpen ? 'active' : ''}`}
-                onClick={() => setChatOpen(prev => !prev)}
-                title="AI 맛집 추천"
-              >
-                <span aria-hidden="true">🤖</span><span className="btn-text"> AI 추천</span>
-              </button>
               <div className="category-toggle">
                 <button
                   className={`category-btn ${activeCategory === '노포' ? 'active' : ''}`}
@@ -949,22 +941,20 @@ function App() {
                 <button
                   className={`view-btn ${viewMode === 'list' ? 'active' : ''}`}
                   onClick={() => handleViewMode('list')}
-                  aria-label="리스트 보기"
                 >
-                  ☰
+                  ☰ <span className="view-btn-text">목록</span>
                 </button>
                 <button
                   className={`view-btn ${viewMode === 'map' ? 'active' : ''}`}
                   onClick={() => handleViewMode('map')}
-                  aria-label="지도 보기"
                 >
-                  🗺
+                  🗺 <span className="view-btn-text">지도</span>
                 </button>
               </div>
             </div>
           </div>
 
-          {/* 2행: 검색 + 내 위치 + 필터 */}
+          {/* 2행: 검색 + AI추천 + 내 위치 + 필터 */}
           <div className="header-row-2">
             <div className="search-container">
               <input
@@ -984,6 +974,13 @@ function App() {
                 </button>
               )}
             </div>
+            <button
+              className={`chat-open-btn ${chatOpen ? 'active' : ''}`}
+              onClick={() => setChatOpen(prev => !prev)}
+              title="AI 맛집 추천"
+            >
+              <span aria-hidden="true">🤖</span><span className="btn-text"> AI 추천</span>
+            </button>
             <button
               className={`location-btn ${userLocation ? 'active' : ''}`}
               onClick={handleLocate}
@@ -1051,8 +1048,9 @@ function App() {
               </div>
             )}
             <button
-              className={`favorites-toggle-btn ${showFavoritesOnly ? 'active' : ''}`}
+              className={`filter-toggle-item ${showFavoritesOnly ? 'active' : ''}`}
               onClick={() => setShowFavoritesOnly(prev => !prev)}
+              aria-pressed={showFavoritesOnly}
             >
               {showFavoritesOnly ? '♥' : '♡'}
               {favorites.size > 0 && <span className="favorites-count">{favorites.size}</span>}
@@ -1067,18 +1065,20 @@ function App() {
               </button>
             )}
             <button
-              className={`unvisited-toggle-btn ${showUnvisitedOnly ? 'active' : ''}`}
+              className={`filter-toggle-item ${showUnvisitedOnly ? 'active' : ''}`}
               onClick={() => setShowUnvisitedOnly(prev => !prev)}
               title="방문하지 않은 곳만 보기"
+              aria-pressed={showUnvisitedOnly}
             >
-              {showUnvisitedOnly ? '✓ 안 가본 곳' : '○ 안 가본 곳'}
+              안 가본 곳
               {visited.size > 0 && <span className="favorites-count">{visited.size}곳 방문</span>}
             </button>
             {showOpenNowFeature && (
               <button
-                className={`open-now-toggle-btn ${showOpenNowOnly ? 'active' : ''}`}
+                className={`filter-toggle-item semantic-open ${showOpenNowOnly ? 'active' : ''}`}
                 onClick={() => setShowOpenNowOnly(prev => !prev)}
                 title="지금 영업 중인 곳만 보기"
+                aria-pressed={showOpenNowOnly}
               >
                 🟢 지금 영업중
               </button>
