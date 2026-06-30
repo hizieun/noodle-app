@@ -11,9 +11,9 @@
 |------|-----|
 | 라이브 URL | https://frontend-kappa-six-36.vercel.app |
 | 배포 방식 | `main` push → Vercel 자동 배포 (Root Dir: `frontend`, Framework: Vite) |
-| 식당 수 | **1,029곳** (노포 + 야장, 서울 25개 구) |
-| 영업시간 커버리지 | **60%** (622곳) — "지금 영업중" 필터 30% 게이트 통과, 실제 작동 |
-| 좌표 커버리지 | **100%** (1,030곳) — Kakao Local API로 잔여분 보강 완료 |
+| 식당 수 | **1,090곳** (주간 자동 크롤로 갱신) |
+| 가중 평점 정렬 | **활성** — 리뷰수 733곳 보유, 베이지안 WR 적용 중 (5.0 쏠림 해소) |
+| 좌표 커버리지 | **100%** (좌표없음 0) — Nominatim + Kakao 폴백 |
 | AI 챗봇 | Gemini 2.5 Flash, `systemInstruction` grounding, 모든 턴 작동 |
 | 자동 크롤링 | GitHub Actions 매주 월요일 03:00 KST |
 | PWA | Service Worker 오프라인 캐시, 홈화면 추가 |
@@ -74,6 +74,7 @@ _현재 비어 있음 (챗봇 식당명 링크 완료 — 마일스톤 참고)_
 | 2026-06-30 | 챗봇 API 키 복구: noodle 프로젝트에 GEMINI_API_KEY 누락(도메인 이전 영향) → 재설정·검증 |
 | 2026-06-30 | 대체 지오코더(Kakao Local API): 잔여 104곳 보강 → 좌표 커버리지 100% |
 | 2026-06-30 | CI: 주간 크롤에 Kakao 지오코더 폴백 통합(secret 미설정 시 graceful skip). Secret 등록은 수동 대기 |
+| 2026-07-01 | CI 자율 파이프라인 검증 완료: 수동 트리거 #10 success — 크롤·Kakao 폴백·자동 push 전부 통과. permissions:contents:write로 403 수정. 라이브 1,090곳·좌표100%·리뷰수733(가중평점 활성) |
 
 ---
 
