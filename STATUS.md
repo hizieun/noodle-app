@@ -32,7 +32,8 @@
 
 ### Must (P0) — 데이터 정합성·신선도
 
-_현재 비어 있음. (선택 후속: 주간 크롤 CI에 Kakao 지오코더를 폴백으로 통합 — KAKAO_REST_API_KEY를 GitHub Secret으로)_
+_현재 비어 있음._
+- ⏳ **남은 수동 1건**: GitHub 저장소에 Secret `KAKAO_REST_API_KEY` 추가 (Settings→Secrets→Actions). 추가하면 주간 크롤이 Nominatim 잔여분을 Kakao로 자동 보강. 미설정이어도 워크플로는 graceful skip.
 
 ### Should (P1) — 기술 부채
 
@@ -73,6 +74,7 @@ _현재 비어 있음 (챗봇 식당명 링크 완료 — 마일스톤 참고)_
 | 2026-06-30 | 챗봇 식당명 링크 배포: AI 답변 속 식당명 클릭 → 상세 모달(grounded set 매칭, 단위 7/7) |
 | 2026-06-30 | 챗봇 API 키 복구: noodle 프로젝트에 GEMINI_API_KEY 누락(도메인 이전 영향) → 재설정·검증 |
 | 2026-06-30 | 대체 지오코더(Kakao Local API): 잔여 104곳 보강 → 좌표 커버리지 100% |
+| 2026-06-30 | CI: 주간 크롤에 Kakao 지오코더 폴백 통합(secret 미설정 시 graceful skip). Secret 등록은 수동 대기 |
 
 ---
 
