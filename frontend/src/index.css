@@ -68,6 +68,18 @@
   --font-display: 'Pretendard Variable', 'Pretendard', sans-serif;
 }
 
+/* ── Phase 5: 마이크로인터랙션 타이밍 분기 토큰 ──────────────────────────── */
+/* 노포: 느긋(300ms) */
+:root {
+  --ui-hover-duration: 300ms;
+  --ui-hover-easing: cubic-bezier(0.4, 0, 0.2, 1);
+}
+/* 야장: 빠릿(200ms) */
+.yajang-theme {
+  --ui-hover-duration: 200ms;
+  --ui-hover-easing: cubic-bezier(0.25, 0, 0.15, 1);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -87,6 +99,45 @@ body {
   padding-bottom: 3rem;
   position: relative;
   overflow-x: hidden;
+  /* Phase 5: 테마 전환 시 배경색 부드럽게 */
+  transition: background-color 0.5s ease, color 0.3s ease;
+}
+
+/* ── Phase 3: 노포 종이 그레인 오버레이 (SVG feTurbulence data-URI 타일) ── */
+/* pointer-events:none + z-index:-1 → 클릭/스크롤 완전 비방해 */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px 200px;
+  transition: opacity 0.5s ease;
+}
+
+/* 야장 테마에선 그레인 거의 숨김 (네온 분위기에 안 어울림) */
+.yajang-theme body::after,
+body.yajang-theme::after {
+  opacity: 0.012;
+}
+
+/* ── Phase 3: 야장 비네트 오버레이 (가장자리 어둠) ──────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  background: radial-gradient(ellipse at center, transparent 55%, rgba(0, 0, 0, 0.45) 100%);
+  transition: opacity 0.5s ease;
+}
+
+.yajang-theme body::before {
+  opacity: 1;
 }
 
 #root {
@@ -159,6 +210,24 @@ a:hover {
 
 .yajang-theme.app-container::before {
   background: radial-gradient(circle, rgba(61, 255, 200, 0.07) 0%, transparent 70%);
+}
+
+/* Phase 3: 노포 앰버 보조 블롭 (하단 좌) */
+.app-container::after {
+  content: '';
+  position: absolute;
+  bottom: 5%;
+  left: -8%;
+  width: 30%;
+  height: 30%;
+  background: radial-gradient(circle, rgba(200, 150, 74, 0.05) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+  transition: background 0.7s ease;
+}
+
+.yajang-theme.app-container::after {
+  background: radial-gradient(circle, rgba(61, 255, 200, 0.04) 0%, transparent 70%);
 }
 
 /* PWA Install Banner — #root 직계 자식으로 full-width 블록 */
@@ -433,6 +502,8 @@ a:hover {
   padding: var(--spacing-md) 0;
   margin-bottom: var(--spacing-xl);
   border-bottom: 1px solid var(--border-color);
+  /* Phase 5: 테마 전환 시 헤더 배경 부드럽게 */
+  transition: background-color 0.5s ease, border-color 0.4s ease;
 }
 
 .header-content {
@@ -962,7 +1033,12 @@ a:hover {
   border-radius: 1rem;
   border: 1px solid var(--border-color);
   padding: var(--spacing-lg);
-  transition: transform var(--transition-default), box-shadow var(--transition-default), border-color var(--transition-default);
+  /* Phase 5: hover 타이밍을 --ui-hover-duration 으로 분기 */
+  transition:
+    transform var(--ui-hover-duration) var(--ui-hover-easing),
+    box-shadow var(--ui-hover-duration) var(--ui-hover-easing),
+    border-color var(--ui-hover-duration) var(--ui-hover-easing),
+    background-color 0.5s ease;
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
@@ -970,16 +1046,18 @@ a:hover {
   overflow: hidden;
 }
 
+/* Phase 3: 노포 골드 상단 강조선 — 평소 0.3 opacity로 은은하게 상시 표시 */
 .card::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  height: 4px;
+  height: 3px;
   background: linear-gradient(to right, transparent, var(--text-accent), transparent);
-  opacity: 0;
-  transition: opacity var(--transition-default);
+  opacity: 0.3;
+  transition: opacity var(--ui-hover-duration) var(--ui-hover-easing);
+  pointer-events: none;
 }
 
 .card:hover {
@@ -992,10 +1070,63 @@ a:hover {
   opacity: 1;
 }
 
+/* Phase 3: 야장 카드 — 네온 상단선 + inset mint glow */
+.yajang-theme .card::before {
+  background: linear-gradient(to right, transparent, var(--text-accent), transparent);
+  opacity: 0.5;
+  height: 2px;
+}
+
+.yajang-theme .card:hover::before {
+  opacity: 1;
+}
+
+.yajang-theme .card {
+  box-shadow: inset 0 0 0 1px rgba(61, 255, 200, 0.06), 0 0 10px rgba(61, 255, 200, 0.03);
+}
+
+.yajang-theme .card:hover {
+  box-shadow: var(--shadow-lg), inset 0 0 0 1px rgba(61, 255, 200, 0.10), 0 0 18px rgba(61, 255, 200, 0.06);
+}
+
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+}
+
+/* Phase 4: 카드 이모지 프레임 */
+.card-emoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 50%;
+  background: rgba(200, 150, 74, 0.09);
+  border: 1px solid rgba(200, 150, 74, 0.28);
+  font-size: 1rem;
+  line-height: 1;
+  flex-shrink: 0;
+  vertical-align: middle;
+  margin-right: 0.3rem;
+  transition: background var(--ui-hover-duration) var(--ui-hover-easing),
+              border-color var(--ui-hover-duration) var(--ui-hover-easing);
+}
+
+.yajang-theme .card-emoji {
+  background: rgba(61, 255, 200, 0.07);
+  border-color: rgba(61, 255, 200, 0.22);
+}
+
+.card:hover .card-emoji {
+  background: rgba(200, 150, 74, 0.15);
+  border-color: rgba(200, 150, 74, 0.45);
+}
+
+.yajang-theme .card:hover .card-emoji {
+  background: rgba(61, 255, 200, 0.12);
+  border-color: rgba(61, 255, 200, 0.38);
 }
 
 .card-title {
@@ -1003,6 +1134,8 @@ a:hover {
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
 }
 
 .card-region {
@@ -1283,6 +1416,21 @@ a:hover {
 
 .modal-emoji {
   font-size: 1.75rem;
+  /* Phase 4: 모달 이모지 프레임 */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background: rgba(200, 150, 74, 0.10);
+  border: 1.5px solid rgba(200, 150, 74, 0.30);
+  flex-shrink: 0;
+}
+
+.yajang-theme .modal-emoji {
+  background: rgba(61, 255, 200, 0.08);
+  border-color: rgba(61, 255, 200, 0.25);
 }
 
 .share-btn {
@@ -1774,12 +1922,18 @@ body.map-mode #root {
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  transition: transform var(--transition-default), box-shadow var(--transition-default), border-color var(--transition-default);
+  /* Phase 5: hover 타이밍 분기 */
+  transition:
+    transform var(--ui-hover-duration) var(--ui-hover-easing),
+    box-shadow var(--ui-hover-duration) var(--ui-hover-easing),
+    border-color var(--ui-hover-duration) var(--ui-hover-easing),
+    background-color 0.5s ease;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
+/* Phase 3: 노포 골드 상단 강조선 — featured는 원래 opacity 0.8이었으나 그대로 유지 */
 .featured-card::before {
   content: '';
   position: absolute;
@@ -1789,11 +1943,19 @@ body.map-mode #root {
   height: 5px;
   background: linear-gradient(to right, var(--text-accent), rgba(200, 150, 74, 0.2), transparent);
   opacity: 0.8;
-  transition: opacity var(--transition-default);
+  transition: opacity var(--ui-hover-duration) var(--ui-hover-easing);
+  pointer-events: none;
 }
 
+/* Phase 3: 야장 featured — 네온 민트 선 + inset glow */
 .yajang-theme .featured-card::before {
   background: linear-gradient(to right, var(--text-accent), rgba(61, 255, 200, 0.15), transparent);
+  height: 3px;
+  opacity: 0.85;
+}
+
+.yajang-theme .featured-card {
+  box-shadow: inset 0 0 0 1px rgba(61, 255, 200, 0.08), 0 0 16px rgba(61, 255, 200, 0.04);
 }
 
 .featured-card:hover {
@@ -1804,6 +1966,10 @@ body.map-mode #root {
 
 .featured-card:hover::before {
   opacity: 1;
+}
+
+.yajang-theme .featured-card:hover {
+  box-shadow: var(--shadow-lg), inset 0 0 0 1px rgba(61, 255, 200, 0.12), 0 0 24px rgba(61, 255, 200, 0.07);
 }
 
 .featured-card:focus-visible {
@@ -1845,6 +2011,32 @@ body.map-mode #root {
   font-size: 2.5rem;
   line-height: 1;
   flex-shrink: 0;
+  /* Phase 4: 이모지 프레임 — 앰버(노포) / 민트(야장) */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 50%;
+  background: rgba(200, 150, 74, 0.10);
+  border: 1.5px solid rgba(200, 150, 74, 0.35);
+  transition: background var(--ui-hover-duration) var(--ui-hover-easing),
+              border-color var(--ui-hover-duration) var(--ui-hover-easing);
+}
+
+.yajang-theme .featured-emoji {
+  background: rgba(61, 255, 200, 0.08);
+  border-color: rgba(61, 255, 200, 0.28);
+}
+
+.featured-card:hover .featured-emoji {
+  background: rgba(200, 150, 74, 0.16);
+  border-color: rgba(200, 150, 74, 0.55);
+}
+
+.yajang-theme .featured-card:hover .featured-emoji {
+  background: rgba(61, 255, 200, 0.13);
+  border-color: rgba(61, 255, 200, 0.45);
 }
 
 .featured-name {
@@ -2308,5 +2500,19 @@ body.map-mode #root {
     padding: 0.5rem 0.6rem;
     font-size: 0.8rem;
     flex-shrink: 0;
+  }
+}
+
+/* ── Phase 5: prefers-reduced-motion ───────────────────────────────────────
+   모션 감소 선호 시 트랜지션·애니메이션 전부 제거.
+   오버레이 opacity만 순간 전환, 레이아웃 애니메이션 비활성. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

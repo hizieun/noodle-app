@@ -19,7 +19,7 @@ const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite, i
       onClick={() => onClick(data)}
     >
       <div className="card-header">
-        <h3 className="card-title">{emoji} {cleanName}</h3>
+        <h3 className="card-title"><span className="card-emoji" aria-hidden="true">{emoji}</span>{cleanName}</h3>
         <div className="card-header-right">
           <span className="card-region">{data.지역}</span>
           <button
