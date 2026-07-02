@@ -20,6 +20,8 @@
   /* 네온 민트 (야장 보조 변수) */
   --text-accent-hover: #D9A85E;
   /* 앰버 밝은 단계 */
+  /* accent 배경 위 텍스트 — 앰버(#C8964A) 위 대비 5.06:1 (WCAG AA) */
+  --text-on-accent: #1C1510;
 
   --border-color: rgba(200, 150, 74, 0.15);
   --glass-bg: rgba(34, 26, 18, 0.75);
@@ -55,6 +57,8 @@
   --text-accent: #3DFFC8;
   /* 네온 민트 — bg-secondary 대비 ≈7.2:1 */
   --text-accent-hover: #5FFFCE;
+  /* accent 배경 위 텍스트 — 민트(#3DFFC8) 위 대비 17.3:1 (WCAG AAA) */
+  --text-on-accent: #0D0A1A;
 
   --border-color: rgba(61, 255, 200, 0.12);
   --glass-bg: rgba(18, 16, 42, 0.75);
@@ -267,7 +271,7 @@ a:hover {
 .install-banner-btn.primary {
   background: var(--text-accent);
   border-color: var(--text-accent);
-  color: white;
+  color: var(--text-on-accent);
 }
 
 .install-banner-btn:hover {
@@ -277,7 +281,7 @@ a:hover {
 
 .install-banner-btn.primary:hover {
   opacity: 0.85;
-  color: white;
+  color: var(--text-on-accent);
 }
 
 /* Share-list banner — 공유 받은 리스트 모드 진입 시 표시 */
@@ -628,7 +632,7 @@ a:hover {
 
 .category-btn.active {
   background: var(--text-accent);
-  color: white;
+  color: var(--text-on-accent);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
@@ -697,7 +701,7 @@ a:hover {
 
 .filter-count-badge {
   background: var(--text-accent);
-  color: white;
+  color: var(--text-on-accent);
   border-radius: 9999px;
   font-size: 0.65rem;
   font-weight: 700;
@@ -750,7 +754,7 @@ a:hover {
 
 .search-clear:hover {
   background: var(--text-accent);
-  color: #fff;
+  color: var(--text-on-accent);
 }
 
 .search-input {
@@ -822,7 +826,7 @@ a:hover {
   font-size: 0.7rem;
   font-weight: 700;
   background: var(--text-accent);
-  color: white;
+  color: var(--text-on-accent);
   border-radius: 9999px;
   padding: 0 0.4rem;
   min-width: 1.2rem;
@@ -1312,7 +1316,7 @@ a:hover {
 
 .empty-reset-btn:hover {
   background: var(--text-accent);
-  color: #fff;
+  color: var(--text-on-accent);
 }
 
 .yajang-theme .empty-reset-btn {
@@ -1322,7 +1326,7 @@ a:hover {
 
 .yajang-theme .empty-reset-btn:hover {
   background: var(--text-accent);
-  color: #0D0A1A;
+  color: var(--text-on-accent);
 }
 
 /* Animations */
@@ -1475,7 +1479,7 @@ a:hover {
 
 .modal-close-btn:hover {
   background: var(--text-accent);
-  color: white;
+  color: var(--text-on-accent);
   border-color: var(--text-accent);
 }
 
@@ -1591,7 +1595,7 @@ a:hover {
 
 .blog-btn:hover {
   background: var(--text-accent);
-  color: white;
+  color: var(--text-on-accent);
   border-color: var(--text-accent);
   transform: translateY(-1px);
 }
@@ -1620,7 +1624,7 @@ a:hover {
   border-radius: 50%;
   background: var(--text-accent);
   border: none;
-  color: #1C1510;
+  color: var(--text-on-accent);
   font-size: 1.4rem;
   cursor: pointer;
   box-shadow: 0 4px 16px rgba(200, 150, 74, 0.45);
@@ -1727,7 +1731,7 @@ a:hover {
 
 .view-btn.active {
   background: var(--text-accent);
-  color: white;
+  color: var(--text-on-accent);
 }
 
 /* Map Layout */
@@ -1840,7 +1844,7 @@ body.map-mode #root {
 .map-popup-btn {
   margin-top: 0.25rem;
   background: var(--text-accent);
-  color: white;
+  color: var(--text-on-accent);
   border: none;
   border-radius: 0.4rem;
   padding: 0.35rem 0.6rem;
@@ -1861,7 +1865,7 @@ body.map-mode #root {
   align-items: center;
   gap: 0.35rem;
   background: var(--text-accent);
-  color: #1C1510;
+  color: var(--text-on-accent);
   border: none;
   border-radius: 1.5rem;
   padding: 0.45rem 0.9rem;
@@ -1871,10 +1875,6 @@ body.map-mode #root {
   font-family: var(--font-family);
   transition: opacity var(--transition-fast), transform var(--transition-fast);
   white-space: nowrap;
-}
-
-.yajang-theme .chat-open-btn {
-  color: #0D0A1A;
 }
 
 .chat-open-btn:hover {
@@ -2361,12 +2361,8 @@ body.map-mode #root {
 
 .chat-message.user .chat-bubble {
   background: var(--text-accent);
-  color: #1C1510;
+  color: var(--text-on-accent);
   border-bottom-right-radius: 0.3rem;
-}
-
-.yajang-theme .chat-message.user .chat-bubble {
-  color: #0D0A1A;
 }
 
 .chat-message.model .chat-bubble {
@@ -2438,7 +2434,7 @@ body.map-mode #root {
   height: 36px;
   border-radius: 50%;
   background: var(--text-accent);
-  color: #1C1510;
+  color: var(--text-on-accent);
   border: none;
   cursor: pointer;
   font-size: 1.1rem;
@@ -2447,10 +2443,6 @@ body.map-mode #root {
   justify-content: center;
   flex-shrink: 0;
   transition: opacity var(--transition-fast), transform var(--transition-fast);
-}
-
-.yajang-theme .chat-send-btn {
-  color: #0D0A1A;
 }
 
 .chat-send-btn:disabled {
