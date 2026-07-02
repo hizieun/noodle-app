@@ -191,3 +191,25 @@
 ### 비용/타이밍
 - `FeaturedCard` 컴포넌트(~40줄) + 날짜픽 useMemo + 섹션헤더 + 조건부 렌더 + CSS. 새 데이터 불필요.
 - **App.jsx 헤비 변경** → 미커밋 보류 중인 베이지안 정렬(App.jsx)을 재크롤 후 확정·배포한 **다음에** 착수(충돌 방지).
+
+---
+
+## 6.8 듀얼 톤 아트 디렉션 (노포=빈티지 / 야장=네온)
+
+"기능엔 충실하나 개성 없는 다크 템플릿" 피드백 → **카테고리별 아트 디렉션**으로 격상. 사진 데이터가 없어 타이포·색·질감 중심. 기존 `.yajang-theme` 전환 구조 재활용(CSS 변수 값만 교체 → 전 컴포넌트 전파).
+
+### 방향
+- **노포**: 따뜻한 브라운(`#1C1510`) + 앰버 골드(`#C8964A`), Noto Serif KR 제목, 종이 그레인·골드 강조선 → 세월·정겨움
+- **야장**: 미드나잇 퍼플(`#0D0A1A`) + 네온 민트(`#3DFFC8`), Pretendard 800 제목, 비네트·네온 라인·민트 글로우 → 밤거리
+- 제네릭 로즈(`#f43f5e`) 완전 폐기(하드코딩 포함). 시맨틱 색(영업 초록/별점 골드/마감 빨강) 유지.
+
+### 구현 (5단계, 전부 배포)
+1. **토큰 교체** — `:root`=노포, `.yajang-theme`=야장 전면 오버라이드(배경·텍스트·border·glass·shadow).
+2. **타이포** — Pretendard(본문, npm dynamic-subset ~200KB) + Noto Serif KR(제목, Google Fonts), `--font-display` 변수. Inter 제거.
+3. **질감** — 노포 SVG feTurbulence 그레인(data-URI)·앰버 블롭·골드선 / 야장 비네트·네온선·inset glow. 전부 CSS, `pointer-events:none`·콘텐츠 뒤 z-index.
+4. **이모지 프레임** — 카드/featured/모달 이모지를 앰버/민트 원형 프레임으로(aria-hidden).
+5. **모션** — 테마 전환 배경 blending, 톤별 hover 타이밍(노포 300ms/야장 200ms), `prefers-reduced-motion` 존중.
+
+### 검증
+- 접근성 대비 AA+ (앰버 5.1:1 / 민트 7.2:1). 인터랙션 회귀 없음(오버레이가 클릭·스크롤 비방해). lint 0, build 통과. 노포·야장 데스크톱+모바일 스크린샷 확인.
+- 관련 파일: `index.css`(토큰·질감·모션), `index.html`(폰트), `main.jsx`(Pretendard), `components/RestaurantCard.jsx`(이모지 span).
