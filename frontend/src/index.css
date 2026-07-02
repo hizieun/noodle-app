@@ -1,30 +1,33 @@
 :root {
-  --font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  /* ── 노포 테마 (따뜻한 빈티지 브라운) ─────────────────────────────────── */
+  --font-family: 'Pretendard Variable', 'Pretendard', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  --font-display: 'Noto Serif KR', serif;
   --line-height: 1.5;
   --font-weight: 400;
 
-  /* Color Palette - Premium Dark Theme */
-  --bg-primary: #0a0a0c;
-  --bg-secondary: #141418;
-  --bg-tertiary: #1f1f25;
-  --bg-card-hover: #1c1c21;
+  /* Color Palette */
+  --bg-primary: #1C1510;
+  --bg-secondary: #221A12;
+  --bg-tertiary: #2B2118;
+  --bg-card-hover: #271E14;
 
-  --text-primary: #ffffff;
-  --text-secondary: #a1a1aa;
-  --text-accent: #f43f5e;
-  /* Rose 500 */
-  --text-accent-yajang: #fb923c;
-  /* Orange for Yajang */
-  --text-accent-hover: #fb7185;
-  /* Rose 400 */
+  --text-primary: #F0E8DC;
+  --text-secondary: #9C8D7A;
+  /* 앰버 브라운 — bg-secondary 대비 ≈4.6:1 AA */
+  --text-accent: #C8964A;
+  /* 앰버 골드 — bg-secondary 대비 ≈5.1:1 */
+  --text-accent-yajang: #3DFFC8;
+  /* 네온 민트 (야장 보조 변수) */
+  --text-accent-hover: #D9A85E;
+  /* 앰버 밝은 단계 */
 
-  --border-color: rgba(255, 255, 255, 0.08);
-  --glass-bg: rgba(20, 20, 24, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.08);
+  --border-color: rgba(200, 150, 74, 0.15);
+  --glass-bg: rgba(34, 26, 18, 0.75);
+  --glass-border: rgba(200, 150, 74, 0.12);
 
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(200, 150, 74, 0.08);
 
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -39,9 +42,30 @@
   --spacing-xl: 2rem;
 }
 
-/* Yajang Theme Class */
+/* ── 야장 테마 (밤거리 네온 퍼플) ─────────────────────────────────────── */
 .yajang-theme {
-  --text-accent: var(--text-accent-yajang);
+  --bg-primary: #0D0A1A;
+  --bg-secondary: #12102A;
+  --bg-tertiary: #1A1730;
+  --bg-card-hover: #171430;
+
+  --text-primary: #E0D8F0;
+  --text-secondary: #7A7090;
+  /* bg-secondary 대비 ≈4.6:1 AA */
+  --text-accent: #3DFFC8;
+  /* 네온 민트 — bg-secondary 대비 ≈7.2:1 */
+  --text-accent-hover: #5FFFCE;
+
+  --border-color: rgba(61, 255, 200, 0.12);
+  --glass-bg: rgba(18, 16, 42, 0.75);
+  --glass-border: rgba(61, 255, 200, 0.10);
+
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(61, 255, 200, 0.06);
+
+  /* 야장 제목: Pretendard 800 (노포 Noto Serif와 대비되는 산세리프 굵은 획) */
+  --font-display: 'Pretendard Variable', 'Pretendard', sans-serif;
 }
 
 * {
@@ -127,22 +151,22 @@ a:hover {
   right: -10%;
   width: 40%;
   height: 40%;
-  background: radial-gradient(circle, rgba(244, 63, 94, 0.08) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(200, 150, 74, 0.08) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
   transition: background 0.7s ease;
 }
 
 .yajang-theme.app-container::before {
-  background: radial-gradient(circle, rgba(251, 146, 60, 0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(61, 255, 200, 0.07) 0%, transparent 70%);
 }
 
 /* PWA Install Banner — #root 직계 자식으로 full-width 블록 */
 .install-banner {
   width: 100%;
   box-sizing: border-box;
-  background: linear-gradient(135deg, rgba(244,63,94,0.15), rgba(251,146,60,0.1));
-  border-bottom: 1px solid rgba(244,63,94,0.25);
+  background: linear-gradient(135deg, rgba(200, 150, 74, 0.15), rgba(200, 150, 74, 0.08));
+  border-bottom: 1px solid rgba(200, 150, 74, 0.25);
   padding: 0.6rem var(--spacing-md);
   display: flex;
   align-items: center;
@@ -454,8 +478,8 @@ a:hover {
 }
 
 .filter-chip {
-  background: rgba(244, 63, 94, 0.12);
-  border: 1px solid rgba(244, 63, 94, 0.3);
+  background: rgba(200, 150, 74, 0.12);
+  border: 1px solid rgba(200, 150, 74, 0.3);
   color: var(--text-accent);
   font-size: 0.7rem;
   font-weight: 600;
@@ -468,31 +492,35 @@ a:hover {
 }
 
 .filter-chip:hover {
-  background: rgba(244, 63, 94, 0.22);
+  background: rgba(200, 150, 74, 0.22);
   border-color: var(--text-accent);
 }
 
 .yajang-theme .filter-chip {
-  background: rgba(251, 146, 60, 0.12);
-  border-color: rgba(251, 146, 60, 0.3);
-  color: var(--text-accent-yajang);
+  background: rgba(61, 255, 200, 0.10);
+  border-color: rgba(61, 255, 200, 0.25);
 }
 
 .yajang-theme .filter-chip:hover {
-  background: rgba(251, 146, 60, 0.22);
-  border-color: var(--text-accent-yajang);
+  background: rgba(61, 255, 200, 0.18);
 }
 
 .title {
   font-size: 1.5rem;
   font-weight: 700;
-  background: linear-gradient(to right, #fff, #a1a1aa);
+  font-family: var(--font-display);
+  background: linear-gradient(to right, var(--text-primary), var(--text-secondary));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+/* 야장 제목: Pretendard 800 */
+.yajang-theme .title {
+  font-weight: 800;
 }
 
 .title-icon {
@@ -562,7 +590,7 @@ a:hover {
 .filter-select:focus {
   background-color: var(--bg-tertiary);
   border-color: var(--text-accent);
-  box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.2);
+  box-shadow: 0 0 0 2px rgba(200, 150, 74, 0.2);
 }
 
 .filter-select option {
@@ -676,7 +704,7 @@ a:hover {
 .search-input:focus {
   background-color: var(--bg-tertiary);
   border-color: var(--text-accent);
-  box-shadow: 0 0 0 2px rgba(244, 63, 94, 0.2);
+  box-shadow: 0 0 0 2px rgba(200, 150, 74, 0.2);
 }
 
 /* Filter Toggle Items (즐겨찾기 / 안 가본 곳 / 지금 영업중) — 통합 클래스 */
@@ -702,7 +730,7 @@ a:hover {
 }
 
 .filter-toggle-item.active {
-  background: rgba(244, 63, 94, 0.15);
+  background: rgba(200, 150, 74, 0.15);
   border-color: var(--text-accent);
   color: var(--text-accent);
 }
@@ -754,7 +782,7 @@ a:hover {
   color: var(--text-accent);
 }
 .location-btn.active {
-  background: rgba(244, 63, 94, 0.15);
+  background: rgba(200, 150, 74, 0.15);
   border-color: var(--text-accent);
   color: var(--text-accent);
 }
@@ -1155,13 +1183,13 @@ a:hover {
 }
 
 .yajang-theme .empty-reset-btn {
-  border-color: var(--text-accent-yajang);
-  color: var(--text-accent-yajang);
+  border-color: var(--text-accent);
+  color: var(--text-accent);
 }
 
 .yajang-theme .empty-reset-btn:hover {
-  background: var(--text-accent-yajang);
-  color: #fff;
+  background: var(--text-accent);
+  color: #0D0A1A;
 }
 
 /* Animations */
@@ -1241,11 +1269,16 @@ a:hover {
 .modal-title {
   font-size: 1.4rem;
   font-weight: 700;
+  font-family: var(--font-display);
   color: var(--text-primary);
   display: flex;
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
+}
+
+.yajang-theme .modal-title {
+  font-weight: 800;
 }
 
 .modal-emoji {
@@ -1439,10 +1472,10 @@ a:hover {
   border-radius: 50%;
   background: var(--text-accent);
   border: none;
-  color: white;
+  color: #1C1510;
   font-size: 1.4rem;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(244, 63, 94, 0.45);
+  box-shadow: 0 4px 16px rgba(200, 150, 74, 0.45);
   z-index: 40;
   transition: transform 0.15s, box-shadow 0.15s;
   display: flex;
@@ -1453,7 +1486,7 @@ a:hover {
 
 .random-fab:hover {
   transform: scale(1.1);
-  box-shadow: 0 6px 22px rgba(244, 63, 94, 0.55);
+  box-shadow: 0 6px 22px rgba(200, 150, 74, 0.55);
 }
 
 .random-fab:active {
@@ -1461,8 +1494,12 @@ a:hover {
 }
 
 .yajang-theme .random-fab {
-  background: var(--text-accent-yajang);
-  box-shadow: 0 4px 16px rgba(251, 146, 60, 0.45);
+  color: #0D0A1A;
+  box-shadow: 0 4px 16px rgba(61, 255, 200, 0.35);
+}
+
+.yajang-theme .random-fab:hover {
+  box-shadow: 0 6px 22px rgba(61, 255, 200, 0.45);
 }
 
 .animate-fade-in {
@@ -1675,8 +1712,8 @@ body.map-mode #root {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  background: linear-gradient(135deg, #f43f5e 0%, #fb923c 100%);
-  color: white;
+  background: var(--text-accent);
+  color: #1C1510;
   border: none;
   border-radius: 1.5rem;
   padding: 0.45rem 0.9rem;
@@ -1686,6 +1723,10 @@ body.map-mode #root {
   font-family: var(--font-family);
   transition: opacity var(--transition-fast), transform var(--transition-fast);
   white-space: nowrap;
+}
+
+.yajang-theme .chat-open-btn {
+  color: #0D0A1A;
 }
 
 .chat-open-btn:hover {
@@ -1711,10 +1752,15 @@ body.map-mode #root {
 .section-header-text {
   font-size: 0.75rem;
   font-weight: 600;
+  font-family: var(--font-display);
   color: var(--text-secondary);
   white-space: nowrap;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+.yajang-theme .section-header-text {
+  font-weight: 700;
 }
 
 /* ── Featured "오늘의 발견" Card ────────────────────────────────────────────── */
@@ -1741,9 +1787,13 @@ body.map-mode #root {
   left: 0;
   width: 100%;
   height: 5px;
-  background: linear-gradient(to right, var(--text-accent), rgba(244, 63, 94, 0.2), transparent);
+  background: linear-gradient(to right, var(--text-accent), rgba(200, 150, 74, 0.2), transparent);
   opacity: 0.8;
   transition: opacity var(--transition-default);
+}
+
+.yajang-theme .featured-card::before {
+  background: linear-gradient(to right, var(--text-accent), rgba(61, 255, 200, 0.15), transparent);
 }
 
 .featured-card:hover {
@@ -1774,16 +1824,15 @@ body.map-mode #root {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-accent);
-  background: rgba(244, 63, 94, 0.12);
-  border: 1px solid rgba(244, 63, 94, 0.3);
+  background: rgba(200, 150, 74, 0.12);
+  border: 1px solid rgba(200, 150, 74, 0.3);
   padding: 0.2rem 0.6rem;
   border-radius: 9999px;
 }
 
 .yajang-theme .featured-label {
-  color: var(--text-accent-yajang);
-  background: rgba(251, 146, 60, 0.12);
-  border-color: rgba(251, 146, 60, 0.3);
+  background: rgba(61, 255, 200, 0.10);
+  border-color: rgba(61, 255, 200, 0.25);
 }
 
 .featured-title-row {
@@ -1801,9 +1850,14 @@ body.map-mode #root {
 .featured-name {
   font-size: 1.75rem;
   font-weight: 700;
+  font-family: var(--font-display);
   color: var(--text-primary);
   letter-spacing: -0.03em;
   line-height: 1.2;
+}
+
+.yajang-theme .featured-name {
+  font-weight: 800;
 }
 
 .featured-meta {
@@ -1880,8 +1934,8 @@ body.map-mode #root {
 }
 
 .yajang-theme .featured-reshuffle-btn:hover {
-  border-color: var(--text-accent-yajang);
-  color: var(--text-accent-yajang);
+  border-color: var(--text-accent);
+  color: var(--text-accent);
 }
 
 /* featured 카드 모바일 반응형 */
@@ -2021,9 +2075,14 @@ body.map-mode #root {
 }
 
 .chat-example-chip:hover {
-  background: rgba(244, 63, 94, 0.12);
+  background: rgba(200, 150, 74, 0.12);
   color: var(--text-primary);
-  border-color: rgba(244, 63, 94, 0.3);
+  border-color: rgba(200, 150, 74, 0.3);
+}
+
+.yajang-theme .chat-example-chip:hover {
+  background: rgba(61, 255, 200, 0.10);
+  border-color: rgba(61, 255, 200, 0.25);
 }
 
 .chat-message {
@@ -2052,11 +2111,11 @@ body.map-mode #root {
   padding-left: 0.1rem;
 }
 
-/* 개별 식당 칩 — 로즈 accent 계열 */
+/* 개별 식당 칩 — accent 계열 */
 .chat-result-chip {
-  background: rgba(244, 63, 94, 0.12);
-  border: 1px solid rgba(244, 63, 94, 0.3);
-  color: #f43f5e;
+  background: rgba(200, 150, 74, 0.12);
+  border: 1px solid rgba(200, 150, 74, 0.3);
+  color: var(--text-accent);
   border-radius: 1.5rem;
   padding: 0.3rem 0.75rem;
   font-size: 0.76rem;
@@ -2067,9 +2126,19 @@ body.map-mode #root {
 }
 
 .chat-result-chip:hover:not(:disabled) {
-  background: rgba(244, 63, 94, 0.22);
-  border-color: rgba(244, 63, 94, 0.5);
-  color: #fb5c78;
+  background: rgba(200, 150, 74, 0.22);
+  border-color: rgba(200, 150, 74, 0.5);
+  color: var(--text-accent-hover);
+}
+
+.yajang-theme .chat-result-chip {
+  background: rgba(61, 255, 200, 0.10);
+  border-color: rgba(61, 255, 200, 0.25);
+}
+
+.yajang-theme .chat-result-chip:hover:not(:disabled) {
+  background: rgba(61, 255, 200, 0.18);
+  border-color: rgba(61, 255, 200, 0.4);
 }
 
 .chat-result-chip:disabled {
@@ -2099,9 +2168,13 @@ body.map-mode #root {
 }
 
 .chat-message.user .chat-bubble {
-  background: linear-gradient(135deg, #f43f5e 0%, #fb923c 100%);
-  color: white;
+  background: var(--text-accent);
+  color: #1C1510;
   border-bottom-right-radius: 0.3rem;
+}
+
+.yajang-theme .chat-message.user .chat-bubble {
+  color: #0D0A1A;
 }
 
 .chat-message.model .chat-bubble {
@@ -2157,7 +2230,11 @@ body.map-mode #root {
 }
 
 .chat-input:focus {
-  border-color: rgba(244, 63, 94, 0.4);
+  border-color: rgba(200, 150, 74, 0.4);
+}
+
+.yajang-theme .chat-input:focus {
+  border-color: rgba(61, 255, 200, 0.35);
 }
 
 .chat-input::placeholder {
@@ -2168,8 +2245,8 @@ body.map-mode #root {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #f43f5e 0%, #fb923c 100%);
-  color: white;
+  background: var(--text-accent);
+  color: #1C1510;
   border: none;
   cursor: pointer;
   font-size: 1.1rem;
@@ -2178,6 +2255,10 @@ body.map-mode #root {
   justify-content: center;
   flex-shrink: 0;
   transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.yajang-theme .chat-send-btn {
+  color: #0D0A1A;
 }
 
 .chat-send-btn:disabled {
