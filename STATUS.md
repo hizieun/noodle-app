@@ -1,7 +1,7 @@
 # 노포지도 — 프로젝트 현황
 
 > **단일 출처**: 이 파일은 한눈에 보는 스냅샷. 상세 작업 이력·백로그는 [`docs/06_pm-worklog.md`](docs/06_pm-worklog.md).
-> 마지막 업데이트: 2026-06-30
+> 마지막 업데이트: 2026-07-24
 
 ---
 
@@ -14,7 +14,7 @@
 | 식당 수 | **1,090곳** (주간 자동 크롤로 갱신) |
 | 가중 평점 정렬 | **활성** — 리뷰수 733곳 보유, 베이지안 WR 적용 중 (5.0 쏠림 해소) |
 | 좌표 커버리지 | **100%** (좌표없음 0) — Nominatim + Kakao 폴백 |
-| AI 챗봇 | Gemini 2.5 Flash, `systemInstruction` grounding, 모든 턴 작동 |
+| AI 챗봇 | **Gemini 3.6 Flash**, `systemInstruction` grounding, 지역 유연매칭·후보40·의도어 매핑 |
 | 자동 크롤링 | GitHub Actions 매주 월요일 03:00 KST |
 | PWA | Service Worker 오프라인 캐시, 홈화면 추가 |
 
@@ -76,6 +76,7 @@ _현재 비어 있음 (챗봇 식당명 링크 완료 — 마일스톤 참고)_
 | 2026-06-30 | CI: 주간 크롤에 Kakao 지오코더 폴백 통합(secret 미설정 시 graceful skip). Secret 등록은 수동 대기 |
 | 2026-07-01 | CI 자율 파이프라인 검증 완료: 수동 트리거 #10 success — 크롤·Kakao 폴백·자동 push 전부 통과. permissions:contents:write로 403 수정. 라이브 1,090곳·좌표100%·리뷰수733(가중평점 활성) |
 | 2026-07-02 | 듀얼 톤 아트 디렉션 배포(Phase 1~5): 노포=브라운/앰버·Serif·그레인, 야장=퍼플/네온민트·비네트. 로즈 폐기, 이모지 프레임, 테마 모션, reduced-motion. 상세 [docs/06 6.8](docs/06_pm-worklog.md) |
+| 2026-07-24 | AI 추천 개선: 모델 2.5→3.6 Flash, 지역 유연매칭('강남'·'홍대' 인식)·후보 20→40·의도어 매핑. "강남 국밥 없음" 오답 해결. 상세 [docs/06 6.9](docs/06_pm-worklog.md) |
 
 ---
 
