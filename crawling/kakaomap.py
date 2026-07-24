@@ -446,68 +446,72 @@ save_to_csv(results_by_region, "맛집_평점순_정렬.csv")
 print("\n✨ 모든 크롤링 및 저장 완료!")
 
 
+HEALTHY_RATIO = 0.5  # 건강도 임계: 크롤 결과가 기존 active의 이 비율 미만이면 부분 크롤로 간주
+
+
 def run_sweep(crawl_counts, run_started_at):
-    """정리 sweep — 이번 크롤 scope에서만 미발견 카운트 증가·폐업 숨김·재발견 복구.
+    """정리 sweep — 실제 크롤한 (category, region) **쌍 단위**로만 처리.
 
     crawl_counts: {(category, region): int} — 이번 실행에서 수집된 PlaceItem 수.
-    0건인 쌍은 차단/에러로 수집 실패일 수 있으므로 sweep에서 제외(가드).
+
+    가드 2겹으로 실존 식당 오삭제 방지:
+      1) 0건 쌍 제외 (차단/에러)
+      2) 건강도: 크롤 결과가 기존 active 행의 절반 미만이면 '부분 크롤'로 보고
+         미발견 처리 스킵 — 카카오 검색 상위 변동으로 멀쩡한 식당이 잘못 숨겨지는 것 방지.
+    이전 버전은 `category IN (...) AND region IN (...)` 카테시안이라 전체 크롤 시
+    DB 전체가 대상이 되어 0-가드가 무력화됐음 → 쌍 단위로 교정.
     """
-    # 0건 제외 — 가드 적용
-    valid_pairs = [(cat, reg) for (cat, reg), cnt in crawl_counts.items() if cnt > 0]
-    if not valid_pairs:
-        print("\n[sweep] 유효 scope 없음 — sweep 건너뜀")
-        return
-
-    categories_in_scope = list({cat for cat, reg in valid_pairs})
-    regions_in_scope = list({reg for cat, reg in valid_pairs})
-
-    # 플레이스홀더 생성 (IN 절용)
-    cat_placeholders = ",".join("?" * len(categories_in_scope))
-    reg_placeholders = ",".join("?" * len(regions_in_scope))
-
     conn = sqlite3.connect(DB_PATH)
 
-    # 1) 발견 행: missed_crawls=0, active=1 (복구)
-    conn.execute(f"""
-        UPDATE restaurants
-        SET missed_crawls = 0, active = 1
-        WHERE category IN ({cat_placeholders})
-          AND region IN ({reg_placeholders})
-          AND last_seen_at >= ?
-    """, categories_in_scope + regions_in_scope + [run_started_at])
-    recovered = conn.execute("""SELECT changes()""").fetchone()[0]
+    # pair별 현재 active 행 수 (건강도 기준)
+    active_counts = {}
+    for cat, reg, cnt in conn.execute(
+        "SELECT category, region, COUNT(*) FROM restaurants WHERE active=1 GROUP BY category, region"
+    ):
+        active_counts[(cat, reg)] = cnt
 
-    # 2) 미발견 행: missed_crawls + 1
-    conn.execute(f"""
-        UPDATE restaurants
-        SET missed_crawls = missed_crawls + 1
-        WHERE category IN ({cat_placeholders})
-          AND region IN ({reg_placeholders})
-          AND (last_seen_at IS NULL OR last_seen_at < ?)
-    """, categories_in_scope + regions_in_scope + [run_started_at])
+    recovered = missed = 0
+    swept, skipped = [], []
 
-    # 3) missed_crawls >= 3 이면 active=0 (숨김)
-    conn.execute(f"""
-        UPDATE restaurants
-        SET active = 0
-        WHERE category IN ({cat_placeholders})
-          AND region IN ({reg_placeholders})
-          AND missed_crawls >= 3
-    """, categories_in_scope + regions_in_scope)
-    hidden = conn.execute("""
-        SELECT COUNT(*) FROM restaurants
-        WHERE active = 0
-    """).fetchone()[0]
+    for (cat, reg), found in crawl_counts.items():
+        # 발견 행은 항상 복구 (찾은 건 확실 — 건강도와 무관)
+        conn.execute(
+            """UPDATE restaurants SET missed_crawls=0, active=1
+               WHERE category=? AND region=? AND last_seen_at>=?
+                 AND (missed_crawls>0 OR active=0)""",
+            (cat, reg, run_started_at),
+        )
+        recovered += conn.execute("SELECT changes()").fetchone()[0]
 
+        expected = active_counts.get((cat, reg), 0)
+        healthy = found > 0 and (expected == 0 or found >= max(3, expected * HEALTHY_RATIO))
+        if not healthy:
+            skipped.append((cat, reg, found, expected))
+            continue
+
+        # 미발견 +1 (건강한 크롤에서만)
+        conn.execute(
+            """UPDATE restaurants SET missed_crawls=missed_crawls+1
+               WHERE category=? AND region=? AND (last_seen_at IS NULL OR last_seen_at<?)""",
+            (cat, reg, run_started_at),
+        )
+        missed += conn.execute("SELECT changes()").fetchone()[0]
+        # 3회 연속 미발견 → 숨김
+        conn.execute(
+            "UPDATE restaurants SET active=0 WHERE category=? AND region=? AND missed_crawls>=3",
+            (cat, reg),
+        )
+        swept.append((cat, reg))
+
+    hidden = conn.execute("SELECT COUNT(*) FROM restaurants WHERE active=0").fetchone()[0]
     conn.commit()
     conn.close()
 
-    skipped_pairs = [(cat, reg) for (cat, reg), cnt in crawl_counts.items() if cnt == 0]
     print(f"\n[sweep] 완료")
-    print(f"  scope: {len(valid_pairs)}쌍 ({len(categories_in_scope)}카테고리 × {len(regions_in_scope)}지역)")
-    print(f"  복구(재발견): {recovered}건 / 누적 숨김(active=0): {hidden}건")
-    if skipped_pairs:
-        print(f"  가드로 제외된 0건 쌍: {skipped_pairs}")
+    print(f"  처리 쌍: {len(swept)} / 가드 스킵: {len(skipped)}")
+    print(f"  복구(재발견): {recovered}건 / 미발견+1: {missed}건 / 누적 숨김(active=0): {hidden}건")
+    if skipped:
+        print(f"  건강도 미달 스킵(cat,reg,found,expected): {skipped[:10]}{' …' if len(skipped)>10 else ''}")
 
 
 run_sweep(crawl_counts, RUN_STARTED_AT)
