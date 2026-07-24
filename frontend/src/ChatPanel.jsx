@@ -73,7 +73,7 @@ export default function ChatPanel({ isOpen, onClose, onOpenRestaurant, restauran
         <div className="chat-panel-header">
           <div className="chat-panel-title-group">
             <span id="chat-panel-title" className="chat-panel-title">🤖 AI 맛집 추천</span>
-            <span className="chat-panel-subtitle">Gemini 2.5 Flash · 노포지도 데이터 기반</span>
+            <span className="chat-panel-subtitle">Gemini 3.6 Flash · 노포지도 데이터 기반</span>
           </div>
           <button className="chat-close-btn" onClick={onClose} aria-label="닫기">✕</button>
         </div>

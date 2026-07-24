@@ -3,7 +3,7 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent';
 
 const REGIONS = [
   '강남구','강동구','강북구','강서구','관악구','광진구','구로구','금천구',
@@ -183,7 +183,9 @@ export default async function handler(req, res) {
         generationConfig: {
           temperature: 0.7,
           maxOutputTokens: 1024,
-          thinkingConfig: { thinkingBudget: 0 },
+          // Gemini 3.x는 thinkingBudget(숫자) 폐기 → thinkingLevel(enum) 사용.
+          // 완전 끄기 미지원이라 맛집 추천용으로 가장 가벼운 'low'.
+          thinkingConfig: { thinkingLevel: 'low' },
         },
       }),
     });

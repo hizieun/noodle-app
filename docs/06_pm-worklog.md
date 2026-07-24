@@ -15,7 +15,7 @@
 | 영역 | 스택 | 비고 |
 |------|------|------|
 | frontend | React 19 + Vite 7, `public/data.json` 런타임 fetch | `App.jsx` 993줄에 로직 집중 |
-| AI 추천 | Vercel 서버리스 `api/chat.js` + Gemini 2.5 Flash | 키워드 스코어링으로 식당 추려 grounding |
+| AI 추천 | Vercel 서버리스 `api/chat.js` + Gemini 3.6 Flash | 키워드 스코어링으로 식당 추려 grounding |
 | 크롤러 | Python + Selenium → SQLite → `data.json` + git push | 영업시간 추출 코드 보유 |
 | backend | `restaurants.db` + `init_db.py`/`migrate_hours.py` (크롤러·CI용) | FastAPI 서버는 미사용 확인 후 제거함 (아래 6.5 참고) |
 | 자동화 | GitHub Actions 주간 크롤(월 03:00 KST) | `weekly-crawl.yml` |
