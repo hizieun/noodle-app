@@ -276,3 +276,23 @@ README 갱신 중 식당 수가 1,110→793으로 급감한 걸 발견 → 진�
 - B. 동(洞) 단위: "역삼동 노포" 등 (커버리지 최대, 크롤 시간 급증)
 - C. 메뉴 기반: "{구} 국밥 노포" 등
 셋 다 크롤 시간이 배수로 늘어 CI 타임아웃(90분) 조정 필요. 현재 DB가 안정적이라 급하지 않음 → 보류.
+
+---
+
+## 6.12 안전망 구축 — 데이터 건강 가드 + 테스트 자동화
+
+6.10 사고(폐업 sweep 오탐으로 식당 31% 은닉이 몇 주간 방치, 우연히 발견)의 재발 방지. 자동 파이프라인에 안전망이 전무했던 것이 근본 문제.
+
+### 데이터 건강 가드 (`crawling/health_check.py`)
+- 크롤·sync 후 커밋 **전**에 실행. 직전 배포본(git HEAD의 data.json)과 비교해 활성 식당 수가 **15%↑ 급감**하거나 **절대 하한(300) 미만**이면 `exit 1` → 커밋 스텝 미실행 → 마지막 정상 데이터 보존.
+- 급감 시 어느 지역이 가장 줄었는지 진단 출력. 임계는 `HEALTH_MAX_DROP` 환경변수로 조정.
+- weekly-crawl.yml의 Export → **건강 체크** → Commit 순서로 연결.
+
+### 테스트 자동화 (`.github/workflows/test.yml`)
+- push/PR 시 자동 실행 (Chrome·크롤 불필요, node+python stdlib라 ~1분).
+- 실행: `businessHours.test.js`, `chat.test.mjs`(matchRegion·findRelevant 11개), `test_sweep.py`, health_check 문법.
+- `chat.js`에서 `matchRegion`·`findRelevant` export(테스트용, Vercel default export와 무관).
+- 첫 실행 success 확인. sweep 카테시안 버그 같은 로직 회귀를 push 시점에 즉시 포착.
+
+### 효과
+자동 주간 크롤이 이상 데이터를 내면 **커밋 자체가 차단**되고, 코드 회귀는 **push 시 CI가 잡음**. 사람이 우연히 발견할 때까지 방치되던 구조를 해소.
