@@ -57,11 +57,46 @@ function isOpenAtServer(hours, now) {
   return null;
 }
 
+// 흔히 쓰는 동네명 → 자치구 (사용자는 "강남구"보다 "강남"·"홍대"로 검색)
+const REGION_ALIASES = {
+  '홍대': '마포구', '연남': '마포구', '망원': '마포구', '합정': '마포구',
+  '성수': '성동구', '이태원': '용산구', '한남': '용산구', '신촌': '서대문구',
+  '여의도': '영등포구', '잠실': '송파구', '건대': '광진구', '노량진': '동작구',
+};
+
+// 질문에서 자치구 추출 → 항상 정식 구 이름 반환(없으면 null)
+function matchRegion(q) {
+  // 1) 정식 이름 ("강남구")
+  const full = REGIONS.find(r => q.includes(r));
+  if (full) return full;
+  // 2) 구 접미사 뗀 어간 ("강남", "종로"). "중구"→"중"은 1자라 오탐 위험 → 2자 이상만
+  const stem = REGIONS.find(r => {
+    const s = r.replace(/구$/, '');
+    return s.length >= 2 && q.includes(s);
+  });
+  if (stem) return stem; // find는 정식 이름(r)을 반환
+  // 3) 동네 별칭 ("홍대"→"마포구")
+  const alias = Object.keys(REGION_ALIASES).find(a => q.includes(a));
+  return alias ? REGION_ALIASES[alias] : null;
+}
+
+// 의도어 → 실제 데이터 신호(메뉴 키워드·카테고리·최소평점)로 변환.
+// 데이터엔 "깔끔한/혼밥" 같은 단어가 없으므로 의도를 메뉴/카테고리로 옮겨 가점.
+const INTENTS = [
+  { test: /회식|단체|모임|회량/,               menus: ['고기','삼겹','갈비','곱창','막창','불고기','수육','전골'], category: '야장' },
+  { test: /혼밥|혼자|혼술/,                     menus: ['국밥','국수','백반','덮밥','냉면','칼국수','라멘','우동','분식'] },
+  { test: /부모님|어른|가족|모시|어르신|상견례|어버이/, menus: ['곰탕','설렁탕','정식','한정식','전골','수육','갈비','백반','추어탕'], minRating: 4.0 },
+  { test: /술|한잔|안주|술집|포차|맥주|소주/,    menus: ['안주','전','파전','곱창','골뱅이','오뎅','탕','회','노가리'], category: '야장' },
+  { test: /해장/,                              menus: ['해장국','국밥','콩나물','뼈해장','선지','북어','복'] },
+  { test: /깔끔|정갈|분위기|데이트/,            minRating: 4.2 },
+];
+
 function findRelevant(query) {
   const q = query.toLowerCase();
-  const matchedRegion = REGIONS.find(r => q.includes(r));
+  const matchedRegion = matchRegion(q);
   const isYajang = /야장|포차|야외|노천/.test(q);
   const wantsOpenNow = /지금|영업중|오픈|문 열|열려|열린/.test(q);
+  const activeIntents = INTENTS.filter(i => i.test.test(q));
 
   const now = new Date();
   const scored = restaurants.map(r => {
@@ -84,6 +119,13 @@ function findRelevant(query) {
     const rating = parseFloat(r.평점);
     if (!isNaN(rating) && rating >= 4.0) score += 1;
 
+    // 의도어 가점: 질문의 의도를 메뉴/카테고리/평점 신호로 반영
+    activeIntents.forEach(i => {
+      if (i.menus && i.menus.some(k => menus.includes(k) || name.includes(k))) score += 4;
+      if (i.category && category === i.category) score += 3;
+      if (i.minRating && !isNaN(rating) && rating >= i.minRating) score += 2;
+    });
+
     const openStatus = isOpenAtServer(r.영업시간, now);
     if (wantsOpenNow) {
       if (openStatus === true) score += 8;
@@ -96,12 +138,12 @@ function findRelevant(query) {
   const relevant = scored
     .filter(r => r._score > 0)
     .sort((a, b) => b._score - a._score || (parseFloat(b.평점) || 0) - (parseFloat(a.평점) || 0))
-    .slice(0, 20);
+    .slice(0, 40); // 3.6 Flash 컨텍스트 여유 — 후보 폭 넓혀 추천 품질↑
 
   if (relevant.length < 3) {
     return scored
       .sort((a, b) => (parseFloat(b.평점) || 0) - (parseFloat(a.평점) || 0))
-      .slice(0, 15);
+      .slice(0, 20);
   }
   return relevant;
 }
