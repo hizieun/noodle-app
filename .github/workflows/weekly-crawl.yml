@@ -60,6 +60,9 @@ jobs:
       - name: Export data.json
         run: python crawling/sync_data.py
 
+      - name: 데이터 건강 체크 (이상 급감 시 커밋 차단)
+        run: python crawling/health_check.py
+
       - name: Commit and push if changed
         run: |
           git config user.name "github-actions[bot]"

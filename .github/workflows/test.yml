@@ -1,0 +1,39 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# 크롤/Chrome 불필요 — node + python stdlib만. 코드 회귀를 push 시점에 즉시 잡는다.
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: businessHours 테스트
+        run: node frontend/src/businessHours.test.js
+
+      - name: chat findRelevant/matchRegion 테스트
+        run: node frontend/api/chat.test.mjs
+
+      - name: sweep 로직 테스트
+        run: python crawling/test_sweep.py
+
+      - name: health_check 문법 검증
+        run: python -c "import ast; ast.parse(open('crawling/health_check.py').read())"

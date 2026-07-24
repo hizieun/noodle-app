@@ -65,7 +65,7 @@ const REGION_ALIASES = {
 };
 
 // 질문에서 자치구 추출 → 항상 정식 구 이름 반환(없으면 null)
-function matchRegion(q) {
+export function matchRegion(q) {
   // 1) 정식 이름 ("강남구")
   const full = REGIONS.find(r => q.includes(r));
   if (full) return full;
@@ -91,7 +91,7 @@ const INTENTS = [
   { test: /깔끔|정갈|분위기|데이트/,            minRating: 4.2 },
 ];
 
-function findRelevant(query) {
+export function findRelevant(query) {
   const q = query.toLowerCase();
   const matchedRegion = matchRegion(q);
   const isYajang = /야장|포차|야외|노천/.test(q);
