@@ -59,9 +59,10 @@ export default function ReviewSection({ restaurant }) {
   }, [myReview?.id]);
 
   const login = () => {
+    // 닉네임만 요청 — 이메일 등은 카카오 검수 필요, 요청 시 KOE205
     supabase.auth.signInWithOAuth({
       provider: 'kakao',
-      options: { redirectTo: window.location.href },
+      options: { redirectTo: window.location.href, scopes: 'profile_nickname' },
     });
   };
   const logout = () => supabase.auth.signOut();
