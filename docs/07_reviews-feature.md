@@ -1,7 +1,8 @@
 # 7. 사용자 리뷰 기능 설계 (Phase 1: 텍스트 리뷰 + 평점)
 
-> 상태: **기획 확정, 구현 대기**. 작성 2026-07-24.
+> 상태: **Phase 1 배포 완료 (2026-07-30)**. 작성 2026-07-24.
 > 결정: MVP = 텍스트 리뷰+평점 / 인증 = 카카오 로그인 / 백엔드 = Supabase.
+> 라이브 동작 확인: 카카오 로그인 + 리뷰 작성/수정/삭제. 실전 셋업 함정은 7.9 참고.
 
 노포지도를 "정적 조회"에서 "사용자가 리뷰를 남기는 커뮤니티"로 확장하는 첫 단계.
 현재 구조(정적 프론트 + `data.json` + 서버리스 챗봇)에 **런타임 DB·인증**을 처음 도입한다.
@@ -122,3 +123,28 @@ create policy "delete own" on reviews for delete using (auth.uid() = user_id);
 6. 배포 + 라이브 확인
 
 각 단계 작을 때마다 커밋·검증. Phase 2(사진)는 별도.
+
+---
+
+## 7.9 실전 셋업 노트 (2026-07-30 Phase 1 배포 완료)
+
+Phase 1 라이브 배포 완료 — 카카오 로그인 + 리뷰 CRUD 정상 동작 확인. 카카오 OAuth 셋업에서 겪은 함정을 **해결 순서대로** 기록(재세팅·인수인계용). 카카오 콘솔 UI가 자주 바뀌므로 위치보다 **증상→원인**에 집중.
+
+### 확정 값
+- Supabase Project: `flqzsywacukvmngyxyvu` (Region: Seoul)
+- Kakao REST API 키 = OAuth client_id: `b38212...` (지오코더와 동일 키)
+- Supabase 콜백: `https://flqzsywacukvmngyxyvu.supabase.co/auth/v1/callback`
+
+### 겪은 에러 → 해결 (순서대로)
+1. **`provider is not enabled`** (Supabase) → Supabase Authentication → Providers → Kakao **Enable 토글 ON + Save**. 토글만 켜고 저장 안 하면 반영 안 됨.
+2. **KOE205** (동의항목/scope 오류) → **원인은 Supabase가 카카오에 `account_email profile_image profile_nickname`을 강제 요청**하는데(클라이언트에서 제거 불가 — 알려진 Supabase 한계, GH #36878), `account_email`이 개인 앱엔 "권한 없음"이라 거부. **해결: 카카오 콘솔 → 비즈니스 → "개인 개발자 등록"**(사업자등록 불필요) → account_email scope 열림 → 동의항목에서 account_email·profile_nickname 사용 설정.
+   - 참고: 클라 코드에서 `scopes: 'profile_nickname'`만 넘겨도 Supabase가 기본 scope에 **append**만 함(replace 아님). 그래서 개인 등록이 실질 해결책.
+3. **KOE006** (redirect_uri mismatch) → 카카오 로그인 Redirect URI에 위 Supabase 콜백 등록. (이 콘솔 버전에선 카카오 로그인 → 일반/고급에 필드가 잘 안 보임 — 에러 페이지의 "어떻게 해결할 수 있나요?"가 정확한 경로를 안내. 개인 등록 후 필드가 나타남)
+4. **로그인 후 `localhost:3000` 연결 거부** → **Supabase Authentication → URL Configuration**: **Site URL** = `https://frontend-kappa-six-36.vercel.app`, **Redirect URLs**에 `https://frontend-kappa-six-36.vercel.app/**` 추가. Supabase는 `redirectTo`가 허용 목록에 없으면 무시하고 Site URL(기본 localhost:3000)로 보냄.
+
+### 환경변수
+- Vercel + 로컬 `frontend/.env`: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (VITE_ 접두 = 빌드타임 인라인). anon key는 공개 안전(보안은 RLS).
+
+### 교훈
+- 정상 순서: Supabase 프로바이더 → **개인 개발자 등록**(KOE205 예방) → Redirect URI(KOE006) → **Site URL/Redirect URLs**(복귀). 이 순서로 하면 헤맬 일 없음.
+- 개인 사이드 프로젝트 + 카카오 OAuth는 `account_email` 강제 요청 때문에 **개인 개발자 등록이 사실상 필수**.
