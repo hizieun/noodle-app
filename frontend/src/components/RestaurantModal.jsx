@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { formatRestaurantName } from '../utils/format.js';
 import { isOpenNow, getBusinessHours, isCashOnly, formatHoursForDisplay } from '../businessHours.js';
+import ReviewSection from './ReviewSection.jsx';
 
 // --- Modal Component ---
 const FOCUSABLE_SELECTORS = 'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
@@ -268,6 +269,8 @@ const RestaurantModal = ({ restaurant, onClose, isVisited, onToggleVisited, myVi
               <p className="hours-note">방문하셨다면 위 '가봤어요 표시' 버튼을 눌러주세요. 내 평점과 메모를 남길 수 있어요.</p>
             )}
           </div>
+
+          <ReviewSection restaurant={restaurant} />
         </div>
       </div>
     </div>
