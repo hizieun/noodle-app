@@ -10,7 +10,7 @@ const nameOf = (user) => {
 
 const fmtDate = (iso) => (iso ? iso.slice(0, 10) : '');
 
-export default function ReviewSection({ restaurant }) {
+export default function ReviewSection({ restaurant, onReviewChange }) {
   const [session, setSession] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(Boolean(supabase));
@@ -88,6 +88,7 @@ export default function ReviewSection({ restaurant }) {
     setSaving(false);
     if (e) { setError('저장 실패: ' + e.message); return; }
     loadReviews();
+    onReviewChange?.(); // 카드 배지 즉시 갱신
   };
 
   const remove = async () => {
@@ -97,6 +98,7 @@ export default function ReviewSection({ restaurant }) {
     if (e) { setError('삭제 실패'); return; }
     setRating(0); setBody('');
     loadReviews();
+    onReviewChange?.(); // 카드 배지 즉시 갱신
   };
 
   // Supabase 미설정 환경(로컬 키 없음 등)에선 섹션 자체를 숨김

@@ -6,7 +6,7 @@ import ReviewSection from './ReviewSection.jsx';
 // --- Modal Component ---
 const FOCUSABLE_SELECTORS = 'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
 
-const RestaurantModal = ({ restaurant, onClose, isVisited, onToggleVisited, myVisit, onUpdateMyVisit }) => {
+const RestaurantModal = ({ restaurant, onClose, isVisited, onToggleVisited, myVisit, onUpdateMyVisit, onReviewChange }) => {
   const [copied, setCopied] = useState(false);
   const [memoDraft, setMemoDraft] = useState(myVisit?.memo || '');
   const containerRef = useRef(null);
@@ -270,7 +270,7 @@ const RestaurantModal = ({ restaurant, onClose, isVisited, onToggleVisited, myVi
             )}
           </div>
 
-          <ReviewSection restaurant={restaurant} />
+          <ReviewSection restaurant={restaurant} onReviewChange={onReviewChange} />
         </div>
       </div>
     </div>

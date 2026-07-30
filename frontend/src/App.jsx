@@ -30,7 +30,7 @@ const isInstallBannerSuppressed = () => {
 // --- App Main ---
 function App() {
   const [restaurants, setRestaurants] = useState([]);
-  const communityRatings = useCommunityRatings(); // key → {avg, count}
+  const { ratings: communityRatings, refresh: refreshCommunity } = useCommunityRatings(); // key → {avg, count}
   const [dataLoading, setDataLoading] = useState(true);
   const [installPrompt, setInstallPrompt] = useState(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
@@ -817,6 +817,7 @@ function App() {
           onToggleVisited={toggleVisited}
           myVisit={myVisits[visitKey(selectedRestaurant)]}
           onUpdateMyVisit={handleUpdateMyVisit}
+          onReviewChange={refreshCommunity}
         />
       )}
 
