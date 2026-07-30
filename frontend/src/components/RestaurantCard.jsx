@@ -2,7 +2,7 @@ import { formatRestaurantName } from '../utils/format.js';
 import { isOpenNow } from '../businessHours.js';
 
 // --- Card Component ---
-const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite, isVisited, onToggleVisited, distance, myVisit }) => {
+const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite, isVisited, onToggleVisited, distance, myVisit, community }) => {
   const { emoji, cleanName } = formatRestaurantName(data.상호명);
 
   const distanceLabel = distance !== null && distance !== undefined
@@ -55,6 +55,9 @@ const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite, i
           </svg>
           {data.평점 !== "정보 없음" ? data.평점 : "-"}
         </div>
+        {community && (
+          <span className="community-badge" title="커뮤니티 리뷰 평점">💬 {community.avg.toFixed(1)} ({community.count})</span>
+        )}
         {openStatus === 'open' && <span className="open-badge open">🟢 영업중</span>}
         {openStatus === 'closed' && <span className="open-badge closed">🔴 영업종료</span>}
         {myRating > 0 && !distanceLabel && (

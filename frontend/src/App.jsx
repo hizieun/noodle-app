@@ -6,6 +6,7 @@ import { buildShareUrl, readShareListFromLocation, copyToClipboard, PARAM_KEY as
 import { loadVisits, saveVisits, updateVisit } from './myVisits.js';
 import { favKey, visitKey, formatRestaurantName, dateHashIndex, ITEMS_PER_PAGE } from './utils/format.js';
 import { haversine } from './utils/geo.js';
+import { useCommunityRatings } from './lib/useCommunityRatings.js';
 import RestaurantModal from './components/RestaurantModal.jsx';
 import RestaurantCard from './components/RestaurantCard.jsx';
 import FeaturedCard from './components/FeaturedCard.jsx';
@@ -29,6 +30,7 @@ const isInstallBannerSuppressed = () => {
 // --- App Main ---
 function App() {
   const [restaurants, setRestaurants] = useState([]);
+  const communityRatings = useCommunityRatings(); // key → {avg, count}
   const [dataLoading, setDataLoading] = useState(true);
   const [installPrompt, setInstallPrompt] = useState(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
@@ -761,6 +763,7 @@ function App() {
                 onReshuffle={() => {
                   setReshuffleIdx(Math.floor(Math.random() * categoryPool.length));
                 }}
+                community={communityRatings.get(featuredKey)}
               />
             )}
 
@@ -784,6 +787,7 @@ function App() {
                   onToggleVisited={toggleVisited}
                   distance={restaurant.distance}
                   myVisit={myVisits[visitKey(restaurant)]}
+                  community={communityRatings.get(favKey(restaurant))}
                 />
               ))}
             </div>

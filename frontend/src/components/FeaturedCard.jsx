@@ -2,7 +2,7 @@ import { formatRestaurantName } from '../utils/format.js';
 import { isOpenNow } from '../businessHours.js';
 
 // --- Featured "오늘의 발견" Card Component ---
-const FeaturedCard = ({ restaurant, onOpen, onReshuffle }) => {
+const FeaturedCard = ({ restaurant, onOpen, onReshuffle, community }) => {
   const { emoji, cleanName } = formatRestaurantName(restaurant.상호명);
   const menus = restaurant.대표메뉴
     ? restaurant.대표메뉴.split(',').map(m => m.trim()).filter(Boolean)
@@ -38,6 +38,7 @@ const FeaturedCard = ({ restaurant, onOpen, onReshuffle }) => {
       <div className="featured-meta">
         <span className="card-region">{restaurant.지역}</span>
         <span className="featured-rating">⭐ {restaurant.평점 !== '정보 없음' ? restaurant.평점 : '-'}</span>
+        {community && <span className="community-badge" title="커뮤니티 리뷰 평점">💬 {community.avg.toFixed(1)} ({community.count})</span>}
         {distanceLabel && <span className="distance-badge">📍 {distanceLabel}</span>}
       </div>
 

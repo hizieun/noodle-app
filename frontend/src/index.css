@@ -2578,3 +2578,15 @@ body.map-mode #root {
 .review-author { font-weight: 600; color: var(--text-primary); }
 .review-date { margin-left: auto; color: var(--text-secondary); font-size: 0.72rem; }
 .review-body { font-size: 0.88rem; color: var(--text-primary); line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+
+/* 커뮤니티 리뷰 평점 배지 (카드·featured) */
+.community-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-accent);
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid var(--text-accent);
+  padding: 0.12rem 0.45rem;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
