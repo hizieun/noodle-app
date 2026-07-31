@@ -1612,6 +1612,8 @@ a:hover {
   height: 200px;
   border: 0;
   display: block;
+  /* 밝은 OSM 임베드를 다크 테마에 맞춤 (검증된 지도 다크 필터) */
+  filter: invert(0.92) hue-rotate(180deg) brightness(0.95) contrast(0.9);
 }
 
 /* Random FAB */
