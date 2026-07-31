@@ -18,11 +18,18 @@ export default function ReviewSection({ restaurant, onReviewChange }) {
   const [body, setBody] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [sort, setSort] = useState('recent'); // 'recent' | 'rating'
 
   const key = favKey(restaurant);
   const userId = session?.user?.id || null;
   const myReview = reviews.find((r) => r.user_id === userId) || null;
-  const others = reviews.filter((r) => r.user_id !== userId);
+  const others = reviews
+    .filter((r) => r.user_id !== userId)
+    .sort((a, b) =>
+      sort === 'rating'
+        ? b.rating - a.rating || (b.created_at > a.created_at ? 1 : -1)
+        : (b.created_at > a.created_at ? 1 : -1),
+    );
   const avg = reviews.length
     ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
     : null;
@@ -110,6 +117,7 @@ export default function ReviewSection({ restaurant, onReviewChange }) {
         💬 커뮤니티 리뷰
         {avg && <span className="review-avg">★ {avg} · {reviews.length}개</span>}
       </h4>
+      <p className="review-subtitle">모두에게 공개돼요 · 위 '내 방문 후기'는 나만 봅니다</p>
 
       {/* 작성 영역 */}
       {session ? (
@@ -138,6 +146,7 @@ export default function ReviewSection({ restaurant, onReviewChange }) {
             rows={3}
             maxLength={1000}
           />
+          <div className="review-charcount">{body.length} / 1000</div>
           <div className="review-editor-actions">
             <button className="review-submit" onClick={submit} disabled={saving}>
               {saving ? '저장 중…' : myReview ? '리뷰 수정' : '리뷰 등록'}
@@ -160,6 +169,13 @@ export default function ReviewSection({ restaurant, onReviewChange }) {
       ) : others.length === 0 && !myReview ? (
         <p className="hours-note muted">아직 리뷰가 없어요. 첫 리뷰를 남겨보세요!</p>
       ) : (
+        <>
+        {others.length >= 2 && (
+          <div className="review-sort">
+            <button className={sort === 'recent' ? 'active' : ''} onClick={() => setSort('recent')}>최신순</button>
+            <button className={sort === 'rating' ? 'active' : ''} onClick={() => setSort('rating')}>별점순</button>
+          </div>
+        )}
         <ul className="review-list">
           {myReview && (
             <li className="review-item mine">
@@ -182,6 +198,7 @@ export default function ReviewSection({ restaurant, onReviewChange }) {
             </li>
           ))}
         </ul>
+        </>
       )}
     </div>
   );
