@@ -47,6 +47,7 @@ python3 "$SK/scripts/search.py" "<질의>" --domain gsap        # 모션 프리�
 | display 폰트 | Noto Serif KR | Pretendard 800 |
 
 - 본문 폰트: **Pretendard** / 제목: `--font-display`
+- **타입 스케일**(`:root` 토큰, 신규·정리 시 사용): `--text-2xs`(11.5px 뱃지 하한)·`--text-xs`(13)·`--text-sm`(14 카드본문)·`--text-base`(16 본문)·`--text-lg`(20)·`--text-xl`(24)·`--text-2xl`(32). body ≥16px, 뱃지 ≥11.5px(가독 하한)
 - **4색 역할 규칙** (이 외 색 남발 금지): 로즈/accent = 액션·필터 · 초록 `#22c55e` = 영업중·방문 · 빨강 `#ef4444` = 종료·경고 · 골드 `#fbbf24` = 별점. **제네릭 로즈(#f43f5e)는 폐기됨.**
 - accent 배경 버튼 글자색은 **반드시 `--text-on-accent`** (밝은 민트/앰버 위 흰 글자는 대비 미달 → 금지).
 - 질감: 노포 종이 그레인 / 야장 네온 글로우 (전부 CSS, `pointer-events:none`).
@@ -116,3 +117,10 @@ python3 "$SK/scripts/search.py" "<질의>" --domain gsap        # 모션 프리�
 - ✅ cursor / hover(150–300ms) / 대비(AA) / reduced-motion / 반응형 — 충족.
 - ✅ 포커스: `outline:none` 4곳(my-memo·filter-select·search-input·chat-input) 전부 `:focus`에 border/box-shadow 대체 있음.
 - ❌→✅ **발견·수정**: `RestaurantCard`(메인 그리드 카드)가 `<div onClick>`인데 `tabIndex`/`role`/`onKeyDown` 없어 **키보드로 열 수 없었음**(FeaturedCard는 됨). `role="button"`+`tabIndex={0}`+Enter/Space 핸들러+`aria-label` 추가, `:focus-visible` 포커스 링(accent) 부여.
+
+## 8.7 시각 폴리시 (2026-07-31)
+
+- **지도 다크 통일**: MapView CARTO Dark 타일, 모달 미니맵 CSS 다크 필터 — 밝은 OSM 튐 해소.
+- **마이크로 인터랙션**: 카드·버튼 프레스 스케일, 즐겨찾기/방문 토글 아이콘 팝(iconPop). 150–300ms·reduced-motion 존중.
+- **빈 상태 SVG화**: 🔗🤍🍽️ 이모지 → Link/Heart/Search SVG(앰버 톤). 메시지+액션 유지.
+- **타입 스케일 정립**: `--text-*` 토큰(8.2). 12px 미만 뱃지 라벨 → `--text-2xs`(11.5px) 하한. 기존 사이즈는 점진 이관.

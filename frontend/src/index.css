@@ -42,6 +42,15 @@
   --spacing-md: 1rem;
   --spacing-lg: 1.5rem;
   --spacing-xl: 2rem;
+
+  /* Type scale (modular) — 라벨~디스플레이. 신규/정리 시 이 토큰 사용, body는 --text-base(16px) 기준 */
+  --text-2xs: 0.72rem;  /* 11.5px — 뱃지·메타 (최소 가독 하한) */
+  --text-xs: 0.8rem;    /* 13px — 보조 라벨 */
+  --text-sm: 0.875rem;  /* 14px — 카드 본문·버튼 */
+  --text-base: 1rem;    /* 16px — 기본 본문 */
+  --text-lg: 1.25rem;   /* 20px — 소제목 */
+  --text-xl: 1.5rem;    /* 24px — 제목 */
+  --text-2xl: 2rem;     /* 32px — 디스플레이 */
 }
 
 /* ── 야장 테마 (밤거리 네온 퍼플) ─────────────────────────────────────── */
@@ -703,7 +712,7 @@ a:hover {
   background: var(--text-accent);
   color: var(--text-on-accent);
   border-radius: 9999px;
-  font-size: 0.65rem;
+  font-size: var(--text-2xs);
   font-weight: 700;
   padding: 0 0.35rem;
   min-width: 1.1rem;
@@ -912,7 +921,7 @@ a:hover {
 
 /* Open/closed badge on card */
 .open-badge {
-  font-size: 0.65rem;
+  font-size: var(--text-2xs);
   font-weight: 700;
   padding: 0.15rem 0.45rem;
   border-radius: 9999px;
@@ -1295,9 +1304,11 @@ a:hover {
 }
 
 .empty-icon {
-  font-size: 3rem;
   margin-bottom: var(--spacing-md);
-  opacity: 0.5;
+  color: var(--text-accent);
+  opacity: 0.55;
+  display: flex;
+  justify-content: center;
 }
 
 .empty-reset-btn {

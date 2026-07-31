@@ -9,7 +9,7 @@ import { haversine } from './utils/geo.js';
 import { useCommunityRatings } from './lib/useCommunityRatings.js';
 import RestaurantModal from './components/RestaurantModal.jsx';
 import RestaurantCard from './components/RestaurantCard.jsx';
-import { XIcon, ListIcon, MapIcon, SparklesIcon, MapPinIcon, LinkIcon, ShuffleIcon, CheckIcon } from './components/icons.jsx';
+import { XIcon, ListIcon, MapIcon, SparklesIcon, MapPinIcon, LinkIcon, ShuffleIcon, CheckIcon, HeartIcon, SearchIcon } from './components/icons.jsx';
 import FeaturedCard from './components/FeaturedCard.jsx';
 import { SkeletonGrid } from './components/Skeleton.jsx';
 
@@ -711,19 +711,19 @@ function App() {
           <div className="empty-state">
             {isSharedMode ? (
               <>
-                <div className="empty-icon">🔗</div>
+                <div className="empty-icon"><LinkIcon size={44} /></div>
                 <h2>공유받은 리스트의 식당을 찾을 수 없습니다.</h2>
                 <p>식당 정보가 변경되었거나 링크가 손상되었을 수 있어요.</p>
               </>
             ) : showFavoritesOnly ? (
               <>
-                <div className="empty-icon">🤍</div>
+                <div className="empty-icon"><HeartIcon size={44} /></div>
                 <h2>즐겨찾기한 맛집이 없습니다.</h2>
-                <p>카드의 ♡ 버튼을 눌러 저장하세요.</p>
+                <p>카드의 하트 버튼을 눌러 저장하세요.</p>
               </>
             ) : (
               <>
-                <div className="empty-icon">🍽️</div>
+                <div className="empty-icon"><SearchIcon size={44} /></div>
                 <h2>
                   {searchQuery
                     ? `"${searchQuery}" 검색 결과가 없습니다`
