@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabase.js';
 import { favKey } from '../utils/format.js';
+import { MessageIcon } from './icons.jsx';
 
 // 카카오 프로필에서 표시용 닉네임 추출 (매핑 필드가 버전마다 달라 폴백 체인)
 const nameOf = (user) => {
@@ -159,7 +160,7 @@ export default function ReviewSection({ restaurant, onReviewChange }) {
         </div>
       ) : (
         <button className="review-login-btn" onClick={login}>
-          🗨 카카오로 로그인하고 리뷰 남기기
+          <MessageIcon size={16} /> 카카오로 로그인하고 리뷰 남기기
         </button>
       )}
 

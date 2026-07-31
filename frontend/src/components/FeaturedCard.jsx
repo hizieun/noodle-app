@@ -1,5 +1,6 @@
 import { formatRestaurantName } from '../utils/format.js';
 import { isOpenNow } from '../businessHours.js';
+import { MessageIcon, MapPinIcon, ShuffleIcon } from './icons.jsx';
 
 // --- Featured "오늘의 발견" Card Component ---
 const FeaturedCard = ({ restaurant, onOpen, onReshuffle, community }) => {
@@ -38,8 +39,8 @@ const FeaturedCard = ({ restaurant, onOpen, onReshuffle, community }) => {
       <div className="featured-meta">
         <span className="card-region">{restaurant.지역}</span>
         <span className="featured-rating">⭐ {restaurant.평점 !== '정보 없음' ? restaurant.평점 : '-'}</span>
-        {community && <span className="community-badge" title="커뮤니티 리뷰 평점">💬 {community.avg.toFixed(1)} ({community.count})</span>}
-        {distanceLabel && <span className="distance-badge">📍 {distanceLabel}</span>}
+        {community && <span className="community-badge" title="커뮤니티 리뷰 평점"><MessageIcon size={12} /> {community.avg.toFixed(1)} ({community.count})</span>}
+        {distanceLabel && <span className="distance-badge"><MapPinIcon size={12} /> {distanceLabel}</span>}
       </div>
 
       <div className="featured-address">
@@ -66,7 +67,7 @@ const FeaturedCard = ({ restaurant, onOpen, onReshuffle, community }) => {
           title="같은 카테고리 내 다른 식당으로 교체"
           aria-label="다른 식당 추천"
         >
-          🎲 다른 곳
+          <ShuffleIcon size={15} /> 다른 곳
         </button>
       </div>
     </div>

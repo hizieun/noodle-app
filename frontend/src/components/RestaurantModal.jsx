@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { formatRestaurantName } from '../utils/format.js';
 import { isOpenNow, getBusinessHours, isCashOnly, formatHoursForDisplay } from '../businessHours.js';
 import ReviewSection from './ReviewSection.jsx';
+import { XIcon, LinkIcon, CheckIcon } from './icons.jsx';
 
 // --- Modal Component ---
 const FOCUSABLE_SELECTORS = 'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
@@ -106,9 +107,9 @@ const RestaurantModal = ({ restaurant, onClose, isVisited, onToggleVisited, myVi
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <button className={`share-btn ${copied ? 'copied' : ''}`} onClick={handleCopyLink} title="링크 복사">
-              {copied ? '✓ 복사됨' : '🔗 공유'}
+              {copied ? <><CheckIcon size={14} /> 복사됨</> : <><LinkIcon size={14} /> 공유</>}
             </button>
-            <button className="modal-close-btn" onClick={onClose} aria-label="닫기">✕</button>
+            <button className="modal-close-btn" onClick={onClose} aria-label="닫기"><XIcon size={18} /></button>
           </div>
         </div>
 

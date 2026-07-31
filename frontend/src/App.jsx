@@ -9,6 +9,7 @@ import { haversine } from './utils/geo.js';
 import { useCommunityRatings } from './lib/useCommunityRatings.js';
 import RestaurantModal from './components/RestaurantModal.jsx';
 import RestaurantCard from './components/RestaurantCard.jsx';
+import { XIcon, ListIcon, MapIcon, SparklesIcon, MapPinIcon, LinkIcon, ShuffleIcon, CheckIcon } from './components/icons.jsx';
 import FeaturedCard from './components/FeaturedCard.jsx';
 import { SkeletonGrid } from './components/Skeleton.jsx';
 
@@ -462,7 +463,7 @@ function App() {
           <span>📱 홈화면에 추가하면 앱처럼 사용할 수 있어요</span>
           <div className="install-banner-actions">
             <button className="install-banner-btn primary" onClick={handleInstall}>추가하기</button>
-            <button className="install-banner-btn" onClick={handleDismissInstallBanner}>✕</button>
+            <button className="install-banner-btn" onClick={handleDismissInstallBanner} aria-label="닫기"><XIcon size={16} /></button>
           </div>
         </div>
       )}
@@ -518,13 +519,13 @@ function App() {
                   className={`view-btn ${viewMode === 'list' ? 'active' : ''}`}
                   onClick={() => handleViewMode('list')}
                 >
-                  ☰ <span className="view-btn-text">목록</span>
+                  <ListIcon size={16} /> <span className="view-btn-text">목록</span>
                 </button>
                 <button
                   className={`view-btn ${viewMode === 'map' ? 'active' : ''}`}
                   onClick={() => handleViewMode('map')}
                 >
-                  🗺 <span className="view-btn-text">지도</span>
+                  <MapIcon size={16} /> <span className="view-btn-text">지도</span>
                 </button>
               </div>
             </div>
@@ -546,7 +547,7 @@ function App() {
                   onClick={() => setSearchQuery('')}
                   aria-label="검색어 지우기"
                 >
-                  ✕
+                  <XIcon size={14} />
                 </button>
               )}
             </div>
@@ -555,13 +556,13 @@ function App() {
               onClick={() => setChatOpen(prev => !prev)}
               title="AI 맛집 추천"
             >
-              <span aria-hidden="true">🤖</span><span className="btn-text"> AI 추천</span>
+              <SparklesIcon size={16} /><span className="btn-text"> AI 추천</span>
             </button>
             <button
               className={`location-btn ${userLocation ? 'active' : ''}`}
               onClick={handleLocate}
             >
-              📍 {userLocation ? '위치 ON' : '내 위치'}
+              <MapPinIcon size={15} /> {userLocation ? '위치 ON' : '내 위치'}
             </button>
             <button
               className={`filter-toggle-btn ${filterOpen ? 'open' : ''}`}
@@ -637,7 +638,7 @@ function App() {
                 onClick={handleShareFavorites}
                 title="즐겨찾기 식당을 친구에게 공유"
               >
-                {shareCopied ? '✓ 링크 복사됨' : '🔗 공유'}
+                {shareCopied ? <><CheckIcon size={14} /> 링크 복사됨</> : <><LinkIcon size={14} /> 공유</>}
               </button>
             )}
             <button
@@ -806,7 +807,7 @@ function App() {
       </main>
 
       <button className="random-fab" onClick={handleRandomPick} title="랜덤 맛집 뽑기" aria-label="랜덤 맛집 뽑기">
-        🎲
+        <ShuffleIcon size={22} />
       </button>
 
       {selectedRestaurant && (

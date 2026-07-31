@@ -1,5 +1,6 @@
 import { formatRestaurantName } from '../utils/format.js';
 import { isOpenNow } from '../businessHours.js';
+import { HeartIcon, CheckIcon, MessageIcon, MapPinIcon } from './icons.jsx';
 
 // --- Card Component ---
 const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite, isVisited, onToggleVisited, distance, myVisit, community }) => {
@@ -28,14 +29,14 @@ const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite, i
             aria-label={isVisited ? '방문 취소' : '방문했어요'}
             title={isVisited ? '방문 취소' : '가봤어요'}
           >
-            {isVisited ? '✓ 방문' : '방문'}
+            {isVisited ? <><CheckIcon size={14} /> 방문</> : '방문'}
           </button>
           <button
             className={`favorite-btn ${isFavorited ? 'active' : ''}`}
             onClick={(e) => onToggleFavorite(data, e)}
             aria-label={isFavorited ? '즐겨찾기 해제' : '즐겨찾기 추가'}
           >
-            {isFavorited ? '♥' : '♡'}
+            <HeartIcon size={18} filled={isFavorited} />
           </button>
         </div>
       </div>
@@ -56,7 +57,7 @@ const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite, i
           {data.평점 !== "정보 없음" ? data.평점 : "-"}
         </div>
         {community && (
-          <span className="community-badge" title="커뮤니티 리뷰 평점">💬 {community.avg.toFixed(1)} ({community.count})</span>
+          <span className="community-badge" title="커뮤니티 리뷰 평점"><MessageIcon size={12} /> {community.avg.toFixed(1)} ({community.count})</span>
         )}
         {openStatus === 'open' && <span className="open-badge open">🟢 영업중</span>}
         {openStatus === 'closed' && <span className="open-badge closed">🔴 영업종료</span>}
@@ -64,7 +65,7 @@ const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite, i
           <span className="my-rating-badge" title="내가 매긴 평점">내 ★ {myRating}</span>
         )}
         {distanceLabel ? (
-          <span className="distance-badge">📍 {distanceLabel}</span>
+          <span className="distance-badge"><MapPinIcon size={12} /> {distanceLabel}</span>
         ) : (
           <span className="card-detail-hint">자세히 보기 →</span>
         )}

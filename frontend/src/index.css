@@ -2623,3 +2623,15 @@ body.map-mode #root {
   border-color: var(--text-accent);
   color: var(--text-accent);
 }
+
+/* SVG 아이콘 정렬 (이모지→SVG 아이콘 교체) */
+.visit-btn, .favorite-btn, .view-btn, .location-btn, .chat-open-btn, .share-btn,
+.modal-close-btn, .featured-reshuffle-btn, .review-login-btn, .install-banner-btn,
+.search-clear, .random-fab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+.community-badge, .distance-badge { display: inline-flex; align-items: center; gap: 0.2rem; }
+.community-badge svg, .distance-badge svg { flex-shrink: 0; }
