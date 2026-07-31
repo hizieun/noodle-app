@@ -2643,3 +2643,35 @@ body.map-mode #root {
   outline: 2px solid var(--text-accent);
   outline-offset: 2px;
 }
+
+/* ── 마이크로 인터랙션 (스킬 4번: Active States) — 프레스/토글 피드백 ──
+   150–300ms, --ui-hover-easing. prefers-reduced-motion 블록이 *로 자동 커버. */
+
+/* 카드 프레스: hover lift에서 살짝 눌리는 촉각 피드백 */
+.card:active { transform: translateY(-1px) scale(0.99); }
+.featured-card:active { transform: scale(0.995); }
+
+/* 알약/액션 버튼 프레스 스케일 */
+.category-btn:active, .view-btn:active, .location-btn:active, .chat-open-btn:active,
+.filter-toggle-item:active, .filter-toggle-btn:active, .review-submit:active,
+.review-login-btn:active, .share-btn:active, .share-fav-btn:active,
+.action-btn:active, .load-more-btn:active, .empty-reset-btn:active,
+.featured-reshuffle-btn:active, .install-banner-btn:active {
+  transform: scale(0.95);
+}
+
+/* 즐겨찾기/방문 토글 시 아이콘 팝 (확인 피드백) */
+@keyframes iconPop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.35); }
+  100% { transform: scale(1); }
+}
+.favorite-btn.active svg,
+.visit-btn.active svg {
+  animation: iconPop 0.3s var(--ui-hover-easing);
+}
+
+/* 아이콘 버튼 자체도 프레스 시 눌림 */
+.favorite-btn:active, .visit-btn:active, .modal-close-btn:active, .search-clear:active {
+  transform: scale(0.88);
+}
