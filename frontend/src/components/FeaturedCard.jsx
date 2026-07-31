@@ -2,6 +2,9 @@ import { formatRestaurantName } from '../utils/format.js';
 import { isOpenNow } from '../businessHours.js';
 import { MessageIcon, MapPinIcon, ShuffleIcon } from './icons.jsx';
 
+// 에디토리얼 이슈 넘버 (연중 일자 기반) — 모듈 로드 시 1회 계산(render 순수성 유지)
+const ISSUE_NO = Math.ceil((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+
 // --- Featured "오늘의 발견" Card Component ---
 const FeaturedCard = ({ restaurant, onOpen, onReshuffle, community }) => {
   const { emoji, cleanName } = formatRestaurantName(restaurant.상호명);
@@ -27,6 +30,8 @@ const FeaturedCard = ({ restaurant, onOpen, onReshuffle, community }) => {
     >
       <div className="featured-label-row">
         <span className="featured-label">오늘의 발견</span>
+        <span className="featured-no">No.{String(ISSUE_NO).padStart(3, '0')}</span>
+        <span className="featured-spacer" />
         {openStatus === 'open' && <span className="open-badge open">🟢 영업중</span>}
         {openStatus === 'closed' && <span className="open-badge closed">🔴 영업종료</span>}
       </div>

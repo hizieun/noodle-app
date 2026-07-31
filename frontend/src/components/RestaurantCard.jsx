@@ -23,10 +23,9 @@ const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite, i
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(data); } }}
       aria-label={`${cleanName} 상세 보기`}
     >
-      <div className="card-header">
-        <h3 className="card-title"><span className="card-emoji" aria-hidden="true">{emoji}</span>{cleanName}</h3>
-        <div className="card-header-right">
-          <span className="card-region">{data.지역}</span>
+      <div className="card-topbar">
+        <span className="card-region">{data.지역}</span>
+        <div className="card-controls">
           <button
             className={`visit-btn ${isVisited ? 'active' : ''}`}
             onClick={(e) => onToggleVisited(data, e)}
@@ -44,6 +43,8 @@ const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite, i
           </button>
         </div>
       </div>
+
+      <h3 className="card-title"><span className="card-emoji" aria-hidden="true">{emoji}</span>{cleanName}</h3>
 
       <div className="card-address">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="16" height="16">

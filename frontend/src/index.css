@@ -1143,10 +1143,13 @@ a:hover {
 }
 
 .card-title {
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 1.4rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
   color: var(--text-primary);
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.35rem;
   display: flex;
   align-items: center;
 }
@@ -2686,3 +2689,82 @@ body.map-mode #root {
 .favorite-btn:active, .visit-btn:active, .modal-close-btn:active, .search-clear:active {
   transform: scale(0.88);
 }
+
+/* ══════════════════════════════════════════════════════════════
+   Warm Editorial 재설계 — 여백 리듬 · 타이포 위계 · 카드 대비 · 히어로
+   (파일 끝 오버라이드로 응집. 기존 정체성(듀얼톤)은 유지, 완성도 상향)
+   ══════════════════════════════════════════════════════════════ */
+
+/* 헤더 — 숨 쉴 공간 + 워드마크 강조 */
+.header { padding: 1.4rem 0 1.15rem; }
+.title { font-size: 1.85rem; letter-spacing: -0.02em; }
+.header-content { gap: 0.65rem; }
+
+/* 그리드 — 여백 리듬 */
+.restaurant-grid { gap: 1.75rem; }
+main { padding-top: 0.5rem; }
+
+/* 카드 — 배경에서 확실히 들어올리기(먹먹함 해소) + 여백 */
+.card {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent 55%),
+    var(--bg-secondary);
+  padding: 1.6rem 1.5rem;
+  border-color: rgba(240, 232, 220, 0.07);
+  box-shadow: 0 10px 28px -14px rgba(0, 0, 0, 0.7);
+}
+.yajang-theme .card {
+  background:
+    linear-gradient(180deg, rgba(61, 255, 200, 0.045), transparent 55%),
+    var(--bg-secondary);
+}
+.card-address { color: var(--text-secondary); margin-top: 0.1rem; }
+
+/* 섹션 헤더 — 에디토리얼 구분 */
+.section-header { margin: 2.25rem 0 1.4rem; }
+.section-header-text { font-size: 0.78rem; letter-spacing: 0.16em; }
+.section-header-line { opacity: 0.5; }
+
+/* 히어로(오늘의 발견) — 큰 세리프 + 에디토리얼 라벨 + 넉넉한 여백 */
+.featured-card { padding: 2.3rem 2rem 2rem; margin-bottom: 2rem; }
+.featured-label-row { gap: 0.7rem; margin-bottom: 0.9rem; align-items: center; }
+.featured-label {
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-accent);
+}
+.featured-no {
+  font-size: var(--text-2xs);
+  letter-spacing: 0.14em;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+.featured-spacer { flex: 1; }
+.featured-title-row { align-items: baseline; gap: 0.6rem; margin: 0.2rem 0 0.7rem; }
+.featured-name {
+  font-size: 2.5rem;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+.featured-emoji { flex-shrink: 0; }
+.featured-meta { gap: 0.7rem; margin-top: 0.2rem; }
+
+@media (max-width: 768px) {
+  .featured-name { font-size: 1.9rem; }
+  .card-title { font-size: 1.3rem; }
+  .restaurant-grid { gap: 1.25rem; }
+  .title { font-size: 1.35rem; }
+}
+
+/* 카드 상단 스트립(지역·컨트롤) + 제목 전체너비 (에디토리얼) */
+.card-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.card-controls { display: flex; align-items: center; gap: 0.4rem; }
+.card-title { width: 100%; }
