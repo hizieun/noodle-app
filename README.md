@@ -165,6 +165,8 @@ vercel --prod
 |------|------|
 | [STATUS.md](./STATUS.md) | **프로젝트 현황 스냅샷 + 우선순위 백로그** |
 | [docs/06_pm-worklog.md](./docs/06_pm-worklog.md) | 작업 로그 (단일 출처) |
+| [docs/07_reviews-feature.md](./docs/07_reviews-feature.md) | 사용자 리뷰 기능 설계·셋업 |
+| [docs/08_design-system.md](./docs/08_design-system.md) | **디자인 개선 체계**(토큰·리뷰 체크리스트·프로세스) |
 | [docs/01_project-overview.md](./docs/01_project-overview.md) | 프로젝트 전체 구조 |
 | [docs/02_crawler-setup.md](./docs/02_crawler-setup.md) | 크롤러 설정 및 사용법 |
 | [docs/03_frontend-setup.md](./docs/03_frontend-setup.md) | 프론트엔드 컴포넌트 문서 |
