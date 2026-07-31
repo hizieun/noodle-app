@@ -72,12 +72,12 @@ python3 "$SK/scripts/search.py" "<질의>" --domain gsap        # 모션 프리�
 
 ### 스킬 공통 Pre-Delivery 체크 (매 배포 전)
 - [x] 이모지를 아이콘으로 쓰지 않음 — UI 컨트롤 SVG화 완료 (카테고리 음식 이모지는 브랜드로 유지)
-- [ ] 클릭 요소에 `cursor: pointer`
-- [ ] hover 전환 150–300ms
-- [ ] 대비 4.5:1 이상 (라이트/다크 모두)
-- [ ] 키보드 포커스 가시
-- [ ] `prefers-reduced-motion` 존중
-- [ ] 375/768/1024/1440 반응형 확인
+- [x] 클릭 요소에 `cursor: pointer` — 카드·버튼 확인
+- [x] hover 전환 150–300ms — `--transition-fast`(150ms)/default(250ms), 0ms 없음
+- [x] 대비 4.5:1 이상 — 토큰 AA 검증(8.2)
+- [x] 키보드 포커스 가시 — `outline:none` 4곳 모두 대체 스타일 확인 + **카드 키보드 접근성 추가(아래)**
+- [x] `prefers-reduced-motion` 존중 — 미디어쿼리 적용
+- [x] 반응형 — mobile-first + 480/768 브레이크포인트 + max-width 유동(1024/1440 커버). 375/768/1440 스크린샷 검증
 
 ---
 
@@ -106,3 +106,13 @@ python3 "$SK/scripts/search.py" "<질의>" --domain gsap        # 모션 프리�
 
 ### 다음 액션
 위 "이모지 → SVG 아이콘" 교체를 별도 작업으로 진행하면 스킬 4번 부채가 해소된다. (범위: UI 컨트롤 우선, 카테고리 이모지는 선택)
+
+---
+
+## 8.6 Pre-Delivery 정식 감사 (2026-07-31)
+
+8.3 체크리스트 전 항목을 코드 근거로 순회. **대부분 이미 충족**, 실제 부채 1건 발견·수정.
+
+- ✅ cursor / hover(150–300ms) / 대비(AA) / reduced-motion / 반응형 — 충족.
+- ✅ 포커스: `outline:none` 4곳(my-memo·filter-select·search-input·chat-input) 전부 `:focus`에 border/box-shadow 대체 있음.
+- ❌→✅ **발견·수정**: `RestaurantCard`(메인 그리드 카드)가 `<div onClick>`인데 `tabIndex`/`role`/`onKeyDown` 없어 **키보드로 열 수 없었음**(FeaturedCard는 됨). `role="button"`+`tabIndex={0}`+Enter/Space 핸들러+`aria-label` 추가, `:focus-visible` 포커스 링(accent) 부여.

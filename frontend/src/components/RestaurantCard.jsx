@@ -18,6 +18,10 @@ const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite, i
       className={`card animate-fade-in ${isVisited ? 'visited' : ''}`}
       style={{ animationDelay: `${index * 40}ms`, cursor: 'pointer' }}
       onClick={() => onClick(data)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(data); } }}
+      aria-label={`${cleanName} 상세 보기`}
     >
       <div className="card-header">
         <h3 className="card-title"><span className="card-emoji" aria-hidden="true">{emoji}</span>{cleanName}</h3>
