@@ -2768,3 +2768,46 @@ main { padding-top: 0.5rem; }
 }
 .card-controls { display: flex; align-items: center; gap: 0.4rem; }
 .card-title { width: 100%; }
+
+/* ═══ Warm Editorial 확장 — 헤더 · 모달 ═══ */
+
+/* 헤더 워드마크: 그라디언트 텍스트(개발자 티) 제거 → 솔리드 세리프 */
+.title {
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  color: var(--text-primary);
+}
+.title-suffix {
+  font-family: var(--font-family);
+  font-size: 0.82rem;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  color: var(--text-secondary);
+}
+
+/* 모달: 세리프 제목 + 넉넉한 여백 */
+.modal-header { padding: 1.7rem 1.6rem 1.2rem; }
+.modal-title {
+  font-size: 1.75rem;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+}
+
+/* 모달 섹션: 에디토리얼 구분선 + 소캡스 라벨 헤딩 */
+.modal-section + .modal-section {
+  border-top: 1px solid var(--border-color);
+  padding-top: 1.3rem;
+  margin-top: 1.3rem;
+}
+.modal-section-title {
+  font-size: 0.74rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-accent);
+}
+
+/* 필터 패널: 에디토리얼 여백 */
+.filter-panel.open { padding: 0.5rem 0 0.2rem; }
