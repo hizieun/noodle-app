@@ -830,9 +830,11 @@ function App() {
         )}
       </main>
 
-      <button className="random-fab" onClick={handleRandomPick} title="랜덤 맛집 뽑기" aria-label="랜덤 맛집 뽑기">
-        <ShuffleIcon size={22} />
-      </button>
+      {activeTab === 'home' && (
+        <button className="random-fab" onClick={handleRandomPick} title="랜덤 맛집 뽑기" aria-label="랜덤 맛집 뽑기">
+          <ShuffleIcon size={22} />
+        </button>
+      )}
 
       {selectedRestaurant && (
         <RestaurantModal

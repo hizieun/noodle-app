@@ -1633,7 +1633,8 @@ a:hover {
 /* Random FAB */
 .random-fab {
   position: fixed;
-  bottom: 1.5rem;
+  /* 하단 탭(64px) 위로 띄움 — 탭과 겹침 방지 */
+  bottom: calc(64px + 1rem + env(safe-area-inset-bottom, 0px));
   right: 1.5rem;
   width: 3.2rem;
   height: 3.2rem;
@@ -2985,7 +2986,7 @@ body { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
   -webkit-overflow-scrolling: touch;
   transition: max-height 0.28s ease;
 }
-.map-sheet.expanded .map-sheet-list { max-height: 48vh; }
+.map-sheet.expanded .map-sheet-list { max-height: 42vh; } /* 작은 화면에서도 지도 일부 노출 */
 .map-sheet-row {
   display: flex;
   align-items: center;
