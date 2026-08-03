@@ -56,11 +56,15 @@ function MapController({ restaurants }) {
   return null;
 }
 
-// 하단 시트에서 항목 선택 시 해당 위치로 비행
+// 하단 시트에서 항목 선택 시 해당 위치로 비행 (모션 감소 선호 시 즉시 이동)
 function MapFocus({ focus }) {
   const map = useMap();
   useEffect(() => {
-    if (focus) map.flyTo([focus.lat, focus.lng], Math.max(map.getZoom(), 15), { duration: 0.6 });
+    if (!focus) return;
+    const z = Math.max(map.getZoom(), 15);
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) map.setView([focus.lat, focus.lng], z, { animate: false });
+    else map.flyTo([focus.lat, focus.lng], z, { duration: 0.6 });
   }, [focus, map]);
   return null;
 }

@@ -124,3 +124,12 @@ python3 "$SK/scripts/search.py" "<질의>" --domain gsap        # 모션 프리�
 - **마이크로 인터랙션**: 카드·버튼 프레스 스케일, 즐겨찾기/방문 토글 아이콘 팝(iconPop). 150–300ms·reduced-motion 존중.
 - **빈 상태 SVG화**: 🔗🤍🍽️ 이모지 → Link/Heart/Search SVG(앰버 톤). 메시지+액션 유지.
 - **타입 스케일 정립**: `--text-*` 토큰(8.2). 12px 미만 뱃지 라벨 → `--text-2xs`(11.5px) 하한. 기존 사이즈는 점진 이관.
+
+## 8.8 UX 재구성 컴포넌트 감사 (2026-08-03)
+
+docs/09 Phase 1~4로 신설한 모바일 컴포넌트(하단 탭·발견 레일·세그먼트·지도 하단 시트)를 스킬로 정식 감사. 프로세스(8.4) 준수: 스킬 쿼리(ux 도메인 P1 접근성·P2 터치·P9 내비) → `pro-rules.md`(safe-area·탭바) 대조 → 코드 근거 순회 → 수정 → 기록.
+
+- ✅ **충족**: safe-area(하단 탭·시트 모두 `env(safe-area-inset-bottom)`), ARIA(탭 `aria-current`, 시트 핸들 `aria-expanded`+label, 세그먼트 `role=tab`+`aria-selected`, 레일 카드 `aria-label`), 명확한 active 상태, reduced-motion CSS(`*` 블록), 활성 라벨 대비(accent AA).
+- ❌→✅ **P2 터치 타깃(CRITICAL)**: `.mylist-seg`(~31px)·`.mylist-share`(~31px)·`.map-sheet-handle`(~39px)가 44px 미만 → `min-height:44px` 부여(측정값 44·44·45px 확인).
+- ❌→✅ **P7 모션**: 지도 `flyTo`는 JS 애니라 CSS `prefers-reduced-motion` 블록 밖 → `matchMedia`로 감지해 감소 선호 시 `setView({animate:false})`.
+- ⬜ **보류(저위험)**: 세그먼트 `role=tab`에 `tabpanel`/`aria-controls` 미연결(시각 세그먼트로 동작 충분), 하단 탭 라벨 10.5px(iOS 탭바 관례 내). 필요 시 후속.
