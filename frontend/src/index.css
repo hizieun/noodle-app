@@ -3111,3 +3111,14 @@ body { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
   color: var(--text-secondary);
 }
 .mylist-empty .empty-icon { opacity: 0.5; }
+
+/* ============================================================
+   지도 모드 컴팩트 헤더 — 작은 화면에서 지도 영역 확보
+   ============================================================ */
+.app-container.map-mode .header {
+  padding: 0.5rem 0;
+  margin-bottom: 0;
+}
+.app-container.map-mode .header-content { gap: 0.45rem; }
+.app-container.map-mode .title { font-size: 1.1rem; }
+.app-container.map-mode .title-suffix { display: none; }
