@@ -37,3 +37,6 @@ export const ShuffleIcon = (p) => (
 export const SearchIcon = (p) => (
   <Svg {...p}><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></Svg>
 );
+export const HomeIcon = (p) => (
+  <Svg {...p}><path d="M3 10.5 12 3l9 7.5" /><path d="M5 9.5V21h14V9.5" /></Svg>
+);

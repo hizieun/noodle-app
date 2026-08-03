@@ -9,9 +9,12 @@ import { haversine } from './utils/geo.js';
 import { useCommunityRatings } from './lib/useCommunityRatings.js';
 import RestaurantModal from './components/RestaurantModal.jsx';
 import RestaurantCard from './components/RestaurantCard.jsx';
-import { XIcon, ListIcon, MapIcon, SparklesIcon, MapPinIcon, LinkIcon, ShuffleIcon, CheckIcon, HeartIcon, SearchIcon } from './components/icons.jsx';
+import { XIcon, MapPinIcon, LinkIcon, ShuffleIcon, CheckIcon, HeartIcon, SearchIcon } from './components/icons.jsx';
 import FeaturedCard from './components/FeaturedCard.jsx';
 import { SkeletonGrid } from './components/Skeleton.jsx';
+import RestaurantRail from './components/RestaurantRail.jsx';
+import BottomNav from './components/BottomNav.jsx';
+import { buildCollections } from './utils/collections.js';
 
 const MapView = lazy(() => import('./MapView.jsx'));
 
@@ -43,7 +46,8 @@ function App() {
   const [sortBy, setSortBy] = useState('평점순');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
-  const [viewMode, setViewMode] = useState('list'); // 'list' | 'map'
+  const [viewMode, setViewMode] = useState('list'); // 'list' | 'map' (map-mode body 클래스용)
+  const [activeTab, setActiveTab] = useState('home'); // 'home' | 'map' | 'list'(내 리스트); 'ai'는 오버레이
   const [filterOpen, setFilterOpen] = useState(false);
   const [favorites, setFavorites] = useState(() => {
     try {
@@ -430,11 +434,6 @@ function App() {
     setUserLocation(null);
   };
 
-  const handleViewMode = (mode) => {
-    setViewMode(mode);
-    setVisibleCount(ITEMS_PER_PAGE);
-  };
-
   const activeFilterCount = [
     activeRegion !== '전체',
     sortBy !== '평점순',
@@ -450,6 +449,41 @@ function App() {
     ? filteredData.filter(r => favKey(r) !== featuredKey)
     : filteredData;
   const visibleData = gridData.slice(0, visibleCount);
+
+  // 검색/필터 중이면 발견 피드 대신 결과 그리드 (위치는 피드를 풍성하게 하므로 제외)
+  const isBrowsing =
+    Boolean(searchQuery) || activeRegion !== '전체' || showFavoritesOnly ||
+    showUnvisitedOnly || showOpenNowOnly || sortBy !== '평점순' || isSharedMode;
+
+  // 홈 발견 피드 레일 (카테고리 전체 + 거리 부여 → 규칙 생성)
+  const railInput = useMemo(
+    () => restaurants
+      .filter(r => r.카테고리 === activeCategory)
+      .map(item => ({
+        ...item,
+        distance: userLocation && item.lat && item.lng
+          ? haversine(userLocation.lat, userLocation.lng, item.lat, item.lng) : null,
+      })),
+    [restaurants, activeCategory, userLocation],
+  );
+  const rails = useMemo(
+    () => buildCollections(railInput, { category: activeCategory, userLocation, communityRatings }),
+    [railInput, activeCategory, userLocation, communityRatings],
+  );
+
+  // 내 리스트 탭: 즐겨찾기 + 방문
+  const savedList = useMemo(
+    () => restaurants.filter(r => favorites.has(favKey(r)) || visited.has(visitKey(r))),
+    [restaurants, favorites, visited],
+  );
+
+  const handleTabChange = (tab) => {
+    if (tab === 'ai') { setChatOpen(true); return; }
+    setActiveTab(tab);
+    setViewMode(tab === 'map' ? 'map' : 'list');
+    setVisibleCount(ITEMS_PER_PAGE);
+    window.scrollTo({ top: 0 });
+  };
 
   if (dataLoading) {
     return <SkeletonGrid />;
@@ -514,24 +548,10 @@ function App() {
                   🌙 야장
                 </button>
               </div>
-              <div className="view-toggle">
-                <button
-                  className={`view-btn ${viewMode === 'list' ? 'active' : ''}`}
-                  onClick={() => handleViewMode('list')}
-                >
-                  <ListIcon size={16} /> <span className="view-btn-text">목록</span>
-                </button>
-                <button
-                  className={`view-btn ${viewMode === 'map' ? 'active' : ''}`}
-                  onClick={() => handleViewMode('map')}
-                >
-                  <MapIcon size={16} /> <span className="view-btn-text">지도</span>
-                </button>
-              </div>
             </div>
           </div>
 
-          {/* 2행: 검색 + AI추천 + 내 위치 + 필터 */}
+          {/* 2행: 검색 + 내 위치 + 필터 */}
           <div className="header-row-2">
             <div className="search-container">
               <input
@@ -551,13 +571,6 @@ function App() {
                 </button>
               )}
             </div>
-            <button
-              className={`chat-open-btn ${chatOpen ? 'active' : ''}`}
-              onClick={() => setChatOpen(prev => !prev)}
-              title="AI 맛집 추천"
-            >
-              <SparklesIcon size={16} /><span className="btn-text"> AI 추천</span>
-            </button>
             <button
               className={`location-btn ${userLocation ? 'active' : ''}`}
               onClick={handleLocate}
@@ -706,8 +719,46 @@ function App() {
         </div>
       </header>
 
-      <main className={viewMode === 'map' ? 'main-map' : ''}>
-        {filteredData.length === 0 ? (
+      <main className={activeTab === 'map' ? 'main-map' : ''}>
+        {activeTab === 'map' ? (
+          <Suspense fallback={<div className="loading"><div className="spinner"></div><span>지도 불러오는 중...</span></div>}>
+            <MapView
+              restaurants={filteredData}
+              onCardClick={handleOpenRestaurant}
+              userLocation={userLocation}
+              nearbyRadius={nearbyRadius}
+              category={activeCategory}
+            />
+          </Suspense>
+        ) : activeTab === 'list' ? (
+          savedList.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-icon"><HeartIcon size={44} /></div>
+              <h2>저장한 맛집이 없습니다.</h2>
+              <p>카드의 하트·방문 버튼으로 나만의 리스트를 만들어보세요.</p>
+            </div>
+          ) : (
+            <>
+              <div className="section-header">
+                <span className="section-header-line" />
+                <span className="section-header-text">내 리스트 · {savedList.length}곳</span>
+                <span className="section-header-line" />
+              </div>
+              <div className="restaurant-grid">
+                {savedList.map((restaurant, index) => (
+                  <RestaurantCard
+                    key={`${restaurant.상호명}-${index}`}
+                    data={restaurant} index={index} onClick={handleOpenRestaurant}
+                    isFavorited={favorites.has(favKey(restaurant))} onToggleFavorite={toggleFavorite}
+                    isVisited={visited.has(visitKey(restaurant))} onToggleVisited={toggleVisited}
+                    myVisit={myVisits[visitKey(restaurant)]}
+                    community={communityRatings.get(favKey(restaurant))}
+                  />
+                ))}
+              </div>
+            </>
+          )
+        ) : filteredData.length === 0 ? (
           <div className="empty-state">
             {isSharedMode ? (
               <>
@@ -727,51 +778,44 @@ function App() {
                 <h2>
                   {searchQuery
                     ? `"${searchQuery}" 검색 결과가 없습니다`
-                    : showOpenNowOnly
-                    ? '지금 영업 중인 곳이 없습니다'
-                    : showUnvisitedOnly
-                    ? '조건에 맞는 안 가본 곳이 없습니다'
-                    : userLocation
-                    ? '이 반경 안에 맛집이 없습니다'
+                    : showOpenNowOnly ? '지금 영업 중인 곳이 없습니다'
+                    : showUnvisitedOnly ? '조건에 맞는 안 가본 곳이 없습니다'
+                    : userLocation ? '이 반경 안에 맛집이 없습니다'
                     : '조건에 맞는 맛집이 없습니다'}
                 </h2>
                 <p>필터를 바꾸거나 초기화해 보세요.</p>
                 {(activeFilterCount > 0 || searchQuery) && (
-                  <button className="empty-reset-btn" onClick={handleResetFilters}>
-                    필터 초기화
-                  </button>
+                  <button className="empty-reset-btn" onClick={handleResetFilters}>필터 초기화</button>
                 )}
               </>
             )}
           </div>
-        ) : viewMode === 'map' ? (
-          <Suspense fallback={<div className="loading"><div className="spinner"></div><span>지도 불러오는 중...</span></div>}>
-            <MapView
-              restaurants={filteredData}
-              onCardClick={handleOpenRestaurant}
-              userLocation={userLocation}
-              nearbyRadius={nearbyRadius}
-              category={activeCategory}
-            />
-          </Suspense>
         ) : (
           <>
-            {/* featured "오늘의 발견" 카드: 홈 상태에서만 */}
-            {featuredRestaurant && (
+            {/* 발견 피드: 히어로 + 테마 레일 (검색/필터 없을 때만) */}
+            {!isBrowsing && featuredRestaurant && (
               <FeaturedCard
                 restaurant={featuredRestaurant}
                 onOpen={handleOpenRestaurant}
-                onReshuffle={() => {
-                  setReshuffleIdx(Math.floor(Math.random() * categoryPool.length));
-                }}
+                onReshuffle={() => setReshuffleIdx(Math.floor(Math.random() * categoryPool.length))}
                 community={communityRatings.get(featuredKey)}
               />
             )}
+            {!isBrowsing && rails.map(rail => (
+              <RestaurantRail
+                key={rail.key}
+                title={rail.title}
+                subtitle={rail.subtitle}
+                items={rail.items}
+                onOpen={handleOpenRestaurant}
+                communityRatings={communityRatings}
+                favKeyOf={favKey}
+              />
+            ))}
 
-            {/* 섹션 헤더: 그리드 위 항상 */}
             <div className="section-header">
               <span className="section-header-line" />
-              <span className="section-header-text">{sortBy} · {filteredData.length}곳</span>
+              <span className="section-header-text">{isBrowsing ? `${sortBy} · ${filteredData.length}곳` : `전체 · ${gridData.length}곳`}</span>
               <span className="section-header-line" />
             </div>
 
@@ -779,25 +823,17 @@ function App() {
               {visibleData.map((restaurant, index) => (
                 <RestaurantCard
                   key={`${restaurant.상호명}-${index}`}
-                  data={restaurant}
-                  index={index}
-                  onClick={handleOpenRestaurant}
-                  isFavorited={favorites.has(favKey(restaurant))}
-                  onToggleFavorite={toggleFavorite}
-                  isVisited={visited.has(visitKey(restaurant))}
-                  onToggleVisited={toggleVisited}
-                  distance={restaurant.distance}
-                  myVisit={myVisits[visitKey(restaurant)]}
+                  data={restaurant} index={index} onClick={handleOpenRestaurant}
+                  isFavorited={favorites.has(favKey(restaurant))} onToggleFavorite={toggleFavorite}
+                  isVisited={visited.has(visitKey(restaurant))} onToggleVisited={toggleVisited}
+                  distance={restaurant.distance} myVisit={myVisits[visitKey(restaurant)]}
                   community={communityRatings.get(favKey(restaurant))}
                 />
               ))}
             </div>
             {visibleCount < gridData.length && (
               <div className="load-more-container">
-                <button
-                  className="load-more-btn"
-                  onClick={() => setVisibleCount(prev => prev + ITEMS_PER_PAGE)}
-                >
+                <button className="load-more-btn" onClick={() => setVisibleCount(prev => prev + ITEMS_PER_PAGE)}>
                   더 보기 ({visibleCount} / {gridData.length})
                 </button>
               </div>
@@ -828,6 +864,8 @@ function App() {
         onOpenRestaurant={handleOpenRestaurant}
         restaurants={restaurants}
       />
+
+      <BottomNav active={activeTab} onChange={handleTabChange} savedCount={savedList.length} />
     </div>
     </>
   );
