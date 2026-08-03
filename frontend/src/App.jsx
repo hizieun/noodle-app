@@ -134,6 +134,11 @@ function App() {
     return () => document.body.classList.remove('map-mode');
   }, [viewMode]);
 
+  // 카테고리에 맞춰 탭 제목 동기화
+  useEffect(() => {
+    document.title = `${activeCategory === '야장' ? '야장지도' : '노포지도'} - 서울의 숨은 맛`;
+  }, [activeCategory]);
+
   // 필터 변경 시 더 보기 초기화
   useEffect(() => {
     setVisibleCount(ITEMS_PER_PAGE);
@@ -554,7 +559,7 @@ function App() {
           <div className="header-row-1">
             <h1 className="title">
               <span className="title-icon">{activeCategory === '야장' ? '🌃' : '🍜'}</span>
-              노포지도
+              {activeCategory === '야장' ? '야장지도' : '노포지도'}
               <span className="title-suffix"> - 서울의 숨은 맛</span>
             </h1>
             <div className="header-actions">
