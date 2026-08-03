@@ -3025,3 +3025,85 @@ body { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
   font-size: 0.78rem;
   color: var(--text-secondary);
 }
+
+/* ============================================================
+   내 리스트 통합 공간 (docs/09 Phase 3)
+   ============================================================ */
+.mylist { max-width: 100%; }
+.mylist-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.mylist-title {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+.mylist-share {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.9rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 9999px;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+}
+.mylist-share:hover { color: var(--text-accent); border-color: var(--text-accent); }
+.mylist-share:active { transform: scale(0.96); }
+.mylist-share.copied { color: var(--text-accent); border-color: var(--text-accent); }
+
+.mylist-segs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.4rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.mylist-segs::-webkit-scrollbar { display: none; }
+.mylist-seg {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 0 0 auto;
+  padding: 0.5rem 0.9rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 9999px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.mylist-seg:hover { color: var(--text-primary); }
+.mylist-seg.active {
+  color: var(--text-on-accent);
+  background: var(--text-accent);
+  border-color: var(--text-accent);
+}
+.mylist-seg-count {
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 0.72rem;
+  line-height: 17px;
+  text-align: center;
+}
+.mylist-seg.active .mylist-seg-count { background: rgba(0, 0, 0, 0.18); }
+
+.mylist-empty {
+  padding: 3rem 1rem;
+  color: var(--text-secondary);
+}
+.mylist-empty .empty-icon { opacity: 0.5; }

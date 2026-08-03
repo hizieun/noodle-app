@@ -14,6 +14,7 @@ import FeaturedCard from './components/FeaturedCard.jsx';
 import { SkeletonGrid } from './components/Skeleton.jsx';
 import RestaurantRail from './components/RestaurantRail.jsx';
 import BottomNav from './components/BottomNav.jsx';
+import MyListSpace from './components/MyListSpace.jsx';
 import { buildCollections } from './utils/collections.js';
 
 const MapView = lazy(() => import('./MapView.jsx'));
@@ -471,10 +472,33 @@ function App() {
     [railInput, activeCategory, userLocation, communityRatings],
   );
 
-  // 내 리스트 탭: 즐겨찾기 + 방문
+  // 내 리스트 탭: 즐겨찾기 + 방문 + 내 평가 세그먼트
   const savedList = useMemo(
     () => restaurants.filter(r => favorites.has(favKey(r)) || visited.has(visitKey(r))),
     [restaurants, favorites, visited],
+  );
+  const favList = useMemo(
+    () => restaurants.filter(r => favorites.has(favKey(r))),
+    [restaurants, favorites],
+  );
+  const visitedList = useMemo(
+    () => restaurants.filter(r => visited.has(visitKey(r))),
+    [restaurants, visited],
+  );
+  const ratedList = useMemo(
+    () => restaurants.filter(r => myVisits[visitKey(r)]),
+    [restaurants, myVisits],
+  );
+
+  const renderCard = (restaurant, index) => (
+    <RestaurantCard
+      key={`${restaurant.상호명}-${index}`}
+      data={restaurant} index={index} onClick={handleOpenRestaurant}
+      isFavorited={favorites.has(favKey(restaurant))} onToggleFavorite={toggleFavorite}
+      isVisited={visited.has(visitKey(restaurant))} onToggleVisited={toggleVisited}
+      distance={restaurant.distance} myVisit={myVisits[visitKey(restaurant)]}
+      community={communityRatings.get(favKey(restaurant))}
+    />
   );
 
   const handleTabChange = (tab) => {
@@ -731,33 +755,14 @@ function App() {
             />
           </Suspense>
         ) : activeTab === 'list' ? (
-          savedList.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-icon"><HeartIcon size={44} /></div>
-              <h2>저장한 맛집이 없습니다.</h2>
-              <p>카드의 하트·방문 버튼으로 나만의 리스트를 만들어보세요.</p>
-            </div>
-          ) : (
-            <>
-              <div className="section-header">
-                <span className="section-header-line" />
-                <span className="section-header-text">내 리스트 · {savedList.length}곳</span>
-                <span className="section-header-line" />
-              </div>
-              <div className="restaurant-grid">
-                {savedList.map((restaurant, index) => (
-                  <RestaurantCard
-                    key={`${restaurant.상호명}-${index}`}
-                    data={restaurant} index={index} onClick={handleOpenRestaurant}
-                    isFavorited={favorites.has(favKey(restaurant))} onToggleFavorite={toggleFavorite}
-                    isVisited={visited.has(visitKey(restaurant))} onToggleVisited={toggleVisited}
-                    myVisit={myVisits[visitKey(restaurant)]}
-                    community={communityRatings.get(favKey(restaurant))}
-                  />
-                ))}
-              </div>
-            </>
-          )
+          <MyListSpace
+            favList={favList}
+            visitedList={visitedList}
+            ratedList={ratedList}
+            renderCard={renderCard}
+            onShare={handleShareFavorites}
+            shareCopied={shareCopied}
+          />
         ) : filteredData.length === 0 ? (
           <div className="empty-state">
             {isSharedMode ? (
