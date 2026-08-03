@@ -56,11 +56,32 @@ function MapController({ restaurants }) {
   return null;
 }
 
+// 하단 시트에서 항목 선택 시 해당 위치로 비행
+function MapFocus({ focus }) {
+  const map = useMap();
+  useEffect(() => {
+    if (focus) map.flyTo([focus.lat, focus.lng], Math.max(map.getZoom(), 15), { duration: 0.6 });
+  }, [focus, map]);
+  return null;
+}
+
+const distanceLabel = (d) =>
+  d == null ? null : d < 1 ? `${Math.round(d * 1000)}m` : `${d.toFixed(1)}km`;
+
+const SHEET_MAX = 100; // ponytail: 상위 100개만 렌더(거리·평점 정렬이라 나머지는 지도로), 가상스크롤은 필요해지면
+
 export default function MapView({ restaurants, onCardClick, userLocation, nearbyRadius, category }) {
   const [activeMarker, setActiveMarker] = useState(null);
+  const [sheetExpanded, setSheetExpanded] = useState(true);
+  const [focus, setFocus] = useState(null);
 
   const mapped = restaurants.filter(r => r.lat && r.lng);
   const missing = restaurants.length - mapped.length;
+
+  const handleRow = (r) => {
+    setFocus({ lat: r.lat, lng: r.lng, k: `${r.상호명}-${r.lat}-${r.lng}` });
+    onCardClick(r);
+  };
 
   return (
     <div className="map-wrapper">
@@ -81,6 +102,7 @@ export default function MapView({ restaurants, onCardClick, userLocation, nearby
           subdomains="abcd"
         />
         <MapController restaurants={mapped} />
+        <MapFocus focus={focus} />
         {userLocation && (
           <>
             <Marker position={[userLocation.lat, userLocation.lng]} icon={userMarkerIcon}>
@@ -150,6 +172,39 @@ export default function MapView({ restaurants, onCardClick, userLocation, nearby
           ))}
         </MarkerClusterGroup>
       </MapContainer>
+
+      <div className={`map-sheet ${sheetExpanded ? 'expanded' : ''}`}>
+        <button
+          className="map-sheet-handle"
+          onClick={() => setSheetExpanded(v => !v)}
+          aria-expanded={sheetExpanded}
+          aria-label={sheetExpanded ? '목록 접기' : '목록 펼치기'}
+        >
+          <span className="map-sheet-grip" />
+          <span className="map-sheet-count">{mapped.length.toLocaleString()}곳</span>
+        </button>
+        <div className="map-sheet-list">
+          {mapped.slice(0, SHEET_MAX).map((r, i) => {
+            const dist = distanceLabel(r.distance);
+            return (
+              <button key={`${r.상호명}-${i}`} className="map-sheet-row" onClick={() => handleRow(r)}>
+                <span className="map-sheet-emoji" aria-hidden="true">{r.emoji}</span>
+                <span className="map-sheet-body">
+                  <span className="map-sheet-name">{r.cleanName}</span>
+                  <span className="map-sheet-meta">
+                    <span>{r.지역}</span>
+                    {r.평점 !== '정보 없음' && <span className="map-sheet-rating">★ {r.평점}</span>}
+                    {dist && <span className="map-sheet-dist">{dist}</span>}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+          {mapped.length > SHEET_MAX && (
+            <p className="map-sheet-more">외 {(mapped.length - SHEET_MAX).toLocaleString()}곳은 지도에서 확인하세요</p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
