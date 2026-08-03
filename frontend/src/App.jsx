@@ -9,7 +9,7 @@ import { haversine } from './utils/geo.js';
 import { useCommunityRatings } from './lib/useCommunityRatings.js';
 import RestaurantModal from './components/RestaurantModal.jsx';
 import RestaurantCard from './components/RestaurantCard.jsx';
-import { XIcon, MapPinIcon, LinkIcon, ShuffleIcon, CheckIcon, HeartIcon, SearchIcon } from './components/icons.jsx';
+import { XIcon, MapPinIcon, LinkIcon, ShuffleIcon, HeartIcon, SearchIcon } from './components/icons.jsx';
 import FeaturedCard from './components/FeaturedCard.jsx';
 import { SkeletonGrid } from './components/Skeleton.jsx';
 import RestaurantRail from './components/RestaurantRail.jsx';
@@ -660,23 +660,6 @@ function App() {
                   <option value={Infinity}>전체</option>
                 </select>
               </div>
-            )}
-            <button
-              className={`filter-toggle-item ${showFavoritesOnly ? 'active' : ''}`}
-              onClick={() => setShowFavoritesOnly(prev => !prev)}
-              aria-pressed={showFavoritesOnly}
-            >
-              {showFavoritesOnly ? '♥' : '♡'}
-              {favorites.size > 0 && <span className="favorites-count">{favorites.size}</span>}
-            </button>
-            {favorites.size > 0 && (
-              <button
-                className={`share-fav-btn ${shareCopied ? 'copied' : ''}`}
-                onClick={handleShareFavorites}
-                title="즐겨찾기 식당을 친구에게 공유"
-              >
-                {shareCopied ? <><CheckIcon size={14} /> 링크 복사됨</> : <><LinkIcon size={14} /> 공유</>}
-              </button>
             )}
             <button
               className={`filter-toggle-item ${showUnvisitedOnly ? 'active' : ''}`}
