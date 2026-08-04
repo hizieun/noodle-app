@@ -149,3 +149,44 @@ Phase 1 라이브 배포 완료 — 카카오 로그인 + 리뷰 CRUD 정상 동
 ### 교훈
 - 정상 순서: Supabase 프로바이더 → **개인 개발자 등록**(KOE205 예방) → Redirect URI(KOE006) → **Site URL/Redirect URLs**(복귀). 이 순서로 하면 헤맬 일 없음.
 - 개인 사이드 프로젝트 + 카카오 OAuth는 `account_email` 강제 요청 때문에 **개인 개발자 등록이 사실상 필수**.
+
+---
+
+## 7.10 Phase 2 — 사진 리뷰 (2026-08-04)
+
+리뷰에 사진 첨부(최대 3장). 원본이 아니라 **클라이언트에서 리사이즈·압축한 WebP**를 Supabase Storage에 올려 무료 티어 용량·전송을 아낀다.
+
+### 구현
+- `lib/uploadPhoto.js`: 캔버스로 긴 변 1600px·quality 0.8 축소 → WebP(미지원 시 JPEG) → `review-photos/{user_id}/{ts}-{idx}.webp` 업로드 → 공개 URL. EXIF 회전은 `createImageBitmap(..., {imageOrientation:'from-image'})`로 반영. 원본 12MB 상한.
+- `ReviewSection.jsx`: 에디터에 사진 칩(추가/삭제), 제출 시 새 파일만 업로드하고 기존 URL은 순서 유지. 목록엔 썸네일 → 탭하면 라이트박스. 리뷰 삭제 시 스토리지 best-effort 정리(`deleteReviewPhotos`).
+- `photos text[]` 컬럼에 공개 URL 배열 저장(조인 테이블 없이 단순).
+
+### 수동 셋업 (Supabase SQL Editor에서 실행 — 사람만 가능)
+```sql
+-- 1) reviews에 사진 컬럼
+alter table reviews add column if not exists photos text[];
+
+-- 2) 공개 읽기 스토리지 버킷
+insert into storage.buckets (id, name, public)
+values ('review-photos', 'review-photos', true)
+on conflict (id) do nothing;
+
+-- 3) 스토리지 RLS: 읽기는 누구나, 쓰기/삭제는 본인 폴더(={uid}/...)만
+create policy "review photos public read"
+  on storage.objects for select
+  using ( bucket_id = 'review-photos' );
+
+create policy "review photos insert own"
+  on storage.objects for insert to authenticated
+  with check ( bucket_id = 'review-photos' and (storage.foldername(name))[1] = auth.uid()::text );
+
+create policy "review photos delete own"
+  on storage.objects for delete to authenticated
+  using ( bucket_id = 'review-photos' and (storage.foldername(name))[1] = auth.uid()::text );
+```
+> 버킷을 콘솔(Storage → New bucket, Public 체크)로 만들어도 되고, 위 SQL로 한 번에 처리해도 된다. 정책 이름이 이미 있으면 `drop policy` 후 재생성.
+
+### 운영·리스크
+- **용량**: WebP 축소본(장당 ~100–300KB) × 3장이라 무료 1GB로 수천 리뷰 감당. 초과 전 정리/유료 검토.
+- **부적절 이미지**: 초기엔 관리자(=나)가 대시보드에서 수동 삭제. 신고·자동 필터는 후속.
+- **고아 파일**: 리뷰 유지한 채 사진만 뺀 경우 스토리지에 남을 수 있음(저위험, 정기 정리로 충분). 리뷰 삭제 시엔 자동 정리.

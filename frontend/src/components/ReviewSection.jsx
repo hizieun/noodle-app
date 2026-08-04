@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase.js';
 import { favKey } from '../utils/format.js';
-import { MessageIcon } from './icons.jsx';
+import { MessageIcon, XIcon } from './icons.jsx';
+import { uploadReviewPhoto, deleteReviewPhotos, MAX_PHOTOS } from '../lib/uploadPhoto.js';
 
 // 카카오 프로필에서 표시용 닉네임 추출 (매핑 필드가 버전마다 달라 폴백 체인)
 const nameOf = (user) => {
@@ -20,6 +21,10 @@ export default function ReviewSection({ restaurant, onReviewChange }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [sort, setSort] = useState('recent'); // 'recent' | 'rating'
+  // 사진: 기존 URL과 새 File을 순서대로 담는다 {kind:'url'|'file', url?, file?, preview?}
+  const [photoItems, setPhotoItems] = useState([]);
+  const [lightbox, setLightbox] = useState(null); // 확대해서 볼 사진 URL
+  const fileInput = useRef(null);
 
   const key = favKey(restaurant);
   const userId = session?.user?.id || null;
@@ -63,8 +68,28 @@ export default function ReviewSection({ restaurant, onReviewChange }) {
   useEffect(() => {
     setRating(myReview?.rating || 0);
     setBody(myReview?.body || '');
+    setPhotoItems((myReview?.photos || []).map((url) => ({ kind: 'url', url })));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [myReview?.id]);
+
+  const addPhotos = (e) => {
+    setError('');
+    const files = Array.from(e.target.files || []);
+    setPhotoItems((prev) => {
+      const room = MAX_PHOTOS - prev.length;
+      const next = files.slice(0, room).map((file) => ({ kind: 'file', file, preview: URL.createObjectURL(file) }));
+      return [...prev, ...next];
+    });
+    e.target.value = ''; // 같은 파일 다시 선택 가능하게
+  };
+
+  const removePhoto = (i) => {
+    setPhotoItems((prev) => {
+      const item = prev[i];
+      if (item?.kind === 'file' && item.preview) URL.revokeObjectURL(item.preview);
+      return prev.filter((_, idx) => idx !== i);
+    });
+  };
 
   const login = () => {
     // 닉네임만 요청 — 이메일 등은 카카오 검수 필요, 요청 시 KOE205
@@ -80,6 +105,19 @@ export default function ReviewSection({ restaurant, onReviewChange }) {
     if (!rating) { setError('별점을 선택해주세요.'); return; }
     if (!body.trim()) { setError('리뷰 내용을 입력해주세요.'); return; }
     setSaving(true);
+    // 새로 추가한 파일만 업로드, 기존 URL은 그대로 순서 유지
+    let photos;
+    try {
+      photos = [];
+      for (let i = 0; i < photoItems.length; i++) {
+        const item = photoItems[i];
+        photos.push(item.kind === 'url' ? item.url : await uploadReviewPhoto(item.file, userId, i));
+      }
+    } catch (err) {
+      setSaving(false);
+      setError(err.message || '사진 업로드 실패');
+      return;
+    }
     const row = {
       restaurant_key: key,
       restaurant_name: restaurant.상호명,
@@ -88,6 +126,8 @@ export default function ReviewSection({ restaurant, onReviewChange }) {
       user_name: nameOf(session.user),
       rating,
       body: body.trim(),
+      // 사진 있을 때만 컬럼 포함 — photos 컬럼 셋업 전이라도 텍스트 리뷰는 그대로 동작
+      ...(photos.length ? { photos } : {}),
       updated_at: new Date().toISOString(),
     };
     const { error: e } = await supabase
@@ -104,7 +144,8 @@ export default function ReviewSection({ restaurant, onReviewChange }) {
     if (!window.confirm('내 리뷰를 삭제할까요?')) return;
     const { error: e } = await supabase.from('reviews').delete().eq('id', myReview.id);
     if (e) { setError('삭제 실패'); return; }
-    setRating(0); setBody('');
+    deleteReviewPhotos(myReview.photos).catch(() => {}); // best-effort 스토리지 정리
+    setRating(0); setBody(''); setPhotoItems([]);
     loadReviews();
     onReviewChange?.(); // 카드 배지 즉시 갱신
   };
@@ -148,6 +189,33 @@ export default function ReviewSection({ restaurant, onReviewChange }) {
             maxLength={1000}
           />
           <div className="review-charcount">{body.length} / 1000</div>
+
+          {/* 사진 첨부 */}
+          <div className="review-photos-edit">
+            {photoItems.map((item, i) => (
+              <div className="review-photo-chip" key={item.url || item.preview}>
+                <img src={item.kind === 'url' ? item.url : item.preview} alt="" />
+                <button type="button" className="review-photo-remove" onClick={() => removePhoto(i)} aria-label="사진 제거">
+                  <XIcon size={12} />
+                </button>
+              </div>
+            ))}
+            {photoItems.length < MAX_PHOTOS && (
+              <button type="button" className="review-photo-add" onClick={() => fileInput.current?.click()}>
+                <span aria-hidden="true">＋</span>
+                <span className="review-photo-add-label">사진</span>
+              </button>
+            )}
+            <input
+              ref={fileInput}
+              type="file"
+              accept="image/*"
+              multiple
+              hidden
+              onChange={addPhotos}
+            />
+          </div>
+
           <div className="review-editor-actions">
             <button className="review-submit" onClick={submit} disabled={saving}>
               {saving ? '저장 중…' : myReview ? '리뷰 수정' : '리뷰 등록'}
@@ -186,6 +254,15 @@ export default function ReviewSection({ restaurant, onReviewChange }) {
                 <span className="review-date">{fmtDate(myReview.updated_at)}</span>
               </div>
               <p className="review-body">{myReview.body}</p>
+              {myReview.photos?.length > 0 && (
+                <div className="review-photos">
+                  {myReview.photos.map((url) => (
+                    <button type="button" className="review-photo-thumb" key={url} onClick={() => setLightbox(url)}>
+                      <img src={url} alt="리뷰 사진" loading="lazy" />
+                    </button>
+                  ))}
+                </div>
+              )}
             </li>
           )}
           {others.map((r) => (
@@ -196,10 +273,28 @@ export default function ReviewSection({ restaurant, onReviewChange }) {
                 <span className="review-date">{fmtDate(r.created_at)}</span>
               </div>
               <p className="review-body">{r.body}</p>
+              {r.photos?.length > 0 && (
+                <div className="review-photos">
+                  {r.photos.map((url) => (
+                    <button type="button" className="review-photo-thumb" key={url} onClick={() => setLightbox(url)}>
+                      <img src={url} alt="리뷰 사진" loading="lazy" />
+                    </button>
+                  ))}
+                </div>
+              )}
             </li>
           ))}
         </ul>
         </>
+      )}
+
+      {lightbox && (
+        <div className="review-lightbox" onClick={() => setLightbox(null)} role="dialog" aria-label="사진 확대">
+          <button className="review-lightbox-close" onClick={() => setLightbox(null)} aria-label="닫기">
+            <XIcon size={22} />
+          </button>
+          <img src={lightbox} alt="리뷰 사진 확대" onClick={(e) => e.stopPropagation()} />
+        </div>
       )}
     </div>
   );

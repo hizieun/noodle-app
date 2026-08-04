@@ -3122,3 +3122,104 @@ body { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
 .app-container.map-mode .header-content { gap: 0.45rem; }
 .app-container.map-mode .title { font-size: 1.1rem; }
 .app-container.map-mode .title-suffix { display: none; }
+
+/* ============================================================
+   리뷰 사진 (docs/07 Phase 2) — 첨부 칩·썸네일·라이트박스
+   ============================================================ */
+.review-photos-edit {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.6rem 0 0.2rem;
+}
+.review-photo-chip,
+.review-photo-add {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+.review-photo-chip img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.review-photo-remove {
+  position: absolute;
+  top: 2px; right: 2px;
+  width: 20px; height: 20px;
+  display: flex; align-items: center; justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  cursor: pointer;
+}
+.review-photo-add {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  background: var(--bg-tertiary);
+  border: 1px dashed var(--border-color);
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+.review-photo-add:hover { border-color: var(--text-accent); color: var(--text-accent); }
+.review-photo-add-label { font-size: 0.62rem; }
+
+/* 리뷰 목록 썸네일 */
+.review-photos {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+.review-photo-thumb {
+  width: 60px;
+  height: 60px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  flex: 0 0 auto;
+  transition: transform 0.12s ease;
+}
+.review-photo-thumb:active { transform: scale(0.95); }
+.review-photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* 라이트박스 */
+.review-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(4px);
+}
+.review-lightbox img {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 10px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+}
+.review-lightbox-close {
+  position: absolute;
+  top: calc(1rem + env(safe-area-inset-top, 0px));
+  right: 1rem;
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  cursor: pointer;
+}

@@ -1,10 +1,13 @@
 // 인라인 SVG 아이콘 (Lucide 스타일, currentColor 상속) — UI 컨트롤 이모지 대체.
 // 음식 카테고리 이모지·브랜드 탭(🏮🌙)·별점(★)은 정체성이라 유지.
-const Svg = ({ children, size = 20, fill = 'none', ...p }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24"
-    fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-    aria-hidden="true" {...p}>{children}</svg>
-);
+const Svg = ({ children, size = 20, fill = 'none', ...p }) => {
+  delete p.filled; // HeartIcon 외 아이콘엔 무의미 — DOM 누수(<svg filled>) 방지
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24"
+      fill={fill} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+      aria-hidden="true" {...p}>{children}</svg>
+  );
+};
 
 export const HeartIcon = ({ filled, ...p }) => (
   <Svg fill={filled ? 'currentColor' : 'none'} {...p}>
