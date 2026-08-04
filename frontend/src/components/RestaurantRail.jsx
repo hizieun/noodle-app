@@ -5,7 +5,11 @@ function RailCard({ data, onOpen, community }) {
   const { emoji, cleanName } = formatRestaurantName(data.상호명);
   return (
     <button className="rail-card" onClick={() => onOpen(data)} aria-label={`${cleanName} 상세 보기`}>
-      <span className="rail-emoji" aria-hidden="true">{emoji}</span>
+      {community?.photo ? (
+        <span className="rail-photo"><img src={community.photo} alt="" loading="lazy" /></span>
+      ) : (
+        <span className="rail-emoji" aria-hidden="true">{emoji}</span>
+      )}
       <span className="rail-name">{cleanName}</span>
       <span className="rail-meta">
         <span className="rail-region">{data.지역}</span>

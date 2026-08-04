@@ -3362,3 +3362,36 @@ body { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
 }
 .onboarding-cta:hover { filter: brightness(1.06); }
 .onboarding-cta:active { transform: scale(0.98); }
+
+/* ============================================================
+   리뷰 사진을 카드·레일 썸네일로 (docs/10 §10.1a)
+   ============================================================ */
+/* 카드 상단 커버 — 패딩 상쇄로 카드 가장자리까지 블리드(카드 overflow:hidden이 모서리 클립) */
+.card-cover {
+  margin: -1.6rem -1.5rem 0;
+  height: 136px;
+  overflow: hidden;
+  background: var(--bg-tertiary);
+}
+.card-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* 레일 카드 상단 사진 */
+.rail-photo {
+  display: block;
+  width: 100%;
+  height: 84px;
+  border-radius: 9px;
+  overflow: hidden;
+  background: var(--bg-tertiary);
+}
+.rail-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

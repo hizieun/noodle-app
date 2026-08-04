@@ -48,6 +48,17 @@ export function buildCollections(restaurants, opts = {}) {
     .slice(0, RAIL_MAX);
   if (solo.length >= 4) rails.push({ key: 'solo', title: '혼밥하기 좋은 곳', items: solo });
 
+  // 사진 있는 집 (커뮤니티 리뷰 사진 — 시각 발견). 상단 우선 노출.
+  if (communityRatings && communityRatings.size) {
+    const withPhoto = inCat
+      .filter((r) => communityRatings.get(favKey(r))?.photo)
+      .sort((a, b) => communityRatings.get(favKey(b)).count - communityRatings.get(favKey(a)).count)
+      .slice(0, RAIL_MAX);
+    if (withPhoto.length >= 3) {
+      rails.unshift({ key: 'photo', title: '사진 있는 집', subtitle: '다녀온 사람들의 사진', items: withPhoto });
+    }
+  }
+
   // 리뷰 많은 집 (커뮤니티 리뷰수)
   if (communityRatings && communityRatings.size) {
     const reviewed = inCat

@@ -23,6 +23,11 @@ const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite, i
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(data); } }}
       aria-label={`${cleanName} 상세 보기`}
     >
+      {community?.photo && (
+        <div className="card-cover">
+          <img src={community.photo} alt="" loading="lazy" />
+        </div>
+      )}
       <div className="card-topbar">
         <span className="card-region">{data.지역}</span>
         <div className="card-controls">
