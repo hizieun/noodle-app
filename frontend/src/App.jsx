@@ -15,6 +15,7 @@ import { SkeletonGrid } from './components/Skeleton.jsx';
 import RestaurantRail from './components/RestaurantRail.jsx';
 import BottomNav from './components/BottomNav.jsx';
 import MyListSpace from './components/MyListSpace.jsx';
+import Onboarding from './components/Onboarding.jsx';
 import { buildCollections } from './utils/collections.js';
 
 const MapView = lazy(() => import('./MapView.jsx'));
@@ -48,7 +49,10 @@ function App() {
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const [viewMode, setViewMode] = useState('list'); // 'list' | 'map' (map-mode body 클래스용)
-  const [activeTab, setActiveTab] = useState('home'); // 'home' | 'map' | 'list'(내 리스트); 'ai'는 오버레이
+  const [activeTab, setActiveTab] = useState('home');
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    try { return !localStorage.getItem('nopo-onboarded'); } catch { return false; }
+  }); // 'home' | 'map' | 'list'(내 리스트); 'ai'는 오버레이
   const [filterOpen, setFilterOpen] = useState(false);
   const [favorites, setFavorites] = useState(() => {
     try {
@@ -506,6 +510,11 @@ function App() {
     />
   );
 
+  const dismissOnboarding = () => {
+    try { localStorage.setItem('nopo-onboarded', '1'); } catch { /* private mode */ }
+    setShowOnboarding(false);
+  };
+
   const handleTabChange = (tab) => {
     if (tab === 'ai') { setChatOpen(true); return; }
     setActiveTab(tab);
@@ -871,6 +880,8 @@ function App() {
       />
 
       <BottomNav active={activeTab} onChange={handleTabChange} savedCount={savedList.length} />
+
+      {showOnboarding && <Onboarding onClose={dismissOnboarding} />}
     </div>
     </>
   );
