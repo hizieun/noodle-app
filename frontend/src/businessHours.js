@@ -79,6 +79,13 @@ export function isOpenNow(restaurant, now) {
   return isOpenAt(getBusinessHours(restaurant), now);
 }
 
+// 오늘이 정기 휴무일인지 (영업시간의 오늘 값이 'closed'). "영업종료"와 구분해 "오늘 휴무" 표시용.
+export function isClosedToday(restaurant, now = new Date()) {
+  const hours = getBusinessHours(restaurant);
+  if (!hours || typeof hours !== 'object') return false;
+  return hours[DAYS[now.getDay()]] === 'closed';
+}
+
 // 결제수단이 현금만인지 (UI 배지에서 사용)
 export function isCashOnly(restaurant) {
   const p = restaurant?.결제수단 || restaurant?.payment;

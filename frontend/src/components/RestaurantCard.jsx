@@ -1,5 +1,5 @@
 import { formatRestaurantName } from '../utils/format.js';
-import { isOpenNow } from '../businessHours.js';
+import { isOpenNow, isClosedToday } from '../businessHours.js';
 import { HeartIcon, CheckIcon, MessageIcon, MapPinIcon } from './icons.jsx';
 
 // --- Card Component ---
@@ -11,6 +11,7 @@ const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite, i
     : null;
 
   const openStatus = isOpenNow(data);
+  const closedToday = isClosedToday(data);
   const myRating = myVisit?.rating || 0;
 
   return (
@@ -70,7 +71,9 @@ const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite, i
           <span className="community-badge" title="커뮤니티 리뷰 평점"><MessageIcon size={12} /> {community.avg.toFixed(1)} ({community.count})</span>
         )}
         {openStatus === 'open' && <span className="open-badge open">🟢 영업중</span>}
-        {openStatus === 'closed' && <span className="open-badge closed">🔴 영업종료</span>}
+        {openStatus === 'closed' && (closedToday
+          ? <span className="open-badge rest">오늘 휴무</span>
+          : <span className="open-badge closed">🔴 영업종료</span>)}
         {myRating > 0 && !distanceLabel && (
           <span className="my-rating-badge" title="내가 매긴 평점">내 ★ {myRating}</span>
         )}

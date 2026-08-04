@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { formatRestaurantName } from '../utils/format.js';
-import { isOpenNow, getBusinessHours, isCashOnly, formatHoursForDisplay } from '../businessHours.js';
+import { isOpenNow, isClosedToday, getBusinessHours, isCashOnly, formatHoursForDisplay } from '../businessHours.js';
 import ReviewSection from './ReviewSection.jsx';
 import { XIcon, LinkIcon, CheckIcon } from './icons.jsx';
 
@@ -66,6 +66,7 @@ const RestaurantModal = ({ restaurant, onClose, isVisited, onToggleVisited, myVi
   const menus = restaurant.대표메뉴 ? restaurant.대표메뉴.split(',').map(m => m.trim()).filter(Boolean) : [];
   const hours = getBusinessHours(restaurant);
   const openStatus = isOpenNow(restaurant);
+  const closedToday = isClosedToday(restaurant);
   const hoursRows = hours ? formatHoursForDisplay(hours) : [];
   const todayKey = ['sun','mon','tue','wed','thu','fri','sat'][new Date().getDay()];
   const closedDays = restaurant.휴무일 || restaurant.closed_days;
@@ -139,7 +140,9 @@ const RestaurantModal = ({ restaurant, onClose, isVisited, onToggleVisited, myVi
               <h4 className="modal-section-title">
                 🕒 영업 정보
                 {openStatus === 'open' && <span className="open-badge open" style={{ marginLeft: '0.5rem' }}>영업중</span>}
-                {openStatus === 'closed' && <span className="open-badge closed" style={{ marginLeft: '0.5rem' }}>영업종료</span>}
+                {openStatus === 'closed' && (closedToday
+                  ? <span className="open-badge rest" style={{ marginLeft: '0.5rem' }}>오늘 휴무</span>
+                  : <span className="open-badge closed" style={{ marginLeft: '0.5rem' }}>영업종료</span>)}
               </h4>
               {hoursRows.length > 0 && (
                 <table className="hours-table">

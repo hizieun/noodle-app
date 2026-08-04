@@ -940,6 +940,13 @@ a:hover {
   color: #ef4444;
 }
 
+/* 오늘 휴무 — 영업종료(빨강)와 구분되는 중립 톤 */
+.open-badge.rest {
+  background: rgba(148, 163, 184, 0.14);
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  color: #94a3b8;
+}
+
 /* Business hours table in modal */
 .hours-table {
   width: 100%;
@@ -3394,4 +3401,37 @@ body { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+/* ============================================================
+   지역별로 둘러보기 (docs/10 §10.5)
+   ============================================================ */
+.region-rail { margin: 0 0 2rem; }
+.region-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.15rem 0.25rem;
+}
+.region-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 40px;
+  padding: 0.45rem 0.85rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+}
+.region-chip:hover { color: var(--text-accent); border-color: var(--text-accent); }
+.region-chip:active { transform: scale(0.96); }
+.region-chip-count {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-secondary);
 }

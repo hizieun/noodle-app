@@ -480,6 +480,18 @@ function App() {
     () => buildCollections(railInput, { category: activeCategory, userLocation, communityRatings }),
     [railInput, activeCategory, userLocation, communityRatings],
   );
+  // 지역별로 둘러보기 — 구별 식당 수(많은 순)
+  const regionChips = useMemo(() => {
+    const counts = new Map();
+    for (const r of railInput) counts.set(r.지역, (counts.get(r.지역) || 0) + 1);
+    return [...counts.entries()].sort((a, b) => b[1] - a[1]).map(([region, count]) => ({ region, count }));
+  }, [railInput]);
+
+  const handlePickRegion = (region) => {
+    setActiveRegion(region);
+    setVisibleCount(ITEMS_PER_PAGE);
+    window.scrollTo({ top: 0 });
+  };
 
   // 내 리스트 탭: 즐겨찾기 + 방문 + 내 평가 세그먼트
   const savedList = useMemo(
@@ -824,6 +836,23 @@ function App() {
                 favKeyOf={favKey}
               />
             ))}
+
+            {!isBrowsing && regionChips.length > 0 && (
+              <section className="region-rail">
+                <div className="rail-head">
+                  <h3 className="rail-title">지역별로 둘러보기</h3>
+                  <span className="rail-subtitle">동네별 모음</span>
+                </div>
+                <div className="region-chips">
+                  {regionChips.map(({ region, count }) => (
+                    <button key={region} className="region-chip" onClick={() => handlePickRegion(region)}>
+                      <span className="region-chip-name">{region}</span>
+                      <span className="region-chip-count">{count}</span>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
 
             <div className="section-header">
               <span className="section-header-line" />
