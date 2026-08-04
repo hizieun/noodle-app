@@ -9,7 +9,7 @@ import { haversine } from './utils/geo.js';
 import { useCommunityRatings } from './lib/useCommunityRatings.js';
 import RestaurantModal from './components/RestaurantModal.jsx';
 import RestaurantCard from './components/RestaurantCard.jsx';
-import { XIcon, MapPinIcon, LinkIcon, ShuffleIcon, HeartIcon, SearchIcon } from './components/icons.jsx';
+import { XIcon, MapPinIcon, LinkIcon, ShuffleIcon, HeartIcon, SearchIcon, SparklesIcon } from './components/icons.jsx';
 import FeaturedCard from './components/FeaturedCard.jsx';
 import { SkeletonGrid } from './components/Skeleton.jsx';
 import RestaurantRail from './components/RestaurantRail.jsx';
@@ -793,6 +793,16 @@ function App() {
                 onReshuffle={() => setReshuffleIdx(Math.floor(Math.random() * categoryPool.length))}
                 community={communityRatings.get(featuredKey)}
               />
+            )}
+            {!isBrowsing && (
+              <button className="ai-invite" onClick={() => setChatOpen(true)}>
+                <span className="ai-invite-icon"><SparklesIcon size={22} /></span>
+                <span className="ai-invite-text">
+                  <span className="ai-invite-title">AI에게 맛집 물어보기</span>
+                  <span className="ai-invite-sub">회식·혼밥·해장·데이트… 상황만 말하면 골라드려요</span>
+                </span>
+                <span className="ai-invite-arrow" aria-hidden="true">→</span>
+              </button>
             )}
             {!isBrowsing && rails.map(rail => (
               <RestaurantRail

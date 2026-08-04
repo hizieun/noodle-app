@@ -3223,3 +3223,60 @@ body { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
   color: #fff;
   cursor: pointer;
 }
+
+/* ============================================================
+   발견 피드 AI 진입 배너 (AI 추천 발견성 개선)
+   ============================================================ */
+.ai-invite {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  margin: 0 0 2rem;
+  padding: 1rem 1.15rem;
+  text-align: left;
+  border-radius: 16px;
+  border: 1px solid var(--text-accent);
+  background:
+    linear-gradient(120deg, color-mix(in srgb, var(--text-accent) 14%, transparent), transparent 60%),
+    var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease;
+}
+.ai-invite:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--text-accent) 22%, transparent);
+}
+.ai-invite:active { transform: translateY(0) scale(0.99); }
+.ai-invite-icon {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--text-accent);
+  color: var(--text-on-accent);
+}
+.ai-invite-text { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+.ai-invite-title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.ai-invite-sub {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ai-invite-arrow {
+  flex: 0 0 auto;
+  margin-left: auto;
+  font-size: 1.1rem;
+  color: var(--text-accent);
+}
