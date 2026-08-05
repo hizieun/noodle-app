@@ -21,6 +21,10 @@ import { buildCollections } from './utils/collections.js';
 const MapView = lazy(() => import('./MapView.jsx'));
 
 // 설치 배너 억제: 7일 이내 닫은 적 있으면 숨김
+// 메뉴로 찾기 칩 — 탭하면 해당 키워드로 검색(상호명·대표메뉴 매칭)
+const MENU_CHIPS = ['국밥', '곱창', '삼겹살', '해장국', '칼국수', '냉면', '파전', '족발', '보쌈', '순대', '노가리', '백반'];
+const RECENT_SEARCH_KEY = 'nopo-recent-search';
+
 const INSTALL_DISMISSED_KEY = 'nopo-install-dismissed';
 const INSTALL_SUPPRESS_MS = 7 * 24 * 60 * 60 * 1000;
 const isInstallBannerSuppressed = () => {
@@ -44,6 +48,10 @@ function App() {
   const [activeRegion, setActiveRegion] = useState('전체');
   const [activeCategory, setActiveCategory] = useState('노포');
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchFocused, setSearchFocused] = useState(false);
+  const [recentSearches, setRecentSearches] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(RECENT_SEARCH_KEY) || '[]'); } catch { return []; }
+  });
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   const [sortBy, setSortBy] = useState('평점순');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
@@ -410,6 +418,7 @@ function App() {
   };
 
   const handleOpenRestaurant = (restaurant) => {
+    if (searchQuery.trim()) pushRecent(searchQuery); // 검색 중 결과를 열면 그 검색어 기록
     setSelectedRestaurant(restaurant);
     const params = new URLSearchParams(window.location.search);
     params.set('r', restaurant.상호명);
@@ -491,6 +500,33 @@ function App() {
     setActiveRegion(region);
     setVisibleCount(ITEMS_PER_PAGE);
     window.scrollTo({ top: 0 });
+  };
+
+  const pushRecent = (term) => {
+    const t = (term || '').trim();
+    if (t.length < 2) return;
+    setRecentSearches(prev => {
+      const next = [t, ...prev.filter(x => x !== t)].slice(0, 8);
+      try { localStorage.setItem(RECENT_SEARCH_KEY, JSON.stringify(next)); } catch { /* private mode */ }
+      return next;
+    });
+  };
+  const applySearchTerm = (term) => {
+    setSearchQuery(term);
+    pushRecent(term);
+    setVisibleCount(ITEMS_PER_PAGE);
+    setSearchFocused(false);
+  };
+  const removeRecent = (term) => {
+    setRecentSearches(prev => {
+      const next = prev.filter(x => x !== term);
+      try { localStorage.setItem(RECENT_SEARCH_KEY, JSON.stringify(next)); } catch { /* private mode */ }
+      return next;
+    });
+  };
+  const clearRecent = () => {
+    setRecentSearches([]);
+    try { localStorage.removeItem(RECENT_SEARCH_KEY); } catch { /* private mode */ }
   };
 
   // 내 리스트 탭: 즐겨찾기 + 방문 + 내 평가 세그먼트
@@ -610,6 +646,9 @@ function App() {
                 placeholder="가게명, 메뉴 검색..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setTimeout(() => setSearchFocused(false), 120)}
+                onKeyDown={(e) => { if (e.key === 'Enter') { pushRecent(searchQuery); e.currentTarget.blur(); } }}
               />
               {searchQuery && (
                 <button
@@ -619,6 +658,36 @@ function App() {
                 >
                   <XIcon size={14} />
                 </button>
+              )}
+              {searchFocused && !searchQuery && (
+                <div className="search-panel" onMouseDown={(e) => e.preventDefault()}>
+                  {recentSearches.length > 0 && (
+                    <div className="search-panel-block">
+                      <div className="search-panel-head">
+                        <span>최근 검색어</span>
+                        <button className="search-panel-clear" onClick={clearRecent}>지우기</button>
+                      </div>
+                      <div className="search-panel-chips">
+                        {recentSearches.map((t) => (
+                          <span key={t} className="search-recent-chip">
+                            <button className="search-recent-term" onClick={() => applySearchTerm(t)}>{t}</button>
+                            <button className="search-recent-x" onClick={() => removeRecent(t)} aria-label={`${t} 삭제`}>
+                              <XIcon size={11} />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <div className="search-panel-block">
+                    <div className="search-panel-head"><span>메뉴로 찾기</span></div>
+                    <div className="search-panel-chips">
+                      {MENU_CHIPS.map((m) => (
+                        <button key={m} className="search-menu-chip" onClick={() => applySearchTerm(m)}>{m}</button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
             <button
