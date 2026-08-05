@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, Circle, useMap, useMapEvents } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
 
@@ -41,31 +41,53 @@ const markerIcon = (category) => {
   });
 };
 
+// 프로그램적 이동 표시: ref를 true로 두고 애니메이션 시간 뒤 자동 해제(moveend 발생 여부에 의존 X).
+function markProgrammatic(programmaticRef, ms) {
+  programmaticRef.current = true;
+  const t = setTimeout(() => { programmaticRef.current = false; }, ms);
+  return () => clearTimeout(t);
+}
+
 // 필터 변경 시 지도 중심 이동
-function MapController({ restaurants }) {
+function MapController({ restaurants, programmaticRef }) {
   const map = useMap();
   useEffect(() => {
     if (restaurants.length === 0) return;
     const validCoords = restaurants
       .filter(r => r.lat && r.lng)
       .map(r => [r.lat, r.lng]);
-    if (validCoords.length > 0) {
-      map.fitBounds(validCoords, { padding: [40, 40], maxZoom: 14 });
-    }
-  }, [restaurants, map]);
+    if (validCoords.length === 0) return;
+    const clear = markProgrammatic(programmaticRef, 500);
+    map.fitBounds(validCoords, { padding: [40, 40], maxZoom: 14 });
+    return clear;
+  }, [restaurants, map, programmaticRef]);
   return null;
 }
 
 // 하단 시트에서 항목 선택 시 해당 위치로 비행 (모션 감소 선호 시 즉시 이동)
-function MapFocus({ focus }) {
+function MapFocus({ focus, programmaticRef }) {
   const map = useMap();
   useEffect(() => {
     if (!focus) return;
     const z = Math.max(map.getZoom(), 15);
     const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const clear = markProgrammatic(programmaticRef, 800);
     if (reduced) map.setView([focus.lat, focus.lng], z, { animate: false });
     else map.flyTo([focus.lat, focus.lng], z, { duration: 0.6 });
-  }, [focus, map]);
+    return clear;
+  }, [focus, map, programmaticRef]);
+  return null;
+}
+
+// 사용자가 지도를 움직이면 재검색 버튼 노출. 프로그램적 이동 창(window) 동안은 무시. 맵 인스턴스도 상위로 전달.
+function MapEvents({ programmaticRef, onUserMove, onReady }) {
+  const map = useMapEvents({
+    moveend() {
+      if (programmaticRef.current) return;
+      onUserMove();
+    },
+  });
+  useEffect(() => { onReady(map); }, [map, onReady]);
   return null;
 }
 
@@ -78,14 +100,36 @@ export default function MapView({ restaurants, onCardClick, userLocation, nearby
   const [activeMarker, setActiveMarker] = useState(null);
   const [sheetExpanded, setSheetExpanded] = useState(true);
   const [focus, setFocus] = useState(null);
+  const [moved, setMoved] = useState(false);   // 사용자가 지도를 움직였나 → 재검색 버튼
+  const [bounds, setBounds] = useState(null);   // 활성 뷰포트 필터
+  const programmaticRef = useRef(false);
+  const mapRef = useRef(null);
 
-  const mapped = restaurants.filter(r => r.lat && r.lng);
+  // 메모: mapped 참조가 매 렌더 새로 생기면 MapController가 계속 refit → 재검색 감지가 깨짐
+  const mapped = useMemo(() => restaurants.filter(r => r.lat && r.lng), [restaurants]);
   const missing = restaurants.length - mapped.length;
+  // 뷰포트 재검색이 켜지면 화면 영역 안 식당만 목록에
+  const listed = useMemo(
+    () => (bounds ? mapped.filter(r => bounds.contains([r.lat, r.lng])) : mapped),
+    [bounds, mapped],
+  );
 
   const handleRow = (r) => {
     setFocus({ lat: r.lat, lng: r.lng, k: `${r.상호명}-${r.lat}-${r.lng}` });
     onCardClick(r);
   };
+  const research = () => {
+    if (!mapRef.current) return;
+    setBounds(mapRef.current.getBounds());
+    setMoved(false);
+  };
+  // 데이터(필터) 바뀌면 뷰포트 필터 해제 — 렌더 중 조정(React 권장, effect 아님)
+  const [prevRestaurants, setPrevRestaurants] = useState(restaurants);
+  if (restaurants !== prevRestaurants) {
+    setPrevRestaurants(restaurants);
+    setBounds(null);
+    setMoved(false);
+  }
 
   return (
     <div className="map-wrapper">
@@ -105,8 +149,13 @@ export default function MapView({ restaurants, onCardClick, userLocation, nearby
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           subdomains="abcd"
         />
-        <MapController restaurants={mapped} />
-        <MapFocus focus={focus} />
+        <MapController restaurants={mapped} programmaticRef={programmaticRef} />
+        <MapFocus focus={focus} programmaticRef={programmaticRef} />
+        <MapEvents
+          programmaticRef={programmaticRef}
+          onUserMove={() => setMoved(true)}
+          onReady={(m) => { mapRef.current = m; }}
+        />
         {userLocation && (
           <>
             <Marker position={[userLocation.lat, userLocation.lng]} icon={userMarkerIcon}>
@@ -177,7 +226,16 @@ export default function MapView({ restaurants, onCardClick, userLocation, nearby
         </MarkerClusterGroup>
       </MapContainer>
 
+      {moved && (
+        <button className="map-research" onClick={research}>
+          <span aria-hidden="true">🔍</span> 이 지역 재검색
+        </button>
+      )}
+
       <div className={`map-sheet ${sheetExpanded ? 'expanded' : ''}`}>
+        {bounds && (
+          <button className="map-sheet-reset" onClick={() => setBounds(null)}>전체 보기</button>
+        )}
         <button
           className="map-sheet-handle"
           onClick={() => setSheetExpanded(v => !v)}
@@ -185,10 +243,13 @@ export default function MapView({ restaurants, onCardClick, userLocation, nearby
           aria-label={sheetExpanded ? '목록 접기' : '목록 펼치기'}
         >
           <span className="map-sheet-grip" />
-          <span className="map-sheet-count">{mapped.length.toLocaleString()}곳</span>
+          <span className="map-sheet-count">{bounds ? '이 지역 ' : ''}{listed.length.toLocaleString()}곳</span>
         </button>
         <div className="map-sheet-list">
-          {mapped.slice(0, SHEET_MAX).map((r, i) => {
+          {listed.length === 0 && (
+            <p className="map-sheet-more">이 지역에 표시할 맛집이 없어요. 지도를 옮겨보세요.</p>
+          )}
+          {listed.slice(0, SHEET_MAX).map((r, i) => {
             const dist = distanceLabel(r.distance);
             return (
               <button key={`${r.상호명}-${i}`} className="map-sheet-row" onClick={() => handleRow(r)}>
@@ -204,8 +265,8 @@ export default function MapView({ restaurants, onCardClick, userLocation, nearby
               </button>
             );
           })}
-          {mapped.length > SHEET_MAX && (
-            <p className="map-sheet-more">외 {(mapped.length - SHEET_MAX).toLocaleString()}곳은 지도에서 확인하세요</p>
+          {listed.length > SHEET_MAX && (
+            <p className="map-sheet-more">외 {(listed.length - SHEET_MAX).toLocaleString()}곳은 지도에서 확인하세요</p>
           )}
         </div>
       </div>

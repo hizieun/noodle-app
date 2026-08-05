@@ -3514,3 +3514,47 @@ body { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
   cursor: pointer;
 }
 .search-recent-x:hover { color: var(--text-accent); }
+
+/* ============================================================
+   지도 "이 지역 재검색" (docs/10 §10.6)
+   ============================================================ */
+.map-research {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 895;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1.1rem;
+  border-radius: 9999px;
+  border: 1px solid var(--text-accent);
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--text-accent);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  animation: map-research-in 0.2s ease;
+}
+@keyframes map-research-in { from { opacity: 0; transform: translate(-50%, -6px); } to { opacity: 1; transform: translate(-50%, 0); } }
+.map-research:active { transform: translateX(-50%) scale(0.96); }
+
+.map-sheet-reset {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.85rem;
+  z-index: 2;
+  padding: 0.3rem 0.7rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.map-sheet-reset:hover { color: var(--text-accent); border-color: var(--text-accent); }
