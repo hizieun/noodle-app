@@ -66,6 +66,7 @@ const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite, i
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
           </svg>
           {data.평점 !== "정보 없음" ? data.평점 : "-"}
+          {data.리뷰수 > 0 && <span className="card-review-count">리뷰 {data.리뷰수.toLocaleString()}</span>}
         </div>
         {community && (
           <span className="community-badge" title="커뮤니티 리뷰 평점"><MessageIcon size={12} /> {community.avg.toFixed(1)} ({community.count})</span>

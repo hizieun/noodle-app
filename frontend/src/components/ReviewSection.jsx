@@ -12,6 +12,9 @@ const nameOf = (user) => {
 
 const fmtDate = (iso) => (iso ? iso.slice(0, 10) : '');
 
+// 세션 1회만 반응 테이블 지원 여부 판단 — 미설정 시 매 리뷰 로드마다 404 재요청 방지
+let reactionsSupported = true;
+
 export default function ReviewSection({ restaurant, onReviewChange }) {
   const [session, setSession] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -25,17 +28,22 @@ export default function ReviewSection({ restaurant, onReviewChange }) {
   const [photoItems, setPhotoItems] = useState([]);
   const [lightbox, setLightbox] = useState(null); // 확대해서 볼 사진 URL
   const fileInput = useRef(null);
+  // 리뷰 반응(도움돼요/신고). review_id → {helpful, mineHelpful, mineReported}
+  const [reactions, setReactions] = useState(() => new Map());
+  const [reactionsOn, setReactionsOn] = useState(() => reactionsSupported); // 테이블 미설정 시 자동 off
 
   const key = favKey(restaurant);
   const userId = session?.user?.id || null;
   const myReview = reviews.find((r) => r.user_id === userId) || null;
+  const byRecent = (a, b) => (b.created_at > a.created_at ? 1 : -1);
   const others = reviews
     .filter((r) => r.user_id !== userId)
-    .sort((a, b) =>
-      sort === 'rating'
-        ? b.rating - a.rating || (b.created_at > a.created_at ? 1 : -1)
-        : (b.created_at > a.created_at ? 1 : -1),
-    );
+    .sort((a, b) => {
+      if (sort === 'rating') return b.rating - a.rating || byRecent(a, b);
+      if (sort === 'photo') return (b.photos?.length ? 1 : 0) - (a.photos?.length ? 1 : 0) || byRecent(a, b);
+      return byRecent(a, b);
+    });
+  const anyPhotos = reviews.some((r) => r.photos?.length);
   const avg = reviews.length
     ? (reviews.reduce((s, r) => s + r.rating, 0) / reviews.length).toFixed(1)
     : null;
@@ -63,6 +71,53 @@ export default function ReviewSection({ restaurant, onReviewChange }) {
 
   // 식당 바뀌면 리뷰 재로드
   useEffect(() => { loadReviews(); }, [loadReviews]);
+
+  // 리뷰 반응 집계 (테이블 없으면 자동 비활성)
+  const loadReactions = useCallback(async (rows, uid) => {
+    if (!supabase || !reactionsSupported || !rows.length) { setReactions(new Map()); return; }
+    const ids = rows.map((r) => r.id);
+    const { data, error: e } = await supabase
+      .from('review_reactions')
+      .select('review_id, user_id, type')
+      .in('review_id', ids);
+    if (e) { reactionsSupported = false; setReactionsOn(false); return; } // 테이블 미설정 → 세션 내 재요청 중단
+    const m = new Map();
+    for (const id of ids) m.set(id, { helpful: 0, mineHelpful: false, mineReported: false });
+    for (const row of data || []) {
+      const cur = m.get(row.review_id);
+      if (!cur) continue;
+      if (row.type === 'helpful') { cur.helpful += 1; if (row.user_id === uid) cur.mineHelpful = true; }
+      if (row.type === 'report' && row.user_id === uid) cur.mineReported = true;
+    }
+    setReactions(m);
+  }, []);
+  useEffect(() => { loadReactions(reviews, userId); }, [reviews, userId, loadReactions]);
+
+  const toggleHelpful = async (reviewId) => {
+    if (!session) { login(); return; }
+    const cur = reactions.get(reviewId) || { helpful: 0, mineHelpful: false, mineReported: false };
+    // 낙관적 업데이트
+    const next = new Map(reactions);
+    next.set(reviewId, { ...cur, helpful: cur.helpful + (cur.mineHelpful ? -1 : 1), mineHelpful: !cur.mineHelpful });
+    setReactions(next);
+    if (cur.mineHelpful) {
+      await supabase.from('review_reactions').delete()
+        .match({ review_id: reviewId, user_id: userId, type: 'helpful' });
+    } else {
+      await supabase.from('review_reactions')
+        .insert({ review_id: reviewId, user_id: userId, type: 'helpful' });
+    }
+  };
+
+  const reportReview = async (reviewId) => {
+    if (!session) { login(); return; }
+    if (!window.confirm('이 리뷰를 신고할까요? 관리자가 검토합니다.')) return;
+    const { error: e } = await supabase.from('review_reactions')
+      .insert({ review_id: reviewId, user_id: userId, type: 'report' });
+    if (e && e.code !== '23505') { setError('신고 실패'); return; } // 23505=이미 신고함
+    const cur = reactions.get(reviewId) || { helpful: 0, mineHelpful: false, mineReported: false };
+    setReactions(new Map(reactions).set(reviewId, { ...cur, mineReported: true }));
+  };
 
   // 내 리뷰가 바뀌면 폼 draft 동기화 (derived-state 리셋 — 의도)
   useEffect(() => {
@@ -243,6 +298,7 @@ export default function ReviewSection({ restaurant, onReviewChange }) {
           <div className="review-sort">
             <button className={sort === 'recent' ? 'active' : ''} onClick={() => setSort('recent')}>최신순</button>
             <button className={sort === 'rating' ? 'active' : ''} onClick={() => setSort('rating')}>별점순</button>
+            {anyPhotos && <button className={sort === 'photo' ? 'active' : ''} onClick={() => setSort('photo')}>사진순</button>}
           </div>
         )}
         <ul className="review-list">
@@ -280,6 +336,23 @@ export default function ReviewSection({ restaurant, onReviewChange }) {
                       <img src={url} alt="리뷰 사진" loading="lazy" />
                     </button>
                   ))}
+                </div>
+              )}
+              {reactionsOn && (
+                <div className="review-actions">
+                  <button
+                    className={`review-helpful ${reactions.get(r.id)?.mineHelpful ? 'active' : ''}`}
+                    onClick={() => toggleHelpful(r.id)}
+                  >
+                    👍 도움돼요{reactions.get(r.id)?.helpful ? ` ${reactions.get(r.id).helpful}` : ''}
+                  </button>
+                  <button
+                    className="review-report"
+                    onClick={() => reportReview(r.id)}
+                    disabled={reactions.get(r.id)?.mineReported}
+                  >
+                    {reactions.get(r.id)?.mineReported ? '신고됨' : '신고'}
+                  </button>
                 </div>
               )}
             </li>

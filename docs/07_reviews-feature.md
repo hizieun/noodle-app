@@ -192,3 +192,36 @@ create policy "review photos delete own"
 - **용량**: WebP 축소본(장당 ~100–300KB) × 3장이라 무료 1GB로 수천 리뷰 감당. 초과 전 정리/유료 검토.
 - **부적절 이미지**: 초기엔 관리자(=나)가 대시보드에서 수동 삭제. 신고·자동 필터는 후속.
 - **고아 파일**: 리뷰 유지한 채 사진만 뺀 경우 스토리지에 남을 수 있음(저위험, 정기 정리로 충분). 리뷰 삭제 시엔 자동 정리.
+
+---
+
+## 7.11 Phase 2.5 — 리뷰 신뢰·상호작용 (2026-08-06, docs/10 §10.7)
+
+리뷰 신뢰 신호와 커뮤니티 상호작용 추가.
+
+### 구현 (셋업 불필요)
+- **카드 리뷰수 배지**: `data.json`의 `리뷰수`(카카오)를 카드 평점 옆에 "리뷰 N"으로 노출(신뢰 신호).
+- **사진 있는 순 정렬**: 커뮤니티 리뷰 목록에 "사진순" 정렬(리뷰가 2개↑ + 사진 존재 시).
+
+### 구현 (셋업 필요 — 도움돼요/신고)
+- `review_reactions` 테이블에 helpful/report를 한 테이블로. 도움돼요 토글(낙관적 업데이트), 신고 1회.
+- 테이블 미설정 시 `reactionsSupported` 세션 플래그로 자동 비활성(버튼 숨김, 재요청 안 함) → 셋업 전에도 무회귀.
+
+### 수동 셋업 (Supabase SQL Editor)
+```sql
+create table if not exists review_reactions (
+  review_id  uuid not null references reviews(id) on delete cascade,
+  user_id    uuid not null references auth.users(id) on delete cascade,
+  type       text not null check (type in ('helpful','report')),
+  created_at timestamptz not null default now(),
+  primary key (review_id, user_id, type)
+);
+alter table review_reactions enable row level security;
+-- 집계용 읽기는 누구나(도움돼요 수), 쓰기/삭제는 본인 것만
+create policy "reactions read all" on review_reactions for select using (true);
+create policy "reactions insert own" on review_reactions for insert to authenticated
+  with check (auth.uid() = user_id);
+create policy "reactions delete own" on review_reactions for delete to authenticated
+  using (auth.uid() = user_id);
+```
+> 신고(report)는 대시보드에서 `select * from review_reactions where type='report'`로 확인 후 수동 조치. 자동 숨김/임계치는 후속.

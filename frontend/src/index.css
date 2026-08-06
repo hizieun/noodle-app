@@ -3558,3 +3558,52 @@ body { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
   cursor: pointer;
 }
 .map-sheet-reset:hover { color: var(--text-accent); border-color: var(--text-accent); }
+
+/* 카드 리뷰수(카카오) — 평점 옆 신뢰 신호 (docs/10 §10.7) */
+.card-review-count {
+  margin-left: 0.4rem;
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* 리뷰 반응 — 도움돼요/신고 (docs/10 §10.7) */
+.review-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+.review-helpful {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.14s ease, border-color 0.14s ease;
+}
+.review-helpful:hover { color: var(--text-accent); border-color: var(--text-accent); }
+.review-helpful.active {
+  color: var(--text-on-accent);
+  background: var(--text-accent);
+  border-color: var(--text-accent);
+}
+.review-report {
+  margin-left: auto;
+  padding: 0.35rem 0.5rem;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.74rem;
+  cursor: pointer;
+  text-decoration: underline;
+  opacity: 0.7;
+}
+.review-report:hover { opacity: 1; }
+.review-report:disabled { cursor: default; text-decoration: none; opacity: 0.5; }
