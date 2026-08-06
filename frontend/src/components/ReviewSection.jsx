@@ -97,15 +97,17 @@ export default function ReviewSection({ restaurant, onReviewChange }) {
     if (!session) { login(); return; }
     const cur = reactions.get(reviewId) || { helpful: 0, mineHelpful: false, mineReported: false };
     // 낙관적 업데이트
-    const next = new Map(reactions);
-    next.set(reviewId, { ...cur, helpful: cur.helpful + (cur.mineHelpful ? -1 : 1), mineHelpful: !cur.mineHelpful });
-    setReactions(next);
-    if (cur.mineHelpful) {
-      await supabase.from('review_reactions').delete()
-        .match({ review_id: reviewId, user_id: userId, type: 'helpful' });
-    } else {
-      await supabase.from('review_reactions')
-        .insert({ review_id: reviewId, user_id: userId, type: 'helpful' });
+    setReactions((m) => new Map(m).set(reviewId, {
+      ...cur, helpful: cur.helpful + (cur.mineHelpful ? -1 : 1), mineHelpful: !cur.mineHelpful,
+    }));
+    const { error: e } = cur.mineHelpful
+      ? await supabase.from('review_reactions').delete()
+          .match({ review_id: reviewId, user_id: userId, type: 'helpful' })
+      : await supabase.from('review_reactions')
+          .insert({ review_id: reviewId, user_id: userId, type: 'helpful' });
+    if (e) {
+      setReactions((m) => new Map(m).set(reviewId, cur)); // 롤백
+      setError('도움돼요 처리 실패: ' + e.message);
     }
   };
 
