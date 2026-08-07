@@ -875,15 +875,7 @@ function App() {
           </div>
         ) : (
           <>
-            {/* 발견 피드: 히어로 + 테마 레일 (검색/필터 없을 때만) */}
-            {!isBrowsing && featuredRestaurant && (
-              <FeaturedCard
-                restaurant={featuredRestaurant}
-                onOpen={handleOpenRestaurant}
-                onReshuffle={() => setReshuffleIdx(Math.floor(Math.random() * categoryPool.length))}
-                community={communityRatings.get(featuredKey)}
-              />
-            )}
+            {/* 발견 피드: AI 진입 → 히어로 → 테마 레일 (검색/필터 없을 때만) */}
             {!isBrowsing && (
               <button className="ai-invite" onClick={() => setChatOpen(true)}>
                 <span className="ai-invite-icon"><SparklesIcon size={22} /></span>
@@ -893,6 +885,14 @@ function App() {
                 </span>
                 <span className="ai-invite-arrow" aria-hidden="true">→</span>
               </button>
+            )}
+            {!isBrowsing && featuredRestaurant && (
+              <FeaturedCard
+                restaurant={featuredRestaurant}
+                onOpen={handleOpenRestaurant}
+                onReshuffle={() => setReshuffleIdx(Math.floor(Math.random() * categoryPool.length))}
+                community={communityRatings.get(featuredKey)}
+              />
             )}
             {!isBrowsing && rails.map(rail => (
               <RestaurantRail
