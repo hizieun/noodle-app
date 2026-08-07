@@ -47,6 +47,8 @@ def export_db_to_json():
                 lat, lng
             FROM restaurants
             WHERE (active IS NULL OR active = 1)
+              -- 서울 전용 앱: 동명 지역(부산 강서구·인천 중구 등) 유입 차단(권위 경계 필터)
+              AND address LIKE '서울%'
             ORDER BY CAST(rating AS REAL) DESC
             """
         )

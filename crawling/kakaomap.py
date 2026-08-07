@@ -397,6 +397,10 @@ for category_word in categories:
             search_url = driver.current_url
             for info in raw_places:
                 try:
+                    # 서울 전용: 동명 지역(부산 강서구·인천 중구 등) 결과는 상세 추출 전에 건너뜀
+                    if not (info.get("addr") or "").startswith("서울"):
+                        print(f"  ⏭️  {info['name']} → 서울 외 주소({info.get('addr')}) 스킵")
+                        continue
                     print(f"  📍 {info['name']} → 상세정보 추출 중...")
                     menus, bh, cd, pay = get_menus_from_detail(info["place_id"], search_url)
 
