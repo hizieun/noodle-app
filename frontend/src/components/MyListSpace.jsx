@@ -8,7 +8,7 @@ const SEGMENTS = [
   { key: 'rated', label: '내 평가', Icon: MessageIcon, empty: '별점·메모를 남긴 곳이 아직 없어요.' },
 ];
 
-export default function MyListSpace({ favList, visitedList, ratedList, renderCard, onShare, shareCopied }) {
+export default function MyListSpace({ favList, visitedList, ratedList, renderCard, onShare, shareCopied, onBrowse }) {
   const [seg, setSeg] = useState('fav');
   const lists = { fav: favList, visited: visitedList, rated: ratedList };
   const current = SEGMENTS.find(s => s.key === seg);
@@ -46,8 +46,11 @@ export default function MyListSpace({ favList, visitedList, ratedList, renderCar
 
       {items.length === 0 ? (
         <div className="empty-state mylist-empty">
-          <div className="empty-icon"><current.Icon size={40} /></div>
+          <div className="empty-icon"><current.Icon size={52} /></div>
           <p>{current.empty}</p>
+          {onBrowse && (
+            <button className="empty-browse-btn" onClick={onBrowse}>맛집 둘러보기 →</button>
+          )}
         </div>
       ) : (
         <div className="restaurant-grid">

@@ -841,6 +841,7 @@ function App() {
             renderCard={renderCard}
             onShare={handleShareFavorites}
             shareCopied={shareCopied}
+            onBrowse={() => handleTabChange('home')}
           />
         ) : filteredData.length === 0 ? (
           <div className="empty-state">

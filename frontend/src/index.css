@@ -61,7 +61,8 @@
   --bg-card-hover: #171430;
 
   --text-primary: #E0D8F0;
-  --text-secondary: #7A7090;
+  /* #7A7090은 bg 대비 4.0~4.2로 AA 미달 → #9A8FB2(6.1~6.5:1)로 상향 (docs/11 §11.12) */
+  --text-secondary: #9A8FB2;
   /* bg-secondary 대비 ≈4.6:1 AA */
   --text-accent: #3DFFC8;
   /* 네온 민트 — bg-secondary 대비 ≈7.2:1 */
@@ -247,15 +248,19 @@ a:hover {
 .install-banner {
   width: 100%;
   box-sizing: border-box;
-  background: linear-gradient(135deg, rgba(200, 150, 74, 0.15), rgba(200, 150, 74, 0.08));
-  border-bottom: 1px solid rgba(200, 150, 74, 0.25);
-  padding: 0.6rem var(--spacing-md);
+  background: linear-gradient(135deg, rgba(200, 150, 74, 0.1), rgba(200, 150, 74, 0.05));
+  border-bottom: 1px solid rgba(200, 150, 74, 0.16);
+  padding: 0.4rem var(--spacing-md);
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  font-size: 0.85rem;
-  color: var(--text-primary);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+/* 설치 배너는 모바일 전용 — 데스크톱에선 무의미하므로 숨김 (docs/11 §11.6) */
+@media (min-width: 900px) {
+  .install-banner { display: none; }
 }
 
 .install-banner-actions {
@@ -3667,3 +3672,24 @@ body { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
   padding-top: var(--spacing-sm);
 }
 .card-footer .card-rating { margin-right: auto; } /* 평점 왼쪽 고정, 배지는 뒤로 */
+
+/* 내 리스트 빈 상태 CTA (docs/11 §11.10) */
+.mylist-empty {
+  min-height: 46vh;
+  justify-content: center;
+}
+.empty-browse-btn {
+  margin-top: 1.1rem;
+  padding: 0.7rem 1.4rem;
+  border-radius: 9999px;
+  border: 1px solid var(--text-accent);
+  background: transparent;
+  color: var(--text-accent);
+  font-family: var(--font-family);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+.empty-browse-btn:hover { background: color-mix(in srgb, var(--text-accent) 12%, transparent); }
+.empty-browse-btn:active { transform: scale(0.97); }
