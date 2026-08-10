@@ -3693,3 +3693,42 @@ body { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
 }
 .empty-browse-btn:hover { background: color-mix(in srgb, var(--text-accent) 12%, transparent); }
 .empty-browse-btn:active { transform: scale(0.97); }
+
+/* ============================================================
+   디자인 폴리시 배치4 (docs/11 §11.3/11.7/11.8)
+   ============================================================ */
+/* 11.3 AI 배너 대비 강화 + CTA 칩 */
+.ai-invite {
+  background:
+    linear-gradient(120deg, color-mix(in srgb, var(--text-accent) 22%, transparent), transparent 62%),
+    var(--bg-secondary);
+  box-shadow: 0 6px 20px -10px color-mix(in srgb, var(--text-accent) 40%, transparent);
+}
+.ai-invite-title { color: var(--text-accent); }
+.ai-invite-cta {
+  flex: 0 0 auto;
+  margin-left: auto;
+  padding: 0.4rem 0.8rem;
+  border-radius: 9999px;
+  background: var(--text-accent);
+  color: var(--text-on-accent);
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* 11.7 히어로 카드 — 일반 카드와 구분되는 프리미엄 표면 */
+.featured-card {
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--text-accent) 10%, transparent), transparent 46%),
+    var(--bg-secondary);
+  border-color: color-mix(in srgb, var(--text-accent) 30%, var(--border-color));
+  box-shadow: 0 16px 44px -20px rgba(0, 0, 0, 0.75);
+}
+
+/* 11.8 지도 시트 헤더 — 카운트 좌측 정렬(중앙 여백 해소) */
+.map-sheet-handle {
+  justify-content: flex-start;
+  padding-top: 0.95rem;
+}
+.map-sheet-count { margin-top: 0; }

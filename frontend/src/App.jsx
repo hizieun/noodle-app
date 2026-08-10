@@ -885,7 +885,7 @@ function App() {
                   <span className="ai-invite-title">AI에게 맛집 물어보기</span>
                   <span className="ai-invite-sub">회식·혼밥·해장·데이트… 상황만 말하면 골라드려요</span>
                 </span>
-                <span className="ai-invite-arrow" aria-hidden="true">→</span>
+                <span className="ai-invite-cta">물어보기 →</span>
               </button>
             )}
             {!isBrowsing && featuredRestaurant && (
