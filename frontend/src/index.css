@@ -3615,9 +3615,10 @@ body { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
 .review-report:disabled { cursor: default; text-decoration: none; opacity: 0.5; }
 
 /* ============================================================
-   데스크톱 폴리시 (docs/11 §11.1) — 하단 탭을 전체폭 바 → 중앙 플로팅 바
+   태블릿(900~1023) — 하단 탭을 전체폭 바 → 중앙 플로팅 바
+   (≥1024는 아래 사이드바/2-pane 블록이 오버라이드)
    ============================================================ */
-@media (min-width: 900px) {
+@media (min-width: 900px) and (max-width: 1023px) {
   .bottom-nav {
     width: 520px; /* fixed+left:50%는 width 명시 필요(없으면 콘텐츠폭으로 축소) */
     max-width: calc(100% - 2rem);
@@ -3732,3 +3733,69 @@ body { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
   padding-top: 0.95rem;
 }
 .map-sheet-count { margin-top: 0; }
+
+/* ============================================================
+   데스크톱 완성형 (≥1024) — 사이드 내비 + 지도 2-pane (docs/11)
+   ============================================================ */
+@media (min-width: 1024px) {
+  /* 콘텐츠를 사이드바(88px) 오른쪽으로 */
+  body { padding-left: 88px; padding-bottom: 0; }
+
+  /* 하단 탭 → 좌측 세로 사이드바 */
+  .bottom-nav {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 0.25rem;
+    width: 88px;
+    max-width: none;
+    height: 100vh;
+    top: 0;
+    bottom: auto;
+    left: 0;
+    right: auto;
+    transform: none;
+    padding: 1.5rem 0;
+    border: none;
+    border-right: 1px solid var(--border-color);
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .bottom-nav-item { padding: 0.9rem 0; gap: 5px; }
+  .bottom-nav-item.active {
+    box-shadow: inset 3px 0 0 var(--text-accent); /* 좌측 accent 인디케이터 */
+  }
+
+  /* 지도 탭 — 하단 시트 오버레이 → 좌측 리스트 레일 + 지도 2-pane */
+  .map-wrapper { display: flex; flex-direction: row; }
+  .leaflet-map { flex: 1; min-width: 0; height: 100%; }
+  .map-sheet {
+    position: static;
+    order: -1;
+    width: 380px;
+    flex: 0 0 380px;
+    max-width: none;
+    height: 100%;
+    left: auto;
+    right: auto;
+    transform: none;
+    border: none;
+    border-right: 1px solid var(--border-color);
+    border-radius: 0;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+  }
+  .map-sheet-grip { display: none; }
+  .map-sheet-handle {
+    justify-content: flex-start;
+    cursor: default;
+    border-bottom: 1px solid var(--border-color);
+  }
+  /* 2-pane에선 항상 펼침(높이 채움) */
+  .map-sheet.expanded .map-sheet-list,
+  .map-sheet .map-sheet-list { max-height: none; flex: 1; }
+  .map-sheet-reset { top: 0.75rem; }
+  .map-research { left: auto; right: 1.5rem; transform: none; top: 1rem; }
+}
