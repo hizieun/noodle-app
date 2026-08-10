@@ -640,6 +640,7 @@ function App() {
           {/* 2행: 검색 + 내 위치 + 필터 */}
           <div className="header-row-2">
             <div className="search-container">
+              <SearchIcon size={16} className="search-lead-icon" />
               <input
                 type="text"
                 className="search-input"

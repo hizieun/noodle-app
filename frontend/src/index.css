@@ -3635,3 +3635,34 @@ body { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
   }
   .map-research { z-index: 896; }
 }
+
+/* ============================================================
+   검색 툴바 정리 (docs/11 §11.5) — 리딩 돋보기 아이콘
+   ============================================================ */
+.search-lead-icon {
+  position: absolute;
+  left: 0.95rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+  pointer-events: none;
+  z-index: 1;
+}
+.search-input { padding-left: 2.6rem; }
+.search-input::placeholder { color: var(--text-secondary); opacity: 0.85; }
+
+/* ============================================================
+   카드 리듬·정의 (docs/11 §11.4)
+   ============================================================ */
+/* 배경 대비 카드 경계 또렷하게(먹먹함 해소) */
+.card { border-color: rgba(240, 232, 220, 0.12); }
+.yajang-theme .card { border-color: rgba(61, 255, 200, 0.14); }
+.card:hover { border-color: var(--text-accent); }
+
+/* 푸터 메타: 배지 많을 때 줄바꿈되게(cram 방지) + 정렬 */
+.card-footer {
+  flex-wrap: wrap;
+  gap: 0.4rem 0.6rem;
+  padding-top: var(--spacing-sm);
+}
+.card-footer .card-rating { margin-right: auto; } /* 평점 왼쪽 고정, 배지는 뒤로 */
