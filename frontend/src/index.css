@@ -5,31 +5,30 @@
   --line-height: 1.5;
   --font-weight: 400;
 
-  /* Color Palette */
-  --bg-primary: #1C1510;
-  --bg-secondary: #221A12;
-  --bg-tertiary: #2B2118;
-  --bg-card-hover: #271E14;
+  /* Color Palette — 노포: 클린 웜 차콜(머디 브라운 desat 제거) + 비비드 앰버 (2026-08-11 리컬러) */
+  --bg-primary: #16140F;
+  --bg-secondary: #1F1C16;
+  --bg-tertiary: #2A251D;
+  --bg-card-hover: #252017;
 
-  --text-primary: #F0E8DC;
-  --text-secondary: #9C8D7A;
-  /* 앰버 브라운 — bg-secondary 대비 ≈4.6:1 AA */
-  --text-accent: #C8964A;
-  /* 앰버 골드 — bg-secondary 대비 ≈5.1:1 */
-  --text-accent-yajang: #3DFFC8;
+  --text-primary: #F5EEE2;
+  --text-secondary: #A99C88;
+  /* 비비드 앰버 — bg-secondary 대비 ≈8.6:1 */
+  --text-accent: #F0B85A;
   /* 네온 민트 (야장 보조 변수) */
-  --text-accent-hover: #D9A85E;
+  --text-accent-yajang: #3DFFC8;
   /* 앰버 밝은 단계 */
-  /* accent 배경 위 텍스트 — 앰버(#C8964A) 위 대비 5.06:1 (WCAG AA) */
-  --text-on-accent: #1C1510;
+  --text-accent-hover: #FFC96E;
+  /* accent(밝은 앰버) 배경 위 텍스트 */
+  --text-on-accent: #16140F;
 
-  --border-color: rgba(200, 150, 74, 0.15);
-  --glass-bg: rgba(34, 26, 18, 0.75);
-  --glass-border: rgba(200, 150, 74, 0.12);
+  --border-color: rgba(240, 184, 90, 0.18);
+  --glass-bg: rgba(31, 28, 22, 0.78);
+  --glass-border: rgba(240, 184, 90, 0.14);
 
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
-  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(200, 150, 74, 0.08);
+  --shadow-lg: 0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(240, 184, 90, 0.08);
 
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -55,24 +54,23 @@
 
 /* ── 야장 테마 (밤거리 네온 퍼플) ─────────────────────────────────────── */
 .yajang-theme {
-  --bg-primary: #0D0A1A;
-  --bg-secondary: #12102A;
-  --bg-tertiary: #1A1730;
-  --bg-card-hover: #171430;
+  /* 야장: 머디 near-black → 클린 딥 인디고(채도↑)로 리컬러, 비비드 민트 유지 (2026-08-11) */
+  --bg-primary: #0F0C1E;
+  --bg-secondary: #191436;
+  --bg-tertiary: #241D44;
+  --bg-card-hover: #201941;
 
-  --text-primary: #E0D8F0;
-  /* #7A7090은 bg 대비 4.0~4.2로 AA 미달 → #9A8FB2(6.1~6.5:1)로 상향 (docs/11 §11.12) */
-  --text-secondary: #9A8FB2;
-  /* bg-secondary 대비 ≈4.6:1 AA */
+  --text-primary: #E7DEF6;
+  --text-secondary: #A99CC2;
+  /* 네온 민트 — bg 대비 ≈6.8:1 */
   --text-accent: #3DFFC8;
-  /* 네온 민트 — bg-secondary 대비 ≈7.2:1 */
   --text-accent-hover: #5FFFCE;
-  /* accent 배경 위 텍스트 — 민트(#3DFFC8) 위 대비 17.3:1 (WCAG AAA) */
-  --text-on-accent: #0D0A1A;
+  /* accent 배경 위 텍스트 — 민트 위 대비 AAA */
+  --text-on-accent: #0F0C1E;
 
-  --border-color: rgba(61, 255, 200, 0.12);
-  --glass-bg: rgba(18, 16, 42, 0.75);
-  --glass-border: rgba(61, 255, 200, 0.10);
+  --border-color: rgba(61, 255, 200, 0.16);
+  --glass-bg: rgba(25, 20, 54, 0.78);
+  --glass-border: rgba(61, 255, 200, 0.12);
 
   --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.5);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
@@ -216,7 +214,7 @@ a:hover {
   right: -10%;
   width: 40%;
   height: 40%;
-  background: radial-gradient(circle, rgba(200, 150, 74, 0.08) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(240, 184, 90, 0.08) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
   transition: background 0.7s ease;
@@ -234,7 +232,7 @@ a:hover {
   left: -8%;
   width: 30%;
   height: 30%;
-  background: radial-gradient(circle, rgba(200, 150, 74, 0.05) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(240, 184, 90, 0.05) 0%, transparent 70%);
   pointer-events: none;
   z-index: 0;
   transition: background 0.7s ease;
@@ -248,8 +246,8 @@ a:hover {
 .install-banner {
   width: 100%;
   box-sizing: border-box;
-  background: linear-gradient(135deg, rgba(200, 150, 74, 0.1), rgba(200, 150, 74, 0.05));
-  border-bottom: 1px solid rgba(200, 150, 74, 0.16);
+  background: linear-gradient(135deg, rgba(240, 184, 90, 0.1), rgba(240, 184, 90, 0.05));
+  border-bottom: 1px solid rgba(240, 184, 90, 0.16);
   padding: 0.4rem var(--spacing-md);
   display: flex;
   align-items: center;
@@ -567,8 +565,8 @@ a:hover {
 }
 
 .filter-chip {
-  background: rgba(200, 150, 74, 0.12);
-  border: 1px solid rgba(200, 150, 74, 0.3);
+  background: rgba(240, 184, 90, 0.12);
+  border: 1px solid rgba(240, 184, 90, 0.3);
   color: var(--text-accent);
   font-size: 0.7rem;
   font-weight: 600;
@@ -581,7 +579,7 @@ a:hover {
 }
 
 .filter-chip:hover {
-  background: rgba(200, 150, 74, 0.22);
+  background: rgba(240, 184, 90, 0.22);
   border-color: var(--text-accent);
 }
 
@@ -679,7 +677,7 @@ a:hover {
 .filter-select:focus {
   background-color: var(--bg-tertiary);
   border-color: var(--text-accent);
-  box-shadow: 0 0 0 2px rgba(200, 150, 74, 0.2);
+  box-shadow: 0 0 0 2px rgba(240, 184, 90, 0.2);
 }
 
 .filter-select option {
@@ -793,7 +791,7 @@ a:hover {
 .search-input:focus {
   background-color: var(--bg-tertiary);
   border-color: var(--text-accent);
-  box-shadow: 0 0 0 2px rgba(200, 150, 74, 0.2);
+  box-shadow: 0 0 0 2px rgba(240, 184, 90, 0.2);
 }
 
 /* Filter Toggle Items (즐겨찾기 / 안 가본 곳 / 지금 영업중) — 통합 클래스 */
@@ -819,7 +817,7 @@ a:hover {
 }
 
 .filter-toggle-item.active {
-  background: rgba(200, 150, 74, 0.15);
+  background: rgba(240, 184, 90, 0.15);
   border-color: var(--text-accent);
   color: var(--text-accent);
 }
@@ -871,7 +869,7 @@ a:hover {
   color: var(--text-accent);
 }
 .location-btn.active {
-  background: rgba(200, 150, 74, 0.15);
+  background: rgba(240, 184, 90, 0.15);
   border-color: var(--text-accent);
   color: var(--text-accent);
 }
@@ -1128,8 +1126,8 @@ a:hover {
   width: 1.8rem;
   height: 1.8rem;
   border-radius: 50%;
-  background: rgba(200, 150, 74, 0.09);
-  border: 1px solid rgba(200, 150, 74, 0.28);
+  background: rgba(240, 184, 90, 0.09);
+  border: 1px solid rgba(240, 184, 90, 0.28);
   font-size: 1rem;
   line-height: 1;
   flex-shrink: 0;
@@ -1145,8 +1143,8 @@ a:hover {
 }
 
 .card:hover .card-emoji {
-  background: rgba(200, 150, 74, 0.15);
-  border-color: rgba(200, 150, 74, 0.45);
+  background: rgba(240, 184, 90, 0.15);
+  border-color: rgba(240, 184, 90, 0.45);
 }
 
 .yajang-theme .card:hover .card-emoji {
@@ -1453,8 +1451,8 @@ a:hover {
   width: 2.75rem;
   height: 2.75rem;
   border-radius: 50%;
-  background: rgba(200, 150, 74, 0.10);
-  border: 1.5px solid rgba(200, 150, 74, 0.30);
+  background: rgba(240, 184, 90, 0.10);
+  border: 1.5px solid rgba(240, 184, 90, 0.30);
   flex-shrink: 0;
 }
 
@@ -1656,7 +1654,7 @@ a:hover {
   color: var(--text-on-accent);
   font-size: 1.4rem;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(200, 150, 74, 0.45);
+  box-shadow: 0 4px 16px rgba(240, 184, 90, 0.45);
   z-index: 40;
   transition: transform 0.15s, box-shadow 0.15s;
   display: flex;
@@ -1667,7 +1665,7 @@ a:hover {
 
 .random-fab:hover {
   transform: scale(1.1);
-  box-shadow: 0 6px 22px rgba(200, 150, 74, 0.55);
+  box-shadow: 0 6px 22px rgba(240, 184, 90, 0.55);
 }
 
 .random-fab:active {
@@ -1970,7 +1968,7 @@ body.map-mode #root {
   left: 0;
   width: 100%;
   height: 5px;
-  background: linear-gradient(to right, var(--text-accent), rgba(200, 150, 74, 0.2), transparent);
+  background: linear-gradient(to right, var(--text-accent), rgba(240, 184, 90, 0.2), transparent);
   opacity: 0.8;
   transition: opacity var(--ui-hover-duration) var(--ui-hover-easing);
   pointer-events: none;
@@ -2019,8 +2017,8 @@ body.map-mode #root {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-accent);
-  background: rgba(200, 150, 74, 0.12);
-  border: 1px solid rgba(200, 150, 74, 0.3);
+  background: rgba(240, 184, 90, 0.12);
+  border: 1px solid rgba(240, 184, 90, 0.3);
   padding: 0.2rem 0.6rem;
   border-radius: 9999px;
 }
@@ -2047,8 +2045,8 @@ body.map-mode #root {
   width: 3.25rem;
   height: 3.25rem;
   border-radius: 50%;
-  background: rgba(200, 150, 74, 0.10);
-  border: 1.5px solid rgba(200, 150, 74, 0.35);
+  background: rgba(240, 184, 90, 0.10);
+  border: 1.5px solid rgba(240, 184, 90, 0.35);
   transition: background var(--ui-hover-duration) var(--ui-hover-easing),
               border-color var(--ui-hover-duration) var(--ui-hover-easing);
 }
@@ -2059,8 +2057,8 @@ body.map-mode #root {
 }
 
 .featured-card:hover .featured-emoji {
-  background: rgba(200, 150, 74, 0.16);
-  border-color: rgba(200, 150, 74, 0.55);
+  background: rgba(240, 184, 90, 0.16);
+  border-color: rgba(240, 184, 90, 0.55);
 }
 
 .yajang-theme .featured-card:hover .featured-emoji {
@@ -2296,9 +2294,9 @@ body.map-mode #root {
 }
 
 .chat-example-chip:hover {
-  background: rgba(200, 150, 74, 0.12);
+  background: rgba(240, 184, 90, 0.12);
   color: var(--text-primary);
-  border-color: rgba(200, 150, 74, 0.3);
+  border-color: rgba(240, 184, 90, 0.3);
 }
 
 .yajang-theme .chat-example-chip:hover {
@@ -2334,8 +2332,8 @@ body.map-mode #root {
 
 /* 개별 식당 칩 — accent 계열 */
 .chat-result-chip {
-  background: rgba(200, 150, 74, 0.12);
-  border: 1px solid rgba(200, 150, 74, 0.3);
+  background: rgba(240, 184, 90, 0.12);
+  border: 1px solid rgba(240, 184, 90, 0.3);
   color: var(--text-accent);
   border-radius: 1.5rem;
   padding: 0.3rem 0.75rem;
@@ -2347,8 +2345,8 @@ body.map-mode #root {
 }
 
 .chat-result-chip:hover:not(:disabled) {
-  background: rgba(200, 150, 74, 0.22);
-  border-color: rgba(200, 150, 74, 0.5);
+  background: rgba(240, 184, 90, 0.22);
+  border-color: rgba(240, 184, 90, 0.5);
   color: var(--text-accent-hover);
 }
 
@@ -2447,7 +2445,7 @@ body.map-mode #root {
 }
 
 .chat-input:focus {
-  border-color: rgba(200, 150, 74, 0.4);
+  border-color: rgba(240, 184, 90, 0.4);
 }
 
 .yajang-theme .chat-input:focus {
