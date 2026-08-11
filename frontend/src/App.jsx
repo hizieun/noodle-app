@@ -146,9 +146,11 @@ function App() {
     return () => document.body.classList.remove('map-mode');
   }, [viewMode]);
 
-  // 카테고리에 맞춰 탭 제목 동기화
+  // 카테고리에 맞춰 탭 제목 + body 테마 동기화
+  // (테마 토큰이 app-container에만 걸리면 body 배경이 안 따라와 오버스크롤 가장자리에 노포색이 비침)
   useEffect(() => {
     document.title = `${activeCategory === '야장' ? '야장지도' : '노포지도'} - 서울의 숨은 맛`;
+    document.body.classList.toggle('yajang-theme', activeCategory === '야장');
   }, [activeCategory]);
 
   // 필터 변경 시 더 보기 초기화
