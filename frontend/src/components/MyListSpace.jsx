@@ -8,7 +8,7 @@ const SEGMENTS = [
   { key: 'rated', label: '내 평가', Icon: MessageIcon, empty: '별점·메모를 남긴 곳이 아직 없어요.' },
 ];
 
-export default function MyListSpace({ favList, visitedList, ratedList, renderCard, onShare, shareCopied, onBrowse }) {
+export default function MyListSpace({ favList, visitedList, ratedList, renderCard, onShare, shareCopied, onBrowse, onKakaoShare }) {
   const [seg, setSeg] = useState('fav');
   const lists = { fav: favList, visited: visitedList, rated: ratedList };
   const current = SEGMENTS.find(s => s.key === seg);
@@ -19,9 +19,16 @@ export default function MyListSpace({ favList, visitedList, ratedList, renderCar
       <div className="mylist-head">
         <h2 className="mylist-title">내 리스트</h2>
         {favList.length > 0 && (
-          <button className={`mylist-share ${shareCopied ? 'copied' : ''}`} onClick={onShare}>
-            {shareCopied ? <><CheckIcon size={15} /> 링크 복사됨</> : <><LinkIcon size={15} /> 공유</>}
-          </button>
+          <div className="mylist-share-group">
+            {onKakaoShare && (
+              <button className="mylist-kakao" onClick={onKakaoShare} aria-label="카카오톡으로 공유">
+                <span aria-hidden="true">💬</span> 카톡
+              </button>
+            )}
+            <button className={`mylist-share ${shareCopied ? 'copied' : ''}`} onClick={onShare}>
+              {shareCopied ? <><CheckIcon size={15} /> 복사됨</> : <><LinkIcon size={15} /> 링크</>}
+            </button>
+          </div>
         )}
       </div>
 

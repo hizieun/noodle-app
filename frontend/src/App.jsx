@@ -16,6 +16,7 @@ import RestaurantRail from './components/RestaurantRail.jsx';
 import BottomNav from './components/BottomNav.jsx';
 import MyListSpace from './components/MyListSpace.jsx';
 import Onboarding from './components/Onboarding.jsx';
+import { shareListToKakao, kakaoEnabled } from './lib/kakaoShare.js';
 import { buildCollections } from './utils/collections.js';
 
 const MapView = lazy(() => import('./MapView.jsx'));
@@ -228,6 +229,24 @@ function App() {
       setTimeout(() => setShareCopied(false), 2500);
     } else {
       prompt('아래 링크를 복사하세요:', url);
+    }
+  };
+
+  const handleKakaoShare = async () => {
+    const names = restaurants.filter(r => favorites.has(favKey(r))).map(r => r.상호명);
+    if (names.length === 0) return;
+    const url = buildShareUrl(names);
+    if (!url) return;
+    const preview = names.slice(0, 3).join(', ') + (names.length > 3 ? ` 외 ${names.length - 3}곳` : '');
+    try {
+      await shareListToKakao({
+        title: `노포지도 · 내 맛집 ${names.length}곳`,
+        description: preview,
+        url,
+        imageUrl: 'https://frontend-kappa-six-36.vercel.app/og.png',
+      });
+    } catch {
+      alert('카카오 공유를 사용할 수 없습니다. 링크 복사로 공유해주세요.');
     }
   };
 
@@ -844,6 +863,7 @@ function App() {
             onShare={handleShareFavorites}
             shareCopied={shareCopied}
             onBrowse={() => handleTabChange('home')}
+            onKakaoShare={kakaoEnabled() ? handleKakaoShare : null}
           />
         ) : filteredData.length === 0 ? (
           <div className="empty-state">

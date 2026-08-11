@@ -3797,3 +3797,23 @@ body { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)); }
   .map-sheet-reset { top: 0.75rem; }
   .map-research { left: auto; right: 1.5rem; transform: none; top: 1rem; }
 }
+
+/* 내 리스트 공유 그룹 + 카카오 버튼 (docs/10 §10.9) */
+.mylist-share-group { display: flex; align-items: center; gap: 0.5rem; }
+.mylist-kakao {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 44px;
+  padding: 0.5rem 0.85rem;
+  border: none;
+  border-radius: 9999px;
+  background: #FEE500; /* 카카오 브랜드 옐로우 */
+  color: #191600;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: filter 0.15s ease, transform 0.12s ease;
+}
+.mylist-kakao:hover { filter: brightness(0.96); }
+.mylist-kakao:active { transform: scale(0.96); }
