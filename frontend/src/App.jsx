@@ -243,7 +243,7 @@ function App() {
         title: `노포지도 · 내 맛집 ${names.length}곳`,
         description: preview,
         url,
-        imageUrl: 'https://frontend-kappa-six-36.vercel.app/og.png',
+        imageUrl: 'https://frontend-kappa-six-36.vercel.app/og-v2.png',
       });
     } catch {
       alert('카카오 공유를 사용할 수 없습니다. 링크 복사로 공유해주세요.');
