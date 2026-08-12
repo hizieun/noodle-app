@@ -74,3 +74,4 @@
 ### 10.9 카카오 공유 — 셋업 (2026-08-12)
 - 구현: `lib/kakaoShare.js`(Kakao JS SDK 동적 로드, sendDefault feed), 내 리스트 헤더 "카톡" 버튼(옐로우)+"링크" 버튼. `VITE_KAKAO_JS_KEY` 없으면 버튼 숨김.
 - 수동 셋업: 카카오 콘솔 앱 설정→플랫폼→Web 사이트 도메인 등록(vercel URL) + Vercel 환경변수 `VITE_KAKAO_JS_KEY`(JavaScript 키). **VITE_ 변수는 빌드타임 인라인이라 env 추가 후 재배포 필요.**
+- ✅ **검증 완료(2026-08-12)**: 실기기에서 카톡 공유 → "공유 성공", 수신 채팅에 미리보기 카드(제목 "내 맛집 N곳"·식당명·OG 이미지·"리스트 보기") 정상. 프로덕션 SDK 로드·init·에러 0 확인.
