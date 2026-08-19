@@ -1,7 +1,7 @@
 # 노포지도 — 프로젝트 현황
 
 > **단일 출처**: 이 파일은 한눈에 보는 스냅샷. 상세 작업 이력·백로그는 [`docs/06_pm-worklog.md`](docs/06_pm-worklog.md).
-> 마지막 업데이트: 2026-07-24
+> 마지막 업데이트: 2026-08-19
 
 ---
 
@@ -15,6 +15,7 @@
 | 가중 평점 정렬 | **활성** — 리뷰수 733곳 보유, 베이지안 WR 적용 중 (5.0 쏠림 해소) |
 | 좌표 커버리지 | **100%** (좌표없음 0) — Nominatim + Kakao 폴백 |
 | AI 챗봇 | **Gemini 3.6 Flash**, `systemInstruction` grounding, 지역 유연매칭·후보40·의도어 매핑 |
+| AI eval 하네스 | **Day 1** — 골든셋 149(층화124+엣지25), 추출기+fixture 6/6, negative control 4/4, rule judge(grounding/지역). `eval/`, [docs/12](docs/12_eval-harness.md) |
 | 자동 크롤링 | GitHub Actions 매주 월요일 03:00 KST |
 | PWA | Service Worker 오프라인 캐시, 홈화면 추가 |
 

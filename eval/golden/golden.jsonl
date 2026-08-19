@@ -1,0 +1,124 @@
+{"id":"g0001","question":"강남구에서 회식하기 좋은 곳 추천해줘","axes":{"region":"강남구","intent":"회식","category":null},"expect":{"region":"강남구","category":null,"openNow":null}}
+{"id":"g0002","question":"강남구에서 혼밥하기 좋은 노포 알려줘","axes":{"region":"강남구","intent":"혼밥","category":"노포"},"expect":{"region":"강남구","category":"노포","openNow":null}}
+{"id":"g0003","question":"강남구 해장하기 좋은 국밥집 추천해줘","axes":{"region":"강남구","intent":"해장","category":null},"expect":{"region":"강남구","category":null,"openNow":null}}
+{"id":"g0004","question":"강남구에서 분위기 좋은 데이트 맛집 알려줘","axes":{"region":"강남구","intent":"데이트","category":null},"expect":{"region":"강남구","category":null,"openNow":null}}
+{"id":"g0005","question":"강남구에서 부모님 모시고 갈 만한 곳 추천해줘","axes":{"region":"강남구","intent":"부모님","category":null},"expect":{"region":"강남구","category":null,"openNow":null}}
+{"id":"g0006","question":"지금 영업중인 강동구 혼밥 맛집 알려줘","axes":{"region":"강동구","intent":"혼밥","category":"노포"},"expect":{"region":"강동구","category":"노포","openNow":true}}
+{"id":"g0007","question":"강동구 해장하기 좋은 국밥집 추천해줘","axes":{"region":"강동구","intent":"해장","category":null},"expect":{"region":"강동구","category":null,"openNow":null}}
+{"id":"g0008","question":"강동구에서 분위기 좋은 데이트 맛집 알려줘","axes":{"region":"강동구","intent":"데이트","category":null},"expect":{"region":"강동구","category":null,"openNow":null}}
+{"id":"g0009","question":"강동구에서 부모님 모시고 갈 만한 곳 추천해줘","axes":{"region":"강동구","intent":"부모님","category":null},"expect":{"region":"강동구","category":null,"openNow":null}}
+{"id":"g0010","question":"강동구에서 늦은밤에 갈 만한 야장 추천해줘","axes":{"region":"강동구","intent":"늦은밤","category":"야장"},"expect":{"region":"강동구","category":"야장","openNow":null}}
+{"id":"g0011","question":"강북구 해장하기 좋은 국밥집 추천해줘","axes":{"region":"강북구","intent":"해장","category":null},"expect":{"region":"강북구","category":null,"openNow":null}}
+{"id":"g0012","question":"강북구에서 분위기 좋은 데이트 맛집 알려줘","axes":{"region":"강북구","intent":"데이트","category":null},"expect":{"region":"강북구","category":null,"openNow":null}}
+{"id":"g0013","question":"강북구에서 부모님 모시고 갈 만한 곳 추천해줘","axes":{"region":"강북구","intent":"부모님","category":null},"expect":{"region":"강북구","category":null,"openNow":null}}
+{"id":"g0014","question":"강북구에서 늦은밤에 갈 만한 야장 추천해줘","axes":{"region":"강북구","intent":"늦은밤","category":"야장"},"expect":{"region":"강북구","category":"야장","openNow":null}}
+{"id":"g0015","question":"강북구에서 회식하기 좋은 곳 추천해줘","axes":{"region":"강북구","intent":"회식","category":null},"expect":{"region":"강북구","category":null,"openNow":null}}
+{"id":"g0016","question":"강서구에서 분위기 좋은 데이트 맛집 알려줘","axes":{"region":"강서구","intent":"데이트","category":null},"expect":{"region":"강서구","category":null,"openNow":null}}
+{"id":"g0017","question":"지금 영업중인 강서구 부모님 맛집 알려줘","axes":{"region":"강서구","intent":"부모님","category":null},"expect":{"region":"강서구","category":null,"openNow":true}}
+{"id":"g0018","question":"강서구에서 늦은밤에 갈 만한 야장 추천해줘","axes":{"region":"강서구","intent":"늦은밤","category":"야장"},"expect":{"region":"강서구","category":"야장","openNow":null}}
+{"id":"g0019","question":"강서구에서 회식하기 좋은 곳 추천해줘","axes":{"region":"강서구","intent":"회식","category":null},"expect":{"region":"강서구","category":null,"openNow":null}}
+{"id":"g0020","question":"강서구에서 혼밥하기 좋은 노포 알려줘","axes":{"region":"강서구","intent":"혼밥","category":"노포"},"expect":{"region":"강서구","category":"노포","openNow":null}}
+{"id":"g0021","question":"관악구에서 부모님 모시고 갈 만한 곳 추천해줘","axes":{"region":"관악구","intent":"부모님","category":null},"expect":{"region":"관악구","category":null,"openNow":null}}
+{"id":"g0022","question":"관악구에서 늦은밤에 갈 만한 야장 추천해줘","axes":{"region":"관악구","intent":"늦은밤","category":"야장"},"expect":{"region":"관악구","category":"야장","openNow":null}}
+{"id":"g0023","question":"관악구에서 회식하기 좋은 곳 추천해줘","axes":{"region":"관악구","intent":"회식","category":null},"expect":{"region":"관악구","category":null,"openNow":null}}
+{"id":"g0024","question":"관악구에서 혼밥하기 좋은 노포 알려줘","axes":{"region":"관악구","intent":"혼밥","category":"노포"},"expect":{"region":"관악구","category":"노포","openNow":null}}
+{"id":"g0025","question":"관악구 해장하기 좋은 국밥집 추천해줘","axes":{"region":"관악구","intent":"해장","category":null},"expect":{"region":"관악구","category":null,"openNow":null}}
+{"id":"g0026","question":"광진구에서 늦은밤에 갈 만한 야장 추천해줘","axes":{"region":"광진구","intent":"늦은밤","category":"야장"},"expect":{"region":"광진구","category":"야장","openNow":null}}
+{"id":"g0027","question":"광진구에서 회식하기 좋은 곳 추천해줘","axes":{"region":"광진구","intent":"회식","category":null},"expect":{"region":"광진구","category":null,"openNow":null}}
+{"id":"g0028","question":"지금 영업중인 광진구 혼밥 맛집 알려줘","axes":{"region":"광진구","intent":"혼밥","category":"노포"},"expect":{"region":"광진구","category":"노포","openNow":true}}
+{"id":"g0029","question":"광진구 해장하기 좋은 국밥집 추천해줘","axes":{"region":"광진구","intent":"해장","category":null},"expect":{"region":"광진구","category":null,"openNow":null}}
+{"id":"g0030","question":"광진구에서 분위기 좋은 데이트 맛집 알려줘","axes":{"region":"광진구","intent":"데이트","category":null},"expect":{"region":"광진구","category":null,"openNow":null}}
+{"id":"g0031","question":"구로구에서 회식하기 좋은 곳 추천해줘","axes":{"region":"구로구","intent":"회식","category":null},"expect":{"region":"구로구","category":null,"openNow":null}}
+{"id":"g0032","question":"구로구에서 혼밥하기 좋은 노포 알려줘","axes":{"region":"구로구","intent":"혼밥","category":"노포"},"expect":{"region":"구로구","category":"노포","openNow":null}}
+{"id":"g0033","question":"구로구 해장하기 좋은 국밥집 추천해줘","axes":{"region":"구로구","intent":"해장","category":null},"expect":{"region":"구로구","category":null,"openNow":null}}
+{"id":"g0034","question":"구로구에서 분위기 좋은 데이트 맛집 알려줘","axes":{"region":"구로구","intent":"데이트","category":null},"expect":{"region":"구로구","category":null,"openNow":null}}
+{"id":"g0035","question":"구로구에서 부모님 모시고 갈 만한 곳 추천해줘","axes":{"region":"구로구","intent":"부모님","category":null},"expect":{"region":"구로구","category":null,"openNow":null}}
+{"id":"g0036","question":"금천구에서 혼밥하기 좋은 노포 알려줘","axes":{"region":"금천구","intent":"혼밥","category":"노포"},"expect":{"region":"금천구","category":"노포","openNow":null}}
+{"id":"g0037","question":"금천구 해장하기 좋은 국밥집 추천해줘","axes":{"region":"금천구","intent":"해장","category":null},"expect":{"region":"금천구","category":null,"openNow":null}}
+{"id":"g0038","question":"금천구에서 분위기 좋은 데이트 맛집 알려줘","axes":{"region":"금천구","intent":"데이트","category":null},"expect":{"region":"금천구","category":null,"openNow":null}}
+{"id":"g0039","question":"지금 영업중인 금천구 부모님 맛집 알려줘","axes":{"region":"금천구","intent":"부모님","category":null},"expect":{"region":"금천구","category":null,"openNow":true}}
+{"id":"g0040","question":"금천구에서 늦은밤에 갈 만한 야장 추천해줘","axes":{"region":"금천구","intent":"늦은밤","category":"야장"},"expect":{"region":"금천구","category":"야장","openNow":null}}
+{"id":"g0041","question":"노원구 해장하기 좋은 국밥집 추천해줘","axes":{"region":"노원구","intent":"해장","category":null},"expect":{"region":"노원구","category":null,"openNow":null}}
+{"id":"g0042","question":"노원구에서 분위기 좋은 데이트 맛집 알려줘","axes":{"region":"노원구","intent":"데이트","category":null},"expect":{"region":"노원구","category":null,"openNow":null}}
+{"id":"g0043","question":"노원구에서 부모님 모시고 갈 만한 곳 추천해줘","axes":{"region":"노원구","intent":"부모님","category":null},"expect":{"region":"노원구","category":null,"openNow":null}}
+{"id":"g0044","question":"노원구에서 늦은밤에 갈 만한 야장 추천해줘","axes":{"region":"노원구","intent":"늦은밤","category":"야장"},"expect":{"region":"노원구","category":"야장","openNow":null}}
+{"id":"g0045","question":"노원구에서 회식하기 좋은 곳 추천해줘","axes":{"region":"노원구","intent":"회식","category":null},"expect":{"region":"노원구","category":null,"openNow":null}}
+{"id":"g0046","question":"도봉구에서 분위기 좋은 데이트 맛집 알려줘","axes":{"region":"도봉구","intent":"데이트","category":null},"expect":{"region":"도봉구","category":null,"openNow":null}}
+{"id":"g0047","question":"도봉구에서 부모님 모시고 갈 만한 곳 추천해줘","axes":{"region":"도봉구","intent":"부모님","category":null},"expect":{"region":"도봉구","category":null,"openNow":null}}
+{"id":"g0048","question":"도봉구에서 늦은밤에 갈 만한 야장 추천해줘","axes":{"region":"도봉구","intent":"늦은밤","category":"야장"},"expect":{"region":"도봉구","category":"야장","openNow":null}}
+{"id":"g0049","question":"도봉구에서 회식하기 좋은 곳 추천해줘","axes":{"region":"도봉구","intent":"회식","category":null},"expect":{"region":"도봉구","category":null,"openNow":null}}
+{"id":"g0050","question":"지금 영업중인 도봉구 혼밥 맛집 알려줘","axes":{"region":"도봉구","intent":"혼밥","category":"노포"},"expect":{"region":"도봉구","category":"노포","openNow":true}}
+{"id":"g0051","question":"동대문구에서 부모님 모시고 갈 만한 곳 추천해줘","axes":{"region":"동대문구","intent":"부모님","category":null},"expect":{"region":"동대문구","category":null,"openNow":null}}
+{"id":"g0052","question":"동대문구에서 늦은밤에 갈 만한 야장 추천해줘","axes":{"region":"동대문구","intent":"늦은밤","category":"야장"},"expect":{"region":"동대문구","category":"야장","openNow":null}}
+{"id":"g0053","question":"동대문구에서 회식하기 좋은 곳 추천해줘","axes":{"region":"동대문구","intent":"회식","category":null},"expect":{"region":"동대문구","category":null,"openNow":null}}
+{"id":"g0054","question":"동대문구에서 혼밥하기 좋은 노포 알려줘","axes":{"region":"동대문구","intent":"혼밥","category":"노포"},"expect":{"region":"동대문구","category":"노포","openNow":null}}
+{"id":"g0055","question":"동대문구 해장하기 좋은 국밥집 추천해줘","axes":{"region":"동대문구","intent":"해장","category":null},"expect":{"region":"동대문구","category":null,"openNow":null}}
+{"id":"g0056","question":"동작구에서 늦은밤에 갈 만한 야장 추천해줘","axes":{"region":"동작구","intent":"늦은밤","category":"야장"},"expect":{"region":"동작구","category":"야장","openNow":null}}
+{"id":"g0057","question":"동작구에서 회식하기 좋은 곳 추천해줘","axes":{"region":"동작구","intent":"회식","category":null},"expect":{"region":"동작구","category":null,"openNow":null}}
+{"id":"g0058","question":"동작구에서 혼밥하기 좋은 노포 알려줘","axes":{"region":"동작구","intent":"혼밥","category":"노포"},"expect":{"region":"동작구","category":"노포","openNow":null}}
+{"id":"g0059","question":"동작구 해장하기 좋은 국밥집 추천해줘","axes":{"region":"동작구","intent":"해장","category":null},"expect":{"region":"동작구","category":null,"openNow":null}}
+{"id":"g0060","question":"동작구에서 분위기 좋은 데이트 맛집 알려줘","axes":{"region":"동작구","intent":"데이트","category":null},"expect":{"region":"동작구","category":null,"openNow":null}}
+{"id":"g0061","question":"지금 영업중인 마포구 회식 맛집 알려줘","axes":{"region":"마포구","intent":"회식","category":null},"expect":{"region":"마포구","category":null,"openNow":true}}
+{"id":"g0062","question":"마포구에서 혼밥하기 좋은 노포 알려줘","axes":{"region":"마포구","intent":"혼밥","category":"노포"},"expect":{"region":"마포구","category":"노포","openNow":null}}
+{"id":"g0063","question":"마포구 해장하기 좋은 국밥집 추천해줘","axes":{"region":"마포구","intent":"해장","category":null},"expect":{"region":"마포구","category":null,"openNow":null}}
+{"id":"g0064","question":"마포구에서 분위기 좋은 데이트 맛집 알려줘","axes":{"region":"마포구","intent":"데이트","category":null},"expect":{"region":"마포구","category":null,"openNow":null}}
+{"id":"g0065","question":"마포구에서 부모님 모시고 갈 만한 곳 추천해줘","axes":{"region":"마포구","intent":"부모님","category":null},"expect":{"region":"마포구","category":null,"openNow":null}}
+{"id":"g0066","question":"서대문구에서 혼밥하기 좋은 노포 알려줘","axes":{"region":"서대문구","intent":"혼밥","category":"노포"},"expect":{"region":"서대문구","category":"노포","openNow":null}}
+{"id":"g0067","question":"서대문구 해장하기 좋은 국밥집 추천해줘","axes":{"region":"서대문구","intent":"해장","category":null},"expect":{"region":"서대문구","category":null,"openNow":null}}
+{"id":"g0068","question":"서대문구에서 분위기 좋은 데이트 맛집 알려줘","axes":{"region":"서대문구","intent":"데이트","category":null},"expect":{"region":"서대문구","category":null,"openNow":null}}
+{"id":"g0069","question":"서대문구에서 부모님 모시고 갈 만한 곳 추천해줘","axes":{"region":"서대문구","intent":"부모님","category":null},"expect":{"region":"서대문구","category":null,"openNow":null}}
+{"id":"g0070","question":"서대문구에서 늦은밤에 갈 만한 야장 추천해줘","axes":{"region":"서대문구","intent":"늦은밤","category":"야장"},"expect":{"region":"서대문구","category":"야장","openNow":null}}
+{"id":"g0071","question":"서초구 해장하기 좋은 국밥집 추천해줘","axes":{"region":"서초구","intent":"해장","category":null},"expect":{"region":"서초구","category":null,"openNow":null}}
+{"id":"g0072","question":"지금 영업중인 서초구 데이트 맛집 알려줘","axes":{"region":"서초구","intent":"데이트","category":null},"expect":{"region":"서초구","category":null,"openNow":true}}
+{"id":"g0073","question":"서초구에서 부모님 모시고 갈 만한 곳 추천해줘","axes":{"region":"서초구","intent":"부모님","category":null},"expect":{"region":"서초구","category":null,"openNow":null}}
+{"id":"g0074","question":"서초구에서 늦은밤에 갈 만한 야장 추천해줘","axes":{"region":"서초구","intent":"늦은밤","category":"야장"},"expect":{"region":"서초구","category":"야장","openNow":null}}
+{"id":"g0075","question":"서초구에서 회식하기 좋은 곳 추천해줘","axes":{"region":"서초구","intent":"회식","category":null},"expect":{"region":"서초구","category":null,"openNow":null}}
+{"id":"g0076","question":"성동구에서 분위기 좋은 데이트 맛집 알려줘","axes":{"region":"성동구","intent":"데이트","category":null},"expect":{"region":"성동구","category":null,"openNow":null}}
+{"id":"g0077","question":"성동구에서 부모님 모시고 갈 만한 곳 추천해줘","axes":{"region":"성동구","intent":"부모님","category":null},"expect":{"region":"성동구","category":null,"openNow":null}}
+{"id":"g0078","question":"성동구에서 늦은밤에 갈 만한 야장 추천해줘","axes":{"region":"성동구","intent":"늦은밤","category":"야장"},"expect":{"region":"성동구","category":"야장","openNow":null}}
+{"id":"g0079","question":"성동구에서 회식하기 좋은 곳 추천해줘","axes":{"region":"성동구","intent":"회식","category":null},"expect":{"region":"성동구","category":null,"openNow":null}}
+{"id":"g0080","question":"성북구에서 부모님 모시고 갈 만한 곳 추천해줘","axes":{"region":"성북구","intent":"부모님","category":null},"expect":{"region":"성북구","category":null,"openNow":null}}
+{"id":"g0081","question":"성북구에서 늦은밤에 갈 만한 야장 추천해줘","axes":{"region":"성북구","intent":"늦은밤","category":"야장"},"expect":{"region":"성북구","category":"야장","openNow":null}}
+{"id":"g0082","question":"성북구에서 회식하기 좋은 곳 추천해줘","axes":{"region":"성북구","intent":"회식","category":null},"expect":{"region":"성북구","category":null,"openNow":null}}
+{"id":"g0083","question":"지금 영업중인 성북구 혼밥 맛집 알려줘","axes":{"region":"성북구","intent":"혼밥","category":"노포"},"expect":{"region":"성북구","category":"노포","openNow":true}}
+{"id":"g0084","question":"성북구 해장하기 좋은 국밥집 추천해줘","axes":{"region":"성북구","intent":"해장","category":null},"expect":{"region":"성북구","category":null,"openNow":null}}
+{"id":"g0085","question":"송파구에서 늦은밤에 갈 만한 야장 추천해줘","axes":{"region":"송파구","intent":"늦은밤","category":"야장"},"expect":{"region":"송파구","category":"야장","openNow":null}}
+{"id":"g0086","question":"송파구에서 회식하기 좋은 곳 추천해줘","axes":{"region":"송파구","intent":"회식","category":null},"expect":{"region":"송파구","category":null,"openNow":null}}
+{"id":"g0087","question":"송파구에서 혼밥하기 좋은 노포 알려줘","axes":{"region":"송파구","intent":"혼밥","category":"노포"},"expect":{"region":"송파구","category":"노포","openNow":null}}
+{"id":"g0088","question":"송파구 해장하기 좋은 국밥집 추천해줘","axes":{"region":"송파구","intent":"해장","category":null},"expect":{"region":"송파구","category":null,"openNow":null}}
+{"id":"g0089","question":"송파구에서 분위기 좋은 데이트 맛집 알려줘","axes":{"region":"송파구","intent":"데이트","category":null},"expect":{"region":"송파구","category":null,"openNow":null}}
+{"id":"g0090","question":"양천구에서 회식하기 좋은 곳 추천해줘","axes":{"region":"양천구","intent":"회식","category":null},"expect":{"region":"양천구","category":null,"openNow":null}}
+{"id":"g0091","question":"양천구에서 혼밥하기 좋은 노포 알려줘","axes":{"region":"양천구","intent":"혼밥","category":"노포"},"expect":{"region":"양천구","category":"노포","openNow":null}}
+{"id":"g0092","question":"양천구 해장하기 좋은 국밥집 추천해줘","axes":{"region":"양천구","intent":"해장","category":null},"expect":{"region":"양천구","category":null,"openNow":null}}
+{"id":"g0093","question":"양천구에서 분위기 좋은 데이트 맛집 알려줘","axes":{"region":"양천구","intent":"데이트","category":null},"expect":{"region":"양천구","category":null,"openNow":null}}
+{"id":"g0094","question":"지금 영업중인 양천구 부모님 맛집 알려줘","axes":{"region":"양천구","intent":"부모님","category":null},"expect":{"region":"양천구","category":null,"openNow":true}}
+{"id":"g0095","question":"영등포구에서 혼밥하기 좋은 노포 알려줘","axes":{"region":"영등포구","intent":"혼밥","category":"노포"},"expect":{"region":"영등포구","category":"노포","openNow":null}}
+{"id":"g0096","question":"영등포구 해장하기 좋은 국밥집 추천해줘","axes":{"region":"영등포구","intent":"해장","category":null},"expect":{"region":"영등포구","category":null,"openNow":null}}
+{"id":"g0097","question":"영등포구에서 분위기 좋은 데이트 맛집 알려줘","axes":{"region":"영등포구","intent":"데이트","category":null},"expect":{"region":"영등포구","category":null,"openNow":null}}
+{"id":"g0098","question":"영등포구에서 부모님 모시고 갈 만한 곳 추천해줘","axes":{"region":"영등포구","intent":"부모님","category":null},"expect":{"region":"영등포구","category":null,"openNow":null}}
+{"id":"g0099","question":"영등포구에서 늦은밤에 갈 만한 야장 추천해줘","axes":{"region":"영등포구","intent":"늦은밤","category":"야장"},"expect":{"region":"영등포구","category":"야장","openNow":null}}
+{"id":"g0100","question":"용산구 해장하기 좋은 국밥집 추천해줘","axes":{"region":"용산구","intent":"해장","category":null},"expect":{"region":"용산구","category":null,"openNow":null}}
+{"id":"g0101","question":"용산구에서 분위기 좋은 데이트 맛집 알려줘","axes":{"region":"용산구","intent":"데이트","category":null},"expect":{"region":"용산구","category":null,"openNow":null}}
+{"id":"g0102","question":"용산구에서 부모님 모시고 갈 만한 곳 추천해줘","axes":{"region":"용산구","intent":"부모님","category":null},"expect":{"region":"용산구","category":null,"openNow":null}}
+{"id":"g0103","question":"용산구에서 늦은밤에 갈 만한 야장 추천해줘","axes":{"region":"용산구","intent":"늦은밤","category":"야장"},"expect":{"region":"용산구","category":"야장","openNow":null}}
+{"id":"g0104","question":"용산구에서 회식하기 좋은 곳 추천해줘","axes":{"region":"용산구","intent":"회식","category":null},"expect":{"region":"용산구","category":null,"openNow":null}}
+{"id":"g0105","question":"지금 영업중인 은평구 데이트 맛집 알려줘","axes":{"region":"은평구","intent":"데이트","category":null},"expect":{"region":"은평구","category":null,"openNow":true}}
+{"id":"g0106","question":"은평구에서 부모님 모시고 갈 만한 곳 추천해줘","axes":{"region":"은평구","intent":"부모님","category":null},"expect":{"region":"은평구","category":null,"openNow":null}}
+{"id":"g0107","question":"은평구에서 늦은밤에 갈 만한 야장 추천해줘","axes":{"region":"은평구","intent":"늦은밤","category":"야장"},"expect":{"region":"은평구","category":"야장","openNow":null}}
+{"id":"g0108","question":"은평구에서 회식하기 좋은 곳 추천해줘","axes":{"region":"은평구","intent":"회식","category":null},"expect":{"region":"은평구","category":null,"openNow":null}}
+{"id":"g0109","question":"은평구에서 혼밥하기 좋은 노포 알려줘","axes":{"region":"은평구","intent":"혼밥","category":"노포"},"expect":{"region":"은평구","category":"노포","openNow":null}}
+{"id":"g0110","question":"종로구에서 부모님 모시고 갈 만한 곳 추천해줘","axes":{"region":"종로구","intent":"부모님","category":null},"expect":{"region":"종로구","category":null,"openNow":null}}
+{"id":"g0111","question":"종로구에서 늦은밤에 갈 만한 야장 추천해줘","axes":{"region":"종로구","intent":"늦은밤","category":"야장"},"expect":{"region":"종로구","category":"야장","openNow":null}}
+{"id":"g0112","question":"종로구에서 회식하기 좋은 곳 추천해줘","axes":{"region":"종로구","intent":"회식","category":null},"expect":{"region":"종로구","category":null,"openNow":null}}
+{"id":"g0113","question":"종로구에서 혼밥하기 좋은 노포 알려줘","axes":{"region":"종로구","intent":"혼밥","category":"노포"},"expect":{"region":"종로구","category":"노포","openNow":null}}
+{"id":"g0114","question":"종로구 해장하기 좋은 국밥집 추천해줘","axes":{"region":"종로구","intent":"해장","category":null},"expect":{"region":"종로구","category":null,"openNow":null}}
+{"id":"g0115","question":"중구에서 늦은밤에 갈 만한 야장 추천해줘","axes":{"region":"중구","intent":"늦은밤","category":"야장"},"expect":{"region":"중구","category":"야장","openNow":null}}
+{"id":"g0116","question":"지금 영업중인 중구 회식 맛집 알려줘","axes":{"region":"중구","intent":"회식","category":null},"expect":{"region":"중구","category":null,"openNow":true}}
+{"id":"g0117","question":"중구에서 혼밥하기 좋은 노포 알려줘","axes":{"region":"중구","intent":"혼밥","category":"노포"},"expect":{"region":"중구","category":"노포","openNow":null}}
+{"id":"g0118","question":"중구 해장하기 좋은 국밥집 추천해줘","axes":{"region":"중구","intent":"해장","category":null},"expect":{"region":"중구","category":null,"openNow":null}}
+{"id":"g0119","question":"중구에서 분위기 좋은 데이트 맛집 알려줘","axes":{"region":"중구","intent":"데이트","category":null},"expect":{"region":"중구","category":null,"openNow":null}}
+{"id":"g0120","question":"중랑구에서 회식하기 좋은 곳 추천해줘","axes":{"region":"중랑구","intent":"회식","category":null},"expect":{"region":"중랑구","category":null,"openNow":null}}
+{"id":"g0121","question":"중랑구에서 혼밥하기 좋은 노포 알려줘","axes":{"region":"중랑구","intent":"혼밥","category":"노포"},"expect":{"region":"중랑구","category":"노포","openNow":null}}
+{"id":"g0122","question":"중랑구 해장하기 좋은 국밥집 추천해줘","axes":{"region":"중랑구","intent":"해장","category":null},"expect":{"region":"중랑구","category":null,"openNow":null}}
+{"id":"g0123","question":"중랑구에서 분위기 좋은 데이트 맛집 알려줘","axes":{"region":"중랑구","intent":"데이트","category":null},"expect":{"region":"중랑구","category":null,"openNow":null}}
+{"id":"g0124","question":"중랑구에서 부모님 모시고 갈 만한 곳 추천해줘","axes":{"region":"중랑구","intent":"부모님","category":null},"expect":{"region":"중랑구","category":null,"openNow":null}}
