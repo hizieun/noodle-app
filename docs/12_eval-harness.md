@@ -72,7 +72,29 @@ eval/
 ### ⚠️ 발견된 운영 이슈 (Day 2 우선)
 - prod 반복 호출 시 **Gemini 무료 티어 RPM 한도** → chat.js가 502("모델 응답 오류") 반환, eval 에러율↑. **대책**: 요청 간 페이싱 + 전용 키(높은 쿼터)로 `--target local` 실행, 실패 문항 재시도. (전량 149문항 안정 실행의 전제)
 
+### ✅ Day 2–3 완료 (2026-08-20)
+- **category / 영업중 규칙**(`judges/rule.mjs`): 카테고리 일치율 + 영업중 정확도. `isOpenAtServer`를 chat.js에서 export해 재사용(로직 드리프트 0).
+- **metrics/report 분리**: `metrics.mjs`(집계+회귀비교 단일 정의), `report.mjs`(baseline 대비 마크다운 + 게이트 exit code). PR 코멘트 포맷 실동작 확인.
+- **페이싱**(`run-core.mjs`): `--rpm`로 요청 시작 간격 제한 → 무료 티어 RPM 회피. `loadSet`을 `lib/load-set.mjs`로 분리(사이드이펙트 import 버그 수정).
+- **variance k=3**(`variance.mjs`): 같은 세트 k회 → 지표 stddev → suggested_threshold(2σ). **코드 완성**.
+- **baseline.json**: 실측 성공분으로 복원(provisional, grounding 0 / region 1.0).
+- 실측(쿼터 소진 전): grounding 0 · region 1.0 · category 1.0(n=2) · openNow 1.0(n=1).
+
+### ⚠️ 운영 현실 — Gemini 무료 티어 쿼터
+반복 실행으로 **일일 쿼터(RPD) 소진 → 429**. 하네스 결함 아님(페이싱은 RPM은 잡지만 RPD 한도엔 무력). **전량(149)·variance 정식 실행 전제**: (a) 결제 연결 프로젝트 키, 또는 (b) 일일 리셋 후 실행. 명령:
+```
+GEMINI_API_KEY=<키> node eval/run.mjs --set all --target local --rpm 10 --baseline
+GEMINI_API_KEY=<키> node eval/variance.mjs --k 3 --limit 20 --rpm 10   # → variance.json(임계값)
+```
+
+### 오프라인 검증(쿼터 불필요, CI에서 항상 통과해야)
+```
+node eval/fixtures/extract.test.mjs     # 추출기 6/6
+node eval/negative-control.test.mjs     # 탐지기 4/4
+node eval/golden/generate.mjs           # 골든셋 결정적 재생성
+```
+
 ### ⬜ 남은 일
-- Day 2–3: category/영업중 규칙 + metrics/report 분리 + **variance k=3**(회귀 임계값 근거) + `baseline.json` + 페이싱.
 - Day 4: LLM-Judge(루브릭·샘플·캐시) + 추출기 교차검증(agreement).
-- Day 5: `eval.yml`(PR=고정시드 스모크30 / 수동·야간=전량) + PR 코멘트 리포트 + 프롬프트 A/B 적재.
+- Day 5: `eval.yml`(PR=고정시드 스모크30 오프라인테스트+샘플생성 / 수동·야간=전량) + PR 코멘트 리포트 + 프롬프트 A/B 적재.
+- variance 정식 실행(쿼터 확보 시) → baseline 정식화.

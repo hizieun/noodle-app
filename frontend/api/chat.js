@@ -26,7 +26,7 @@ function parseHm(s) {
   return h * 60 + m;
 }
 
-function isOpenAtServer(hours, now) {
+export function isOpenAtServer(hours, now) {
   if (!hours || typeof hours !== 'object') return null;
   const minutes = now.getHours() * 60 + now.getMinutes();
   const todayKey = DAY_KEYS[now.getDay()];
