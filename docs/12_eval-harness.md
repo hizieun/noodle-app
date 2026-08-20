@@ -94,7 +94,23 @@ node eval/negative-control.test.mjs     # 탐지기 4/4
 node eval/golden/generate.mjs           # 골든셋 결정적 재생성
 ```
 
-### ⬜ 남은 일
-- Day 4: LLM-Judge(루브릭·샘플·캐시) + 추출기 교차검증(agreement).
-- Day 5: `eval.yml`(PR=고정시드 스모크30 오프라인테스트+샘플생성 / 수동·야간=전량) + PR 코멘트 리포트 + 프롬프트 A/B 적재.
-- variance 정식 실행(쿼터 확보 시) → baseline 정식화.
+### ✅ Day 4–5 완료 (2026-08-20, 코드 — 실행은 쿼터 확보 시)
+- **LLM-Judge**(`judges/llm.mjs`): 루브릭(intent_fit·usefulness·honest_on_missing) JSON 채점, **해시 캐시**(eval/cache, 재호출 금지), `run.mjs --llm N`으로 샘플. + **추출기 교차검증**(LLM recommended vs rule recommended, Jaccard agreement → 휴리스틱 신뢰도).
+- **`eval.yml`**(기존 test.yml·weekly-crawl.yml 불변):
+  - `offline` 잡: 추출기 fixture + negative control + 골든 재생성 — **쿼터 불필요, 매 PR 항상**.
+  - `eval` 잡: `GEMINI_API_KEY` secret 있을 때만 생성 eval → report **게이트(회귀 시 실패)** + **PR 코멘트 업서트**. 키 없으면 스킵(실패 아님).
+  - `workflow_dispatch`로 수동 전량/세트 지정.
+- **프롬프트 A/B**: `EVAL_PROMPT_VERSION=v2 node eval/run.mjs ...` → 결과가 `results/v2-*.json`로 분리 적재. chat.js `buildSystemPrompt` 수정 후 버전만 바꿔 비교. (포맷 바뀌면 fixture 테스트가 먼저 경보)
+
+### ▶ 쿼터 확보 시 마무리 명령 (1회)
+```
+export GEMINI_API_KEY=<billing 키 or 리셋 후>
+node eval/run.mjs --set smoke --target local --rpm 10 --llm 8 --baseline   # 정식 baseline
+node eval/variance.mjs --k 3 --limit 20 --rpm 10                            # variance.json(임계값 확정)
+node eval/run.mjs --set all --target local --rpm 10                         # 전량 149 스냅샷
+```
+그 후 `eval/baseline.json`·`eval/variance.json` 커밋 → CI 게이트가 데이터 기반 임계값으로 작동.
+
+### 상태 요약
+- ✅ Day 1–5 코드 전량 완성 + 오프라인 검증(추출기 6/6·negative control 4/4) + 부분 실측(grounding 0·지역/카테고리/영업중 1.0).
+- ⏳ 전량·variance·LLM-Judge **실행**만 Gemini 쿼터 대기(무료 RPD 소진). billing 키/리셋 후 위 3줄로 완결.

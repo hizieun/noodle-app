@@ -6,6 +6,7 @@ import { dirname, join } from 'path';
 import { runSet } from './lib/run-core.mjs';
 import { aggregate } from './metrics.mjs';
 import { loadSet } from './lib/load-set.mjs';
+import { judgeLLM, extractionAgreement } from './judges/llm.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const arg = (k, d) => { const i = process.argv.indexOf(`--${k}`); return i >= 0 ? process.argv[i + 1] : d; };
@@ -16,6 +17,7 @@ const TARGET = arg('target', 'prod');
 const LIMIT = parseInt(arg('limit', '0'), 10);
 const CONC = parseInt(arg('concurrency', '2'), 10);
 const RPM = parseInt(arg('rpm', '12'), 10);
+const LLM = parseInt(arg('llm', '0'), 10); // LLM-Judge 샘플 수(0=끔)
 const PROMPT_VERSION = process.env.EVAL_PROMPT_VERSION || 'v1';
 
 const items0 = loadSet(SET);
@@ -27,6 +29,21 @@ const rows = await runSet(items, {
   onProgress: (d, n) => process.stdout.write(`\r  진행 ${d}/${n}`),
 });
 process.stdout.write('\n');
+
+// LLM-Judge 샘플(고정 시드=성공분 앞 N) + 추출기 교차검증
+if (LLM > 0) {
+  const sample = rows.filter((r) => !r.error).slice(0, LLM);
+  let i = 0;
+  for (const r of sample) {
+    try {
+      const j = await judgeLLM(r.question, r.text);
+      r.llm = j;
+      r.llm_agreement = j ? extractionAgreement(r.extraction.recommended, j.recommended_names) : null;
+    } catch (e) { r.llm_error = e.message; }
+    process.stdout.write(`\r  LLM판정 ${++i}/${sample.length}`);
+  }
+  process.stdout.write('\n');
+}
 
 const summary = aggregate(rows, { promptVersion: PROMPT_VERSION, set: SET, target: TARGET });
 

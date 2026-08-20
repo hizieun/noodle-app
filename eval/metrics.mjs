@@ -31,6 +31,21 @@ export function aggregate(rows, meta = {}) {
     opennow_scored: openAcc.length,
     unclassified_rate: round(totalRec + totalUnc ? totalUnc / (totalRec + totalUnc) : 0),
     latency_ms: { p50: pct(0.5), p90: pct(0.9), max: lat.at(-1) ?? null },
+    ...llmSummary(ok),
+  };
+}
+
+// LLM-Judge 샘플이 있을 때만 집계(의도부합·유용성·정직도·추출기 agreement)
+function llmSummary(rows) {
+  const judged = rows.filter((r) => r.llm);
+  if (!judged.length) return {};
+  const avg = (f) => round(mean(judged.map(f)));
+  return {
+    llm_sampled: judged.length,
+    llm_intent_fit_mean: avg((r) => r.llm.intent_fit),
+    llm_usefulness_mean: avg((r) => r.llm.usefulness),
+    llm_honest_rate: round(judged.filter((r) => r.llm.honest_on_missing).length / judged.length),
+    extraction_agreement_mean: avg((r) => r.llm_agreement ?? 0),
   };
 }
 

@@ -54,6 +54,7 @@ L.push(regressed.length ? `### ❌ 회귀 ${regressed.length}건` : '### ✅ 회
 
 const md = L.join('\n');
 console.log(md);
+try { const { writeFileSync, mkdirSync } = await import('fs'); mkdirSync(resultsDir, { recursive: true }); writeFileSync(join(resultsDir, 'report.md'), md); } catch { /* noop */ }
 if (process.env.GITHUB_STEP_SUMMARY) {
   try { readFileSync; const { appendFileSync } = await import('fs'); appendFileSync(process.env.GITHUB_STEP_SUMMARY, md + '\n'); } catch { /* noop */ }
 }

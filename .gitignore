@@ -25,3 +25,4 @@ frontend/.env.*.local
 
 # eval 실행 결과(transient)
 eval/results/
+eval/cache/

@@ -30,6 +30,6 @@ export async function runSet(items, { target = 'prod', concurrency = 2, rpm = 12
     const ex = extract(g.text);
     const rule = judgeRule(item, ex);
     onProgress?.(++done, items.length);
-    return { ...item, latency_ms: g.latency_ms, error: g.error, extraction: ex, rule };
+    return { ...item, text: g.text, latency_ms: g.latency_ms, error: g.error, extraction: ex, rule };
   });
 }
