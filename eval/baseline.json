@@ -1,0 +1,22 @@
+{
+  "promptVersion": "v1",
+  "set": "smoke",
+  "target": "local",
+  "note": "provisional — 성공분 재집계(쿼터 리셋 후 정식 재생성)",
+  "n": 7,
+  "errors": 0,
+  "grounding_violation_rate": 0,
+  "grounding_violations": [],
+  "region_accuracy_mean": 1,
+  "region_scored": 6,
+  "category_accuracy_mean": null,
+  "category_scored": 0,
+  "opennow_accuracy_mean": null,
+  "opennow_scored": 0,
+  "unclassified_rate": 0.1,
+  "latency_ms": {
+    "p50": 5575,
+    "p90": 12205,
+    "max": 13242
+  }
+}

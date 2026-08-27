@@ -1,0 +1,84 @@
+name: Eval (AI 챗봇)
+
+# 기존 test.yml·weekly-crawl.yml 와 독립. 챗봇(api/chat.js)·데이터·eval 변경 PR에서만.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'frontend/api/**'
+      - 'frontend/public/data.json'
+      - 'eval/**'
+      - '.github/workflows/eval.yml'
+  workflow_dispatch:
+    inputs:
+      set:
+        description: '실행 세트 (smoke|golden|all)'
+        default: 'smoke'
+      llm:
+        description: 'LLM-Judge 샘플 수'
+        default: '8'
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  # 1) 쿼터 불필요 — 매 PR 항상 실행. 계측기(추출기)·탐지기 자체가 건강한지.
+  offline:
+    name: 오프라인 검증 (추출기 fixture · negative control)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - name: 추출기 fixture (프롬프트 포맷 변경 시 지표보다 먼저 터짐)
+        run: node eval/fixtures/extract.test.mjs
+      - name: negative control (탐지기가 실제로 위반을 잡는지)
+        run: node eval/negative-control.test.mjs
+      - name: 골든셋 재생성 (결정적 생성 crash 없음)
+        run: node eval/golden/generate.mjs
+
+  # 2) 생성 eval — GEMINI_API_KEY secret 있을 때만(없으면 스킵, 실패 아님).
+  eval:
+    name: 생성 eval + 회귀 게이트 + PR 코멘트
+    needs: offline
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - name: 키 존재 확인
+        id: key
+        run: echo "has=${{ secrets.GEMINI_API_KEY != '' }}" >> "$GITHUB_OUTPUT"
+      - name: eval 실행 (PR=고정시드 스모크 / 수동=지정 세트)
+        if: steps.key.outputs.has == 'true'
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: node eval/run.mjs --set "${{ github.event.inputs.set || 'smoke' }}" --target local --rpm 10 --llm "${{ github.event.inputs.llm || '8' }}"
+      - name: 리포트 + 회귀 게이트
+        if: steps.key.outputs.has == 'true'
+        id: report
+        continue-on-error: true
+        run: node eval/report.mjs --gate
+      - name: PR 코멘트(업서트)
+        if: steps.key.outputs.has == 'true' && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const marker = '<!-- eval-report -->';
+            const body = marker + '\n' + fs.readFileSync('eval/results/report.md', 'utf8');
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const { data: comments } = await github.rest.issues.listComments({ owner, repo, issue_number });
+            const prev = comments.find((c) => c.body.includes(marker));
+            if (prev) await github.rest.issues.updateComment({ owner, repo, comment_id: prev.id, body });
+            else await github.rest.issues.createComment({ owner, repo, issue_number, body });
+      - name: 게이트 결과 반영(회귀 시 실패)
+        if: steps.key.outputs.has == 'true'
+        run: test "${{ steps.report.outcome }}" = "success" || { echo "::error::eval 회귀 감지"; exit 1; }
+      - name: 키 없음 안내
+        if: steps.key.outputs.has != 'true'
+        run: echo "GEMINI_API_KEY secret 미설정 → 생성 eval 스킵(오프라인 검증만 수행). Settings→Secrets→Actions 에 추가하면 활성화."

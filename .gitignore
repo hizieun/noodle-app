@@ -22,3 +22,7 @@ frontend/.env.*.local
 
 # Vercel
 .vercel
+
+# eval 실행 결과(transient)
+eval/results/
+eval/cache/
