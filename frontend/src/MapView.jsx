@@ -217,7 +217,7 @@ export default function MapView({ restaurants, onCardClick, userLocation, nearby
                     className="map-popup-btn"
                     onClick={() => onCardClick(r)}
                   >
-                    자세히 보기 →
+                    자세히 보기
                   </button>
                 </div>
               </Popup>

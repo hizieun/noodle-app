@@ -56,7 +56,7 @@ export default function MyListSpace({ favList, visitedList, ratedList, renderCar
           <div className="empty-icon"><current.Icon size={52} /></div>
           <p>{current.empty}</p>
           {onBrowse && (
-            <button className="empty-browse-btn" onClick={onBrowse}>맛집 둘러보기 →</button>
+            <button className="empty-browse-btn" onClick={onBrowse}>맛집 둘러보기</button>
           )}
         </div>
       ) : (

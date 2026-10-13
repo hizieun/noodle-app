@@ -81,7 +81,7 @@ const RestaurantCard = ({ data, index, onClick, isFavorited, onToggleFavorite, i
         {distanceLabel ? (
           <span className="distance-badge"><MapPinIcon size={12} /> {distanceLabel}</span>
         ) : (
-          <span className="card-detail-hint">자세히 보기 →</span>
+          <span className="card-detail-hint">자세히 보기</span>
         )}
       </div>
     </div>

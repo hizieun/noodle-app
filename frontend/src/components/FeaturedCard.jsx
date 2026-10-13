@@ -65,7 +65,7 @@ const FeaturedCard = ({ restaurant, onOpen, onReshuffle, community }) => {
       )}
 
       <div className="featured-footer">
-        <span className="featured-hint">자세히 보기 →</span>
+        <span className="featured-hint">자세히 보기</span>
         <button
           className="featured-reshuffle-btn"
           onClick={(e) => { e.stopPropagation(); onReshuffle(); }}
