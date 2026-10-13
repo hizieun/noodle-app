@@ -72,7 +72,7 @@ export default function ChatPanel({ isOpen, onClose, onOpenRestaurant, restauran
       >
         <div className="chat-panel-header">
           <div className="chat-panel-title-group">
-            <span id="chat-panel-title" className="chat-panel-title">🤖 AI 맛집 추천</span>
+            <span id="chat-panel-title" className="chat-panel-title">AI 맛집 추천</span>
             <span className="chat-panel-subtitle">노포지도 데이터로 골라드려요</span>
           </div>
           <button className="chat-close-btn" onClick={onClose} aria-label="닫기">✕</button>
@@ -81,7 +81,6 @@ export default function ChatPanel({ isOpen, onClose, onOpenRestaurant, restauran
         <div className="chat-messages">
           {messages.length === 0 ? (
             <div className="chat-welcome">
-              <div className="chat-welcome-icon">🍜</div>
               <p className="chat-welcome-text">노포·야장 맛집을 AI에게 물어보세요</p>
               <div className="chat-examples">
                 {EXAMPLES.map((ex, i) => (
@@ -94,7 +93,7 @@ export default function ChatPanel({ isOpen, onClose, onOpenRestaurant, restauran
           ) : (
             messages.map((m, i) => (
               <div key={i} className={`chat-message ${m.role}`}>
-                {m.role === 'model' && <span className="chat-avatar">🤖</span>}
+                {m.role === 'model' && <span className="chat-avatar" aria-hidden="true">AI</span>}
                 <div className="chat-bubble-group">
                   <div className="chat-bubble">{m.text}</div>
                   {m.role === 'model' && m.restaurants && m.restaurants.length > 0 && (
@@ -122,7 +121,7 @@ export default function ChatPanel({ isOpen, onClose, onOpenRestaurant, restauran
           )}
           {loading && (
             <div className="chat-message model">
-              <span className="chat-avatar">🤖</span>
+              <span className="chat-avatar" aria-hidden="true">AI</span>
               <div className="chat-bubble chat-typing">
                 <span /><span /><span />
               </div>

@@ -213,8 +213,8 @@ export default function ReviewSection({ restaurant, onReviewChange }) {
   return (
     <div className="modal-section review-section">
       <h4 className="modal-section-title">
-        💬 커뮤니티 리뷰
-        {avg && <span className="review-avg">★ {avg} · {reviews.length}개</span>}
+        커뮤니티 리뷰
+        {avg && <span className="review-avg">★ {avg} ({reviews.length})</span>}
       </h4>
       <p className="review-subtitle">모두에게 공개돼요 · 위 '내 방문 후기'는 나만 봅니다</p>
 
@@ -346,7 +346,7 @@ export default function ReviewSection({ restaurant, onReviewChange }) {
                     className={`review-helpful ${reactions.get(r.id)?.mineHelpful ? 'active' : ''}`}
                     onClick={() => toggleHelpful(r.id)}
                   >
-                    👍 도움돼요{reactions.get(r.id)?.helpful ? ` ${reactions.get(r.id).helpful}` : ''}
+                    도움돼요{reactions.get(r.id)?.helpful ? ` ${reactions.get(r.id).helpful}` : ''}
                   </button>
                   <button
                     className="review-report"

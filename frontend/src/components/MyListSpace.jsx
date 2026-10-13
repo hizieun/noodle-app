@@ -22,7 +22,7 @@ export default function MyListSpace({ favList, visitedList, ratedList, renderCar
           <div className="mylist-share-group">
             {onKakaoShare && (
               <button className="mylist-kakao" onClick={onKakaoShare} aria-label="카카오톡으로 공유">
-                <span aria-hidden="true">💬</span> 카톡
+                카톡
               </button>
             )}
             <button className={`mylist-share ${shareCopied ? 'copied' : ''}`} onClick={onShare}>

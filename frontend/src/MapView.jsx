@@ -26,7 +26,7 @@ const userMarkerIcon = L.divIcon({
 
 // 카테고리별 마커 색상
 const markerIcon = (category) => {
-  const color = category === '야장' ? '#fb923c' : '#f43f5e';
+  const color = category === '야장' ? '#F27A2E' : '#D42A1F'; // 주황 천막 / 간판 빨강
   return L.divIcon({
     className: '',
     html: `<div style="
@@ -135,7 +135,7 @@ export default function MapView({ restaurants, onCardClick, userLocation, nearby
     <div className="map-wrapper">
       {missing > 0 && (
         <div className="map-notice">
-          📍 {mapped.length}개 표시 중 ({missing}개는 좌표 없음)
+          {mapped.length}곳 표시 중 ({missing}개는 좌표 없음)
         </div>
       )}
       <MapContainer
@@ -144,10 +144,12 @@ export default function MapView({ restaurants, onCardClick, userLocation, nearby
         className="leaflet-map"
         scrollWheelZoom={true}
       >
+        {/* CARTO는 키 없이 'API KEY REQUIRED' 타일을 돌려줌 → OSM 기본 타일. 야장 밤 지도는 CSS 필터로.
+            ponytail: OSM 공용 타일은 소규모 트래픽용 — 사용량이 커지면 키 있는 타일 제공자(MapTiler 등)로 교체 */}
         <TileLayer
-          attribution='&copy; <a href="https://carto.com/attributions">CARTO</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-          subdomains="abcd"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+          maxZoom={19}
         />
         <MapController restaurants={mapped} programmaticRef={programmaticRef} />
         <MapFocus focus={focus} programmaticRef={programmaticRef} />
@@ -159,7 +161,7 @@ export default function MapView({ restaurants, onCardClick, userLocation, nearby
         {userLocation && (
           <>
             <Marker position={[userLocation.lat, userLocation.lng]} icon={userMarkerIcon}>
-              <Popup>📍 내 위치</Popup>
+              <Popup>내 위치</Popup>
             </Marker>
             {nearbyRadius < Infinity && (
               <Circle
@@ -177,7 +179,7 @@ export default function MapView({ restaurants, onCardClick, userLocation, nearby
           iconCreateFunction={(cluster) => {
             const count = cluster.getChildCount();
             const size = count < 10 ? 32 : count < 50 ? 38 : 44;
-            const color = category === '야장' ? 'rgba(251,146,60,0.88)' : 'rgba(244,63,94,0.88)';
+            const color = category === '야장' ? 'rgba(242,122,46,0.92)' : 'rgba(212,42,31,0.92)';
             return L.divIcon({
               className: '',
               html: `<div style="
@@ -205,10 +207,10 @@ export default function MapView({ restaurants, onCardClick, userLocation, nearby
             >
               <Popup className="map-popup">
                 <div className="map-popup-inner">
-                  <strong>{r.emoji} {r.cleanName}</strong>
+                  <strong>{r.cleanName}</strong>
                   <span className="map-popup-region">{r.지역}</span>
                   {r.평점 !== '정보 없음' && (
-                    <span className="map-popup-rating">⭐ {r.평점}</span>
+                    <span className="map-popup-rating">★ {r.평점}</span>
                   )}
                   {r.대표메뉴 && (
                     <span className="map-popup-menu">{r.대표메뉴.split(',').slice(0, 2).join(', ')}</span>
@@ -228,7 +230,7 @@ export default function MapView({ restaurants, onCardClick, userLocation, nearby
 
       {moved && (
         <button className="map-research" onClick={research}>
-          <span aria-hidden="true">🔍</span> 이 지역 재검색
+          이 지역 재검색
         </button>
       )}
 
@@ -253,7 +255,6 @@ export default function MapView({ restaurants, onCardClick, userLocation, nearby
             const dist = distanceLabel(r.distance);
             return (
               <button key={`${r.상호명}-${i}`} className="map-sheet-row" onClick={() => handleRow(r)}>
-                <span className="map-sheet-emoji" aria-hidden="true">{r.emoji}</span>
                 <span className="map-sheet-body">
                   <span className="map-sheet-name">{r.cleanName}</span>
                   <span className="map-sheet-meta">

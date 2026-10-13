@@ -1,5 +1,5 @@
 // 인라인 SVG 아이콘 (Lucide 스타일, currentColor 상속) — UI 컨트롤 이모지 대체.
-// 음식 카테고리 이모지·브랜드 탭(🏮🌙)·별점(★)은 정체성이라 유지.
+// 메뉴판 디자인: 상호 옆 이모지는 쓰지 않음. 별점(★)만 글자로 유지.
 const Svg = ({ children, size = 20, fill = 'none', ...p }) => {
   delete p.filled; // HeartIcon 외 아이콘엔 무의미 — DOM 누수(<svg filled>) 방지
   return (

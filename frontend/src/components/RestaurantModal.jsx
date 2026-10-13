@@ -62,7 +62,7 @@ const RestaurantModal = ({ restaurant, onClose, isVisited, onToggleVisited, myVi
 
   if (!restaurant) return null;
 
-  const { emoji, cleanName } = formatRestaurantName(restaurant.상호명);
+  const { cleanName } = formatRestaurantName(restaurant.상호명);
   const menus = restaurant.대표메뉴 ? restaurant.대표메뉴.split(',').map(m => m.trim()).filter(Boolean) : [];
   const hours = getBusinessHours(restaurant);
   const openStatus = isOpenNow(restaurant);
@@ -101,7 +101,6 @@ const RestaurantModal = ({ restaurant, onClose, isVisited, onToggleVisited, myVi
         <div className="modal-header">
           <div>
             <div className="modal-title" id="modal-title">
-              <span className="modal-emoji">{emoji}</span>
               {cleanName}
             </div>
             <span className="card-region" style={{ marginTop: '0.5rem', display: 'inline-block' }}>{restaurant.지역}</span>
@@ -116,7 +115,7 @@ const RestaurantModal = ({ restaurant, onClose, isVisited, onToggleVisited, myVi
 
         <div className="modal-body">
           <div className="modal-section">
-            <h4 className="modal-section-title">📍 기본 정보</h4>
+            <h4 className="modal-section-title">기본 정보</h4>
             <div className="modal-info-grid">
               <div className="modal-info-item">
                 <span className="modal-info-label">주소</span>
@@ -124,7 +123,7 @@ const RestaurantModal = ({ restaurant, onClose, isVisited, onToggleVisited, myVi
               </div>
               <div className="modal-info-item">
                 <span className="modal-info-label">평점</span>
-                <span className="modal-info-value rating-value">⭐ {restaurant.평점 !== '정보 없음' ? restaurant.평점 : '-'}</span>
+                <span className="modal-info-value rating-value">★ {restaurant.평점 !== '정보 없음' ? restaurant.평점 : '-'}</span>
               </div>
               {restaurant.전화번호 && (
                 <div className="modal-info-item">
@@ -138,7 +137,7 @@ const RestaurantModal = ({ restaurant, onClose, isVisited, onToggleVisited, myVi
           {(hours || closedDays || (payment && payment.length)) && (
             <div className="modal-section">
               <h4 className="modal-section-title">
-                🕒 영업 정보
+                영업 정보
                 {openStatus === 'open' && <span className="open-badge open" style={{ marginLeft: '0.5rem' }}>영업중</span>}
                 {openStatus === 'closed' && (closedToday
                   ? <span className="open-badge rest" style={{ marginLeft: '0.5rem' }}>오늘 휴무</span>
@@ -157,11 +156,11 @@ const RestaurantModal = ({ restaurant, onClose, isVisited, onToggleVisited, myVi
                 </table>
               )}
               {Array.isArray(closedDays) && closedDays.length > 0 && (
-                <p className="hours-note">📅 휴무: {closedDays.join(', ')}</p>
+                <p className="hours-note">휴무: {closedDays.join(', ')}</p>
               )}
-              {cashOnly && <p className="hours-note warning">💵 현금만 가능</p>}
+              {cashOnly && <p className="hours-note warning">현금만 가능</p>}
               {Array.isArray(payment) && payment.length > 1 && (
-                <p className="hours-note">💳 결제: {payment.join(', ')}</p>
+                <p className="hours-note">결제: {payment.join(', ')}</p>
               )}
               {restaurant.정보검증일 && (
                 <p className="hours-note muted">마지막 확인: {restaurant.정보검증일.slice(0, 10)}</p>
@@ -171,7 +170,7 @@ const RestaurantModal = ({ restaurant, onClose, isVisited, onToggleVisited, myVi
 
           {menus.length > 0 && (
             <div className="modal-section">
-              <h4 className="modal-section-title">🍽️ 대표 메뉴</h4>
+              <h4 className="modal-section-title">대표 메뉴</h4>
               <div className="menu-tags">
                 {menus.map((menu, i) => (
                   <span key={i} className="menu-tag">{menu}</span>
@@ -182,7 +181,7 @@ const RestaurantModal = ({ restaurant, onClose, isVisited, onToggleVisited, myVi
 
           {restaurant.lat && restaurant.lng && (
             <div className="modal-section">
-              <h4 className="modal-section-title">🗺️ 위치</h4>
+              <h4 className="modal-section-title">위치</h4>
               <div className="modal-map-wrapper">
                 <iframe
                   title="식당 위치"
@@ -195,23 +194,23 @@ const RestaurantModal = ({ restaurant, onClose, isVisited, onToggleVisited, myVi
           )}
 
           <div className="modal-section">
-            <h4 className="modal-section-title">🔗 바로가기</h4>
+            <h4 className="modal-section-title">바로가기</h4>
             <div className="action-btns">
               <a href={kakaoLink} target="_blank" rel="noopener noreferrer" className="action-btn kakao-btn">
-                <span>🗺️</span> 카카오맵
+                카카오맵
               </a>
               <a href={naverMapLink} target="_blank" rel="noopener noreferrer" className="action-btn naver-btn">
-                <span>📍</span> 네이버 지도
+                네이버 지도
               </a>
               <a href={naverBlogLink} target="_blank" rel="noopener noreferrer" className="action-btn blog-btn">
-                <span>📝</span> 블로그 후기
+                블로그 후기
               </a>
             </div>
           </div>
 
           <div className="modal-section my-visit-section">
             <h4 className="modal-section-title">
-              📔 내 방문 후기
+              내 방문 후기
               <button
                 className={`my-visit-toggle ${isVisited ? 'active' : ''}`}
                 onClick={() => onToggleVisited && onToggleVisited(restaurant, { stopPropagation: () => {} })}

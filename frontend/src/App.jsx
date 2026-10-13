@@ -152,6 +152,8 @@ function App() {
   useEffect(() => {
     document.title = `${activeCategory === '야장' ? '야장지도' : '노포지도'} - 서울의 숨은 맛`;
     document.body.classList.toggle('yajang-theme', activeCategory === '야장');
+    // 모바일 브라우저 상단 바 색도 판 색에 맞춤 (낮 메뉴판 / 밤 포장마차)
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', activeCategory === '야장' ? '#1A1311' : '#F4F5F1');
   }, [activeCategory]);
 
   // 필터 변경 시 더 보기 초기화
@@ -601,7 +603,7 @@ function App() {
       {/* 설치 배너: app-container 밖 full-width 블록, 공유 배너와 동시엔 숨김 */}
       {showInstallBanner && !isSharedMode && (
         <div className="install-banner">
-          <span>📱 홈화면에 추가하면 앱처럼 사용할 수 있어요</span>
+          <span>홈 화면에 추가하면 앱처럼 사용할 수 있어요</span>
           <div className="install-banner-actions">
             <button className="install-banner-btn primary" onClick={handleInstall}>추가하기</button>
             <button className="install-banner-btn" onClick={handleDismissInstallBanner} aria-label="닫기"><XIcon size={16} /></button>
@@ -612,7 +614,7 @@ function App() {
       {isSharedMode && (
         <div className="share-banner">
           <span className="share-banner-title">
-            🔗 공유받은 리스트 — {sharedRestaurants.length}곳
+            공유받은 리스트 {sharedRestaurants.length}곳
             {sharedRestaurants.length < sharedListNames.length && (
               <span className="share-banner-warning"> (찾을 수 없는 {sharedListNames.length - sharedRestaurants.length}곳 제외)</span>
             )}
@@ -636,9 +638,8 @@ function App() {
           {/* 1행: 로고 + 카테고리 탭 + 뷰 전환 */}
           <div className="header-row-1">
             <h1 className="title">
-              <span className="title-icon">{activeCategory === '야장' ? '🌃' : '🍜'}</span>
-              {activeCategory === '야장' ? '야장지도' : '노포지도'}
-              <span className="title-suffix"> - 서울의 숨은 맛</span>
+              <span className="title-mark">{activeCategory === '야장' ? '야장지도' : '노포지도'}</span>
+              <span className="title-suffix">서울의 숨은 맛</span>
             </h1>
             <div className="header-actions">
               <div className="category-toggle">
@@ -646,13 +647,13 @@ function App() {
                   className={`category-btn ${activeCategory === '노포' ? 'active' : ''}`}
                   onClick={() => handleCategoryChange('노포')}
                 >
-                  🏮 노포
+                  노포
                 </button>
                 <button
                   className={`category-btn ${activeCategory === '야장' ? 'active' : ''}`}
                   onClick={() => handleCategoryChange('야장')}
                 >
-                  🌙 야장
+                  야장
                 </button>
               </div>
             </div>
@@ -758,9 +759,9 @@ function App() {
                   }
                 }}
               >
-                <option value="평점순">⭐ 평점순</option>
+                <option value="평점순">평점순</option>
                 <option value="이름순">가나다순</option>
-                <option value="거리순">📍 거리순</option>
+                <option value="거리순">거리순</option>
               </select>
             </div>
             {userLocation && (
@@ -794,7 +795,7 @@ function App() {
                 title="지금 영업 중인 곳만 보기"
                 aria-pressed={showOpenNowOnly}
               >
-                🟢 지금 영업중
+                지금 영업중
               </button>
             )}
           </div>
@@ -899,7 +900,15 @@ function App() {
           </div>
         ) : (
           <>
-            {/* 발견 피드: AI 진입 → 히어로 → 테마 레일 (검색/필터 없을 때만) */}
+            {/* 발견 피드: 오늘의 집(간판) → AI 진입 → 메뉴판 칸 (검색/필터 없을 때만) */}
+            {!isBrowsing && featuredRestaurant && (
+              <FeaturedCard
+                restaurant={featuredRestaurant}
+                onOpen={handleOpenRestaurant}
+                onReshuffle={() => setReshuffleIdx(Math.floor(Math.random() * categoryPool.length))}
+                community={communityRatings.get(featuredKey)}
+              />
+            )}
             {!isBrowsing && (
               <button className="ai-invite" onClick={() => setChatOpen(true)}>
                 <span className="ai-invite-icon"><SparklesIcon size={22} /></span>
@@ -909,14 +918,6 @@ function App() {
                 </span>
                 <span className="ai-invite-cta">물어보기</span>
               </button>
-            )}
-            {!isBrowsing && featuredRestaurant && (
-              <FeaturedCard
-                restaurant={featuredRestaurant}
-                onOpen={handleOpenRestaurant}
-                onReshuffle={() => setReshuffleIdx(Math.floor(Math.random() * categoryPool.length))}
-                community={communityRatings.get(featuredKey)}
-              />
             )}
             {!isBrowsing && rails.map(rail => (
               <RestaurantRail
@@ -947,10 +948,9 @@ function App() {
               </section>
             )}
 
-            <div className="section-header">
-              <span className="section-header-line" />
-              <span className="section-header-text">{isBrowsing ? `${sortBy} · ${filteredData.length}곳` : `전체 · ${gridData.length}곳`}</span>
-              <span className="section-header-line" />
+            <div className="rail-head board-head">
+              <h3 className="rail-title">{isBrowsing ? '찾은 집' : '전체'}</h3>
+              <span className="rail-subtitle">{isBrowsing ? `${filteredData.length}곳, ${sortBy}` : `${gridData.length}곳`}</span>
             </div>
 
             <div className="restaurant-grid">
