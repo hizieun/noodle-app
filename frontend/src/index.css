@@ -3606,6 +3606,7 @@ body, .header { transition: none; }
   color: var(--sign-text);
   margin: 0;
   word-break: keep-all;
+  overflow-wrap: anywhere; /* 띄어쓰기 없는 긴 상호(9자+ 55곳)가 간판 밖으로 넘치지 않게 */
   text-wrap: balance;
 }
 .featured-meta { gap: 0.35rem 0.9rem; margin-top: 0.4rem; font-size: 0.9rem; color: var(--text-secondary); }

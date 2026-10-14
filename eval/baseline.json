@@ -2,21 +2,21 @@
   "promptVersion": "v1",
   "set": "smoke",
   "target": "local",
-  "note": "provisional — 성공분 재집계(쿼터 리셋 후 정식 재생성)",
-  "n": 7,
+  "n": 30,
   "errors": 0,
   "grounding_violation_rate": 0,
   "grounding_violations": [],
   "region_accuracy_mean": 1,
-  "region_scored": 6,
-  "category_accuracy_mean": null,
-  "category_scored": 0,
-  "opennow_accuracy_mean": null,
-  "opennow_scored": 0,
-  "unclassified_rate": 0.1,
+  "region_scored": 24,
+  "category_accuracy_mean": 1,
+  "category_scored": 8,
+  "opennow_accuracy_mean": 1,
+  "opennow_scored": 2,
+  "unclassified_rate": 0.012,
   "latency_ms": {
-    "p50": 5575,
-    "p90": 12205,
-    "max": 13242
-  }
+    "p50": 1832,
+    "p90": 2439,
+    "max": 3901
+  },
+  "note": "gemini-3.5-flash-lite 고정(CI GEMINI_MODELS) — 2026-10-14 smoke 30/30. 출처: lite-gemini-3.5-flash-lite-smoke-2026-10-14T04-13-26-518Z.json"
 }

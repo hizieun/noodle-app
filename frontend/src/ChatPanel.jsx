@@ -27,7 +27,12 @@ export default function ChatPanel({ isOpen, onClose, onOpenRestaurant, restauran
     const trimmed = text.trim();
     if (!trimmed || loading) return;
 
-    const history = messages.map(({ role, text }) => ({ role, text }));
+    // 실패한 턴은 질문까지 빼고 보냄 — 에러 문구가 모델 답으로 맥락에 섞이지 않게
+    const history = [];
+    for (const m of messages) {
+      if (m.failed) { history.pop(); continue; }
+      history.push({ role: m.role, text: m.text });
+    }
     setMessages(prev => [...prev, { role: 'user', text: trimmed }]);
     setInput('');
     setLoading(true);
@@ -38,16 +43,21 @@ export default function ChatPanel({ isOpen, onClose, onOpenRestaurant, restauran
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: trimmed, history }),
       });
-      const data = await res.json();
-      setMessages(prev => [...prev, {
-        role: 'model',
-        text: data.text || '죄송합니다, 응답을 받지 못했습니다.',
-        restaurants: data.restaurants || [],
-      }]);
+      const data = await res.json().catch(() => ({}));
+      setMessages(prev => [...prev, data.text
+        ? { role: 'model', text: data.text, restaurants: data.restaurants || [] }
+        : {
+            role: 'model',
+            failed: true,
+            text: res.status === 429
+              ? 'AI 추천 사용량 한도에 걸렸어요. 나중에 다시 물어봐 주세요.'
+              : '답변을 만들지 못했어요. 다시 물어봐 주세요.',
+          }]);
     } catch {
       setMessages(prev => [...prev, {
         role: 'model',
-        text: '연결 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+        failed: true,
+        text: '서버에 연결하지 못했어요. 인터넷 연결을 확인하고 다시 물어봐 주세요.',
       }]);
     } finally {
       setLoading(false);

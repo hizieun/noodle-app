@@ -3,7 +3,11 @@ import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent';
+// 무료 등급 한도는 프로젝트×모델 단위로 따로 잡힌다 (2026-09 실측: Flash 하루 20회, Flash-Lite 하루 500회).
+// 앞 모델이 한도(429)·과부하(503)면 다음 모델로 넘어가 하루 처리량을 늘린다. GEMINI_MODELS(쉼표)로 교체 가능.
+export const MODELS = (process.env.GEMINI_MODELS || 'gemini-3.6-flash,gemini-3.5-flash-lite')
+  .split(',').map(m => m.trim()).filter(Boolean);
+const geminiUrl = (model) => `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
 const REGIONS = [
   '강남구','강동구','강북구','강서구','관악구','광진구','구로구','금천구',
@@ -198,6 +202,13 @@ function buildSystemPrompt(relevant) {
 ${list}`;
 }
 
+// Gemini 3는 답을 여러 part로 쪼개 보낸다 — parts[0]만 읽으면 답이 잘리거나(9자) 비어서 '빈 응답'이 됐음.
+// 생각(thought) part는 빼고 텍스트 part를 모두 이어 붙인다.
+export function extractText(data) {
+  const parts = data?.candidates?.[0]?.content?.parts ?? [];
+  return parts.filter(p => p.text && !p.thought).map(p => p.text).join('');
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
@@ -216,31 +227,42 @@ export default async function handler(req, res) {
   contents.push({ role: 'user', parts: [{ text: message }] });
 
   try {
-    const geminiRes = await fetch(`${GEMINI_URL}?key=${apiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: systemPrompt }] },
-        contents,
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 1024,
-          // Gemini 3.x는 thinkingBudget(숫자) 폐기 → thinkingLevel(enum) 사용.
-          // 완전 끄기 미지원이라 맛집 추천용으로 가장 가벼운 'low'.
-          thinkingConfig: { thinkingLevel: 'low' },
-        },
-      }),
+    const body = JSON.stringify({
+      systemInstruction: { parts: [{ text: systemPrompt }] },
+      contents,
+      generationConfig: {
+        temperature: 0.7,
+        // 생각 토큰도 이 예산을 같이 쓴다 — 1024에선 생각이 989토큰을 먹고 답이 잘리거나 사라졌음.
+        maxOutputTokens: 4096,
+        // Gemini 3.x는 thinkingBudget(숫자) 폐기 → thinkingLevel(enum) 사용.
+        // 완전 끄기 미지원이라 맛집 추천용으로 가장 가벼운 'low'.
+        thinkingConfig: { thinkingLevel: 'low' },
+      },
     });
+    let geminiRes, model;
+    for (model of MODELS) {
+      geminiRes = await fetch(`${geminiUrl(model)}?key=${apiKey}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body,
+      });
+      // 한도·과부하는 모델별이라 다음 모델로. 그 외 오류(400 등)는 모델을 바꿔도 같아서 바로 실패 처리.
+      if (geminiRes.status !== 429 && geminiRes.status !== 503) break;
+      console.warn(`${model} ${geminiRes.status} → 다음 모델`);
+    }
 
     if (!geminiRes.ok) {
       const err = await geminiRes.text();
-      console.error('Gemini 오류:', err);
+      console.error('Gemini 오류:', geminiRes.status, err.slice(0, 300));
+      // 429 = 무료 등급 한도(분당/일일) 초과 — 화면에서 원인을 구분해 안내하도록 그대로 전달
+      if (geminiRes.status === 429) return res.status(429).json({ error: 'quota' });
       return res.status(502).json({ error: '모델 응답 오류' });
     }
 
     const data = await geminiRes.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) return res.status(502).json({ error: '빈 응답' });
+    const text = extractText(data);
+    if (!text) {
+      console.error('빈 응답:', data.candidates?.[0]?.finishReason, data.usageMetadata);
+      return res.status(502).json({ error: '빈 응답' });
+    }
 
     // relevant(grounded set) 중 응답 텍스트에 상호명이 등장하는 것만 추출
     // 전체 DB 파싱 금지 — grounded set으로 한정해 오탐↓
@@ -254,7 +276,7 @@ export default async function handler(req, res) {
       })
       .map(r => ({ 상호명: r.상호명, 주소: r.주소 || '' }));
 
-    return res.status(200).json({ text, restaurants: mentioned });
+    return res.status(200).json({ text, restaurants: mentioned, model });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: '서버 오류' });

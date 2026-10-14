@@ -56,6 +56,9 @@ jobs:
         if: steps.key.outputs.has == 'true'
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # 생성 모델 고정: 운영 순서(3.6-flash → Lite)를 타면 3.6 하루 20회를 넘는 순간 두 모델 답이 섞이고
+          # 운영 한도까지 깎인다. Lite는 하루 500회라 smoke 30문항이 한 모델로 끝난다. (baseline도 Lite 기준)
+          GEMINI_MODELS: gemini-3.5-flash-lite
         run: node eval/run.mjs --set "${{ github.event.inputs.set || 'smoke' }}" --target local --rpm 10 --llm "${{ github.event.inputs.llm || '8' }}"
       - name: 리포트 + 회귀 게이트
         if: steps.key.outputs.has == 'true'
