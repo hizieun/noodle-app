@@ -45,7 +45,7 @@ export default function ChatPanel({ isOpen, onClose, onOpenRestaurant, restauran
       });
       const data = await res.json().catch(() => ({}));
       setMessages(prev => [...prev, data.text
-        ? { role: 'model', text: data.text, restaurants: data.restaurants || [] }
+        ? { role: 'model', text: data.text, intro: data.intro, caveat: data.caveat, picks: data.picks, restaurants: data.restaurants || [] }
         : {
             role: 'model',
             failed: true,
@@ -105,8 +105,45 @@ export default function ChatPanel({ isOpen, onClose, onOpenRestaurant, restauran
               <div key={i} className={`chat-message ${m.role}`}>
                 {m.role === 'model' && <span className="chat-avatar" aria-hidden="true">AI</span>}
                 <div className="chat-bubble-group">
-                  <div className="chat-bubble">{m.text}</div>
-                  {m.role === 'model' && m.restaurants && m.restaurants.length > 0 && (
+                  {m.picks ? (
+                    // 구조화 답: 도입 + (확인 불가 안내) + 메뉴판 줄 — 식당은 서버가 후보 ID로 매핑한 실존 데이터만
+                    <>
+                      <div className="chat-bubble">{m.intro}</div>
+                      {m.caveat && <p className="chat-caveat">{m.caveat}</p>}
+                      {m.picks.length > 0 && (
+                        <ol className="chat-picks">
+                          {m.picks.map((p, pi) => {
+                            const full = restaurants.find(r => favKey(r) === favKey(p));
+                            return (
+                              <li key={pi}>
+                                <button
+                                  type="button"
+                                  className="chat-pick"
+                                  onClick={() => full && onOpenRestaurant && onOpenRestaurant(full)}
+                                  disabled={!full}
+                                  aria-label={`${p.상호명} 상세 보기`}
+                                >
+                                  <span className="menu-row-line">
+                                    <span className="menu-row-name">{p.상호명}</span>
+                                    <span className="menu-row-leader" aria-hidden="true" />
+                                    <span className="menu-row-rating"><span className="star" aria-hidden="true">★</span>{p.평점 !== '정보 없음' ? p.평점 : '-'}</span>
+                                  </span>
+                                  <span className="chat-pick-meta">
+                                    <span>{p.지역}</span>
+                                    {p.open === true && <span className="open-badge open">영업중</span>}
+                                  </span>
+                                  <span className="chat-pick-reason">{p.reason}</span>
+                                </button>
+                              </li>
+                            );
+                          })}
+                        </ol>
+                      )}
+                    </>
+                  ) : (
+                    <div className="chat-bubble">{m.text}</div>
+                  )}
+                  {m.role === 'model' && !m.picks && m.restaurants && m.restaurants.length > 0 && (
                     <div className="chat-result-links">
                       {m.restaurants.map((chip, ci) => {
                         const full = restaurants.find(r => favKey(r) === favKey(chip));

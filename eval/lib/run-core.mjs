@@ -1,6 +1,6 @@
 // 실행 코어 — 문항 세트를 생성→추출→판정. run.mjs / variance.mjs가 공유.
 import { generate } from './generate-response.mjs';
-import { extract } from '../extract.mjs';
+import { extract, extractStructured } from '../extract.mjs';
 import { judgeRule } from '../judges/rule.mjs';
 
 async function pool(items, k, fn) {
@@ -27,9 +27,10 @@ export async function runSet(items, { target = 'prod', concurrency = 2, rpm = 12
   return pool(items, concurrency, async (item) => {
     await gate();
     const g = await generate(item.question, { target });
-    const ex = extract(g.text);
+    // 구조화 답이면 picks 그대로(추출 오차 0), 아니면(예전 응답·prod 구버전) 마크다운 추출기
+    const ex = g.picks ? extractStructured(g.picks) : extract(g.text);
     const rule = judgeRule(item, ex);
     onProgress?.(++done, items.length);
-    return { ...item, text: g.text, latency_ms: g.latency_ms, error: g.error, extraction: ex, rule };
+    return { ...item, text: g.text, picks: g.picks, latency_ms: g.latency_ms, error: g.error, extraction: ex, rule };
   });
 }

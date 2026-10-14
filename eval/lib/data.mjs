@@ -35,6 +35,13 @@ for (const r of restaurants) {
   byRegion.get(r.지역).push(r);
 }
 
+// 이름+주소로 정확히 조회 — 동명 상호가 34쌍(69곳)이라 이름만으론 다른 집을 집는다(조개일번지: 강북구 노포 vs 도봉구 야장).
+// 구조화 답은 주소가 함께 오므로 이걸로 대조. 주소가 없으면 이름 조회로 물러섬.
+export function lookupByNameAddr(name, addr) {
+  const k = normName(name);
+  return (addr && restaurants.find((r) => normName(r.상호명) === k && r.주소 === addr)) || lookupByName(name);
+}
+
 // 이름으로 식당 조회 (DB 실존 확인 = grounding 검증의 핵심)
 export function lookupByName(name) {
   return byNormName.get(normName(name)) || null;

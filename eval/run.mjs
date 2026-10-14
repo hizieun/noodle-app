@@ -35,6 +35,7 @@ if (LLM > 0) {
   const sample = rows.filter((r) => !r.error).slice(0, LLM);
   let i = 0;
   for (const r of sample) {
+    if (i && RPM > 0) await new Promise((res) => setTimeout(res, 60000 / RPM)); // 채점도 분당 한도 안에서
     try {
       const j = await judgeLLM(r.question, r.text);
       r.llm = j;

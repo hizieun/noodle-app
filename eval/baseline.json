@@ -12,11 +12,11 @@
   "category_scored": 8,
   "opennow_accuracy_mean": 1,
   "opennow_scored": 2,
-  "unclassified_rate": 0.012,
+  "unclassified_rate": 0,
   "latency_ms": {
-    "p50": 1832,
-    "p90": 2439,
-    "max": 3901
+    "p50": 4831,
+    "p90": 7844,
+    "max": 10020
   },
-  "note": "gemini-3.5-flash-lite 고정(CI GEMINI_MODELS) — 2026-10-14 smoke 30/30. 출처: lite-gemini-3.5-flash-lite-smoke-2026-10-14T04-13-26-518Z.json"
+  "note": "구조화 출력(후보 ID 제한) + gemini-3.5-flash-lite 고정 — 2026-10-14 smoke 30/30, 이름+주소 채점. 출처: json-lite-final2-smoke-2026-10-14T07-38-01-836Z.json"
 }

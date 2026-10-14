@@ -166,12 +166,16 @@ function formatHours(hours) {
     .join(', ');
 }
 
+// 후보 ID는 이번 요청에서만 쓰는 c1..cN — data.json에 고정 ID가 없고, 다음 턴엔 답이 평문으로 이력에 들어가므로 충분.
+const candidateIds = (relevant) => relevant.map((_, i) => `c${i + 1}`);
+
 function buildSystemPrompt(relevant) {
-  const list = relevant.map(r => {
+  const ids = candidateIds(relevant);
+  const list = relevant.map((r, i) => {
     const hoursTxt = formatHours(r.영업시간);
     const statusTxt = r._isOpen === true ? '지금 영업중' : r._isOpen === false ? '지금 영업종료/휴무' : null;
     const parts = [
-      `【${r.상호명}】`,
+      `[${ids[i]}] 【${r.상호명}】`,
       `지역: ${r.지역}`,
       `카테고리: ${r.카테고리}`,
       r.평점 && r.평점 !== '정보 없음' ? `평점: ${r.평점}` : null,
@@ -192,14 +196,68 @@ function buildSystemPrompt(relevant) {
 답변 규칙:
 - 반드시 아래 데이터에 있는 식당만 추천하세요
 - 사용자가 "지금 영업중" 같은 시간 관련 요청을 했다면, 데이터의 '지금 영업중' 표시를 활용해 영업하는 곳만 추천하세요
-- 영업시간 정보가 있으면 답변에 함께 알려주세요 (없으면 추측 금지)
-- 식당명, 지역, 추천 이유를 간결하게 설명하세요
-- 2~4개 식당 추천이 적당합니다
+- 추천은 후보 ID로 고르고, reason에 이 질문에 맞는 이유를 데이터 근거(메뉴·영업시간 등)로 한 문장씩 쓰세요
+- 2~4곳이 적당합니다
+- 요청 조건 일부를 데이터로 맞출 수 없으면(서울 밖 지역, 데이터에 없는 메뉴) caveat에 밝히고, 나머지 조건에 맞는 서울 식당을 대안으로 고를 수 있습니다. 이때 intro에서 대안이라고 말하세요
+- 확인할 수 없는 전제(유명인 추천·방송 출연 등)는 caveat에 밝히고, intro에서 사실처럼 반복하지 마세요
+- 맞는 곳이 하나도 없으면 picks를 비우고, intro에서 추천을 약속하지 마세요
 - 데이터에 없는 정보는 절대 추측하지 마세요
 - 한국어로 답하세요
 
 참고 식당 데이터:
 ${list}`;
+}
+
+const MAX_PICKS = 4;
+
+// 응답 형식: picks.id를 이번 후보 ID로만 고르게 enum으로 제한 → 목록 밖 식당은 형식상 나올 수 없다.
+// picks 0개 허용 + caveat 필드: 실험에서 형식만 강제하면 '틀린 전제'(유명인 추천 등)를 그대로 받아들이고
+// 엉뚱한 후보를 골랐다 — 맞는 곳이 없을 때 비워 둘 출구를 형식에 만들어 둔다.
+export function buildResponseSchema(ids) {
+  return {
+    type: 'OBJECT',
+    required: ['intro', 'picks', 'caveat'],
+    properties: {
+      intro: { type: 'STRING', description: '한두 문장 도입. 질문의 전제를 사실처럼 반복하지 말 것' },
+      picks: {
+        type: 'ARRAY',
+        maxItems: MAX_PICKS,
+        items: {
+          type: 'OBJECT',
+          required: ['id', 'reason'],
+          properties: {
+            id: { type: 'STRING', enum: ids },
+            reason: { type: 'STRING', description: '이 질문에 맞는 이유 한 문장 (메뉴·영업시간 등 데이터 근거)' },
+          },
+        },
+      },
+      caveat: { type: 'STRING', description: '데이터로 확인할 수 없거나 없는 요청(서울 밖 지역, 없는 메뉴, 확인 불가 전제). 없으면 빈 문자열' },
+    },
+  };
+}
+
+// 모델 출력(JSON) → 후보 식당으로 매핑. enum이 막아도 ID는 다시 검증(중복·미지 ID 제거)한다.
+export function parseStructured(text, relevant) {
+  let o;
+  try { o = JSON.parse(text); } catch { return null; }
+  if (!o || typeof o !== 'object') return null;
+  const byId = new Map(candidateIds(relevant).map((id, i) => [id, relevant[i]]));
+  const seen = new Set();
+  const picks = (Array.isArray(o.picks) ? o.picks : [])
+    .filter(p => byId.has(p?.id) && !seen.has(p.id) && seen.add(p.id))
+    .slice(0, MAX_PICKS)
+    .map(p => ({ r: byId.get(p.id), reason: String(p.reason ?? '').trim() }));
+  const intro = String(o.intro ?? '').trim(), caveat = String(o.caveat ?? '').trim();
+  // 추천이 0곳이면 intro 대신 caveat를 본문으로: 규칙으로 금지해도 Lite가 "대신 추천해 드립니다"라고
+  // 고르지 않은 추천을 약속했다(엣지 25문항 중 1차 8건 → 규칙 수정 후 2건). 지시로 안 되는 건 코드로 막는다.
+  if (picks.length === 0 && caveat) return { intro: caveat, caveat: '', picks };
+  return { intro, caveat, picks };
+}
+
+// 대화 이력·평가에 쓰는 평문 (화면은 구조화 필드로 그림)
+export function renderText({ intro, caveat, picks }) {
+  return [intro, caveat, ...picks.map((p, i) => `${i + 1}. ${p.r.상호명} (${p.r.지역}): ${p.reason}`)]
+    .filter(Boolean).join('\n');
 }
 
 // Gemini 3는 답을 여러 part로 쪼개 보낸다 — parts[0]만 읽으면 답이 잘리거나(9자) 비어서 '빈 응답'이 됐음.
@@ -237,6 +295,8 @@ export default async function handler(req, res) {
         // Gemini 3.x는 thinkingBudget(숫자) 폐기 → thinkingLevel(enum) 사용.
         // 완전 끄기 미지원이라 맛집 추천용으로 가장 가벼운 'low'.
         thinkingConfig: { thinkingLevel: 'low' },
+        responseMimeType: 'application/json',
+        responseSchema: buildResponseSchema(candidateIds(relevant)),
       },
     });
     let geminiRes, model;
@@ -264,8 +324,23 @@ export default async function handler(req, res) {
       return res.status(502).json({ error: '빈 응답' });
     }
 
-    // relevant(grounded set) 중 응답 텍스트에 상호명이 등장하는 것만 추출
-    // 전체 DB 파싱 금지 — grounded set으로 한정해 오탐↓
+    const structured = parseStructured(text, relevant);
+    if (structured) {
+      const picks = structured.picks.map(({ r, reason }) => ({
+        상호명: r.상호명, 주소: r.주소 || '', 지역: r.지역, 카테고리: r.카테고리,
+        평점: r.평점, open: r._isOpen, reason,
+      }));
+      return res.status(200).json({
+        text: renderText(structured),   // 대화 이력·평가용 평문
+        intro: structured.intro,
+        caveat: structured.caveat,
+        picks,
+        restaurants: picks.map(p => ({ 상호명: p.상호명, 주소: p.주소 })), // 이전 화면 호환
+        model,
+      });
+    }
+
+    // JSON이 깨진 드문 경우: 예전 방식 — 후보 중 본문에 이름이 나온 곳만 (전체 DB 파싱 금지, 오탐↓)
     const seenNames = new Set();
     const mentioned = relevant
       .filter(r => {

@@ -3929,6 +3929,30 @@ body, .header { transition: none; }
 .mylist-seg.active .mylist-seg-count { background: color-mix(in srgb, var(--bg-primary) 22%, transparent); color: var(--bg-primary); }
 .empty-browse-btn, .empty-reset-btn, .mylist-share { border-radius: 6px; }
 
+/* ── 챗 추천: 구조화 답을 메뉴판 줄로 (줄·리더·★는 메뉴판 칸과 같은 클래스 재사용) ── */
+.chat-caveat { margin: 0.45rem 0 0; font-size: 0.8rem; line-height: 1.45; color: var(--text-secondary); }
+.chat-picks { list-style: none; margin: 0.5rem 0 0; padding: 0; border-top: 2px solid var(--ink-rule); }
+.chat-pick {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.6rem 0.2rem;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border-color);
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+.chat-pick:hover:not(:disabled) { background: var(--bg-card-hover); }
+.chat-pick:focus-visible { outline: 2px solid var(--text-primary); outline-offset: -2px; }
+.chat-pick:disabled { cursor: default; }
+.chat-pick-meta { display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; color: var(--text-secondary); }
+.chat-pick-reason { font-size: 0.82rem; line-height: 1.45; color: var(--text-primary); }
+
 /* ── 지도 타일: 낮엔 채도 낮춘 OSM, 밤엔 반전해 포장마차 불빛 같은 따뜻한 어둠 ── */
 .leaflet-tile-pane { filter: saturate(0.65) contrast(0.97); }
 /* 레티나 Chrome에서 타일 가장자리 처리 때문에 타일 경계에 흰 줄이 비침(필터와 무관 — 2x 실측).

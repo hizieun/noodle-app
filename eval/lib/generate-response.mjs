@@ -22,7 +22,7 @@ export async function generate(message, { target = 'prod', history = [] } = {}) 
       const res = { status() { return this; }, json(o) { resolve(o); }, end() { resolve({}); } };
       handler(req, res);
     });
-    return { text: out.text || '', mentioned: out.restaurants || [], latency_ms: Date.now() - t0, error: out.error || null };
+    return { text: out.text || '', picks: out.picks || null, mentioned: out.restaurants || [], latency_ms: Date.now() - t0, error: out.error || null };
   }
   // prod — 일시적 오류(쓰로틀/콜드스타트) 재시도 2회 백오프
   let lastErr = null;
@@ -35,7 +35,7 @@ export async function generate(message, { target = 'prod', history = [] } = {}) 
       });
       const data = await r.json().catch(() => ({}));
       const err = data.error || (r.ok ? null : `HTTP ${r.status}`);
-      if (!err && data.text) return { text: data.text, mentioned: data.restaurants || [], latency_ms: Date.now() - t0, error: null };
+      if (!err && data.text) return { text: data.text, picks: data.picks || null, mentioned: data.restaurants || [], latency_ms: Date.now() - t0, error: null };
       lastErr = err || '빈 응답';
     } catch (e) { lastErr = e.message; }
   }

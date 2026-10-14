@@ -4,7 +4,7 @@
 //   - excluded:    제외/미확인 문장 안의 실존 이름
 //   - unclassified: 실존 이름이지만 헤더도 제외도 아닌 애매한 위치 (신뢰도 저하 신호 — 삼키지 않고 카운트)
 //   - hallucinated: 헤더 위치인데 DB에 매칭 안 되는 이름 (grounding 위반)
-import { namesByLength, lookupByName } from './lib/data.mjs';
+import { namesByLength, lookupByName, lookupByNameAddr } from './lib/data.mjs';
 
 // 도메인 일반어와 충돌하는 상호명(예: 실제로 "야장"이란 식당이 서대문구에 존재) — 카테고리 단어로
 // 매 응답에 등장하므로 상호명 매칭에서 제외. 오탐(카테고리 단어를 추천으로) 차단.
@@ -48,6 +48,18 @@ function inExclusionContext(text, idx) {
   }
   const sentence = text.slice(start, end === idx ? text.length : end);
   return EXCLUSION_CUES.some((c) => sentence.includes(c));
+}
+
+// 구조화 답(picks) → 같은 4버킷. 서버가 후보 ID로 매핑했으니 이름을 추측할 필요가 없다.
+// 그래도 DB 대조는 그대로 둔다 — 서버 매핑이 깨지면 여기서 hallucinated로 잡힌다(계측기는 서버를 믿지 않음).
+export function extractStructured(picks) {
+  const recommended = [], records = [], hallucinated = [];
+  for (const p of picks || []) {
+    const r = lookupByNameAddr(p.상호명, p.주소);
+    if (r) { recommended.push(p.상호명); records.push(r); } else hallucinated.push(p.상호명);
+  }
+  // records: 동명 상호를 주소로 구분한 실제 식당 — rule judge가 이름 조회 대신 이걸 씀
+  return { recommended, records, excluded: [], unclassified: [], hallucinated, structured: true };
 }
 
 export function extract(text) {

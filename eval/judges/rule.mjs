@@ -5,6 +5,8 @@ import { isOpenAtServer } from '../../frontend/api/chat.js';
 
 export function judgeRule(item, extraction) {
   const { recommended, excluded, unclassified, hallucinated } = extraction;
+  // 구조화 답이면 주소로 구분한 실제 식당, 아니면(마크다운) 이름 조회 — 동명 상호 오판 방지
+  const rec = (name, i) => extraction.records?.[i] ?? lookupByName(name);
   const v = {
     id: item.id,
     n_recommended: recommended.length,
@@ -17,8 +19,8 @@ export function judgeRule(item, extraction) {
   // 지역 정확도 — 층화 골든(expect.region 있음)에서만. 추천 식당이 요청 구에 속하는 비율.
   if (item.expect?.region && recommended.length > 0) {
     let hits = 0; const misses = [];
-    for (const name of recommended) {
-      const r = lookupByName(name);
+    for (const [i, name] of recommended.entries()) {
+      const r = rec(name, i);
       if (r && r.지역 === item.expect.region) hits++;
       else misses.push({ name, region: r?.지역 ?? null });
     }
@@ -31,8 +33,8 @@ export function judgeRule(item, extraction) {
   // 카테고리 일치 — 질문이 노포/야장 명시 시. 추천 식당의 카테고리가 요청과 같은 비율.
   if (item.expect?.category && recommended.length > 0) {
     let hits = 0; const misses = [];
-    for (const name of recommended) {
-      const r = lookupByName(name);
+    for (const [i, name] of recommended.entries()) {
+      const r = rec(name, i);
       if (r && r.카테고리 === item.expect.category) hits++;
       else misses.push({ name, category: r?.카테고리 ?? null });
     }
@@ -47,8 +49,8 @@ export function judgeRule(item, extraction) {
   if (item.expect?.openNow && recommended.length > 0) {
     const now = new Date();
     let open = 0, decided = 0; const closedNames = [];
-    for (const name of recommended) {
-      const r = lookupByName(name);
+    for (const [i, name] of recommended.entries()) {
+      const r = rec(name, i);
       const st = r ? isOpenAtServer(r.영업시간, now) : null;
       if (st === true) { open++; decided++; }
       else if (st === false) { decided++; closedNames.push(name); }

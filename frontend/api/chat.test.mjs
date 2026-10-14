@@ -1,7 +1,7 @@
 // chat.js 후보 선별 로직 회귀 테스트 (프레임워크 없이: `node api/chat.test.mjs`)
 // findRelevant는 data.json을 읽으므로 실데이터 기반으로 검증한다.
 import assert from 'node:assert';
-import handler, { matchRegion, findRelevant, extractText, MODELS } from './chat.js';
+import handler, { matchRegion, findRelevant, extractText, MODELS, buildResponseSchema, parseStructured, renderText } from './chat.js';
 
 let pass = 0, fail = 0;
 const t = (name, fn) => { try { fn(); pass++; console.log('  ✅', name); } catch (e) { fail++; console.log('  ❌', name, '—', e.message); } };
@@ -81,6 +81,42 @@ await ta('400 등 다른 오류는 대체 안 함(모델 바꿔도 같음)', asy
 await ta('모든 모델 429면 429 전달 → 화면이 한도 안내', async () => {
   const r = await callWith(MODELS.map(() => 429));
   assert.equal(r.called.length, MODELS.length); assert.equal(r.code, 429);
+});
+
+console.log('구조화 출력 — 후보 ID 제한');
+const cands = findRelevant('강남 국밥');
+t('스키마 picks.id는 이번 후보 ID enum, 0개 허용(minItems 없음)', () => {
+  const sc = buildResponseSchema(['c1', 'c2']);
+  assert.deepEqual(sc.properties.picks.items.properties.id.enum, ['c1', 'c2']);
+  assert.equal(sc.properties.picks.minItems, undefined);
+  assert.ok(sc.required.includes('caveat'));
+});
+t('미지 ID·중복 제거, 최대 4곳', () => {
+  const o = parseStructured(JSON.stringify({ intro: 'i', caveat: '', picks: [
+    { id: 'c1', reason: 'a' }, { id: 'c1', reason: 'dup' }, { id: 'c999', reason: 'x' },
+    { id: 'c2', reason: 'b' }, { id: 'c3', reason: 'c' }, { id: 'c4', reason: 'd' }, { id: 'c5', reason: 'e' }] }), cands);
+  assert.deepEqual(o.picks.map(p => p.r.상호명), cands.slice(0, 4).map(r => r.상호명));
+});
+t('깨진 JSON은 null (→ 예전 경로)', () => assert.equal(parseStructured('**1. 옛곰탕집**', cands), null));
+t('빈 picks면 intro 대신 caveat가 본문 (고르지 않은 추천 약속 차단)', () => {
+  const o = parseStructured(JSON.stringify({ intro: '서울 맛집을 대신 추천해 드립니다', caveat: '인천은 데이터에 없어요', picks: [] }), cands);
+  assert.equal(o.picks.length, 0); assert.equal(o.intro, '인천은 데이터에 없어요'); assert.equal(renderText(o), '인천은 데이터에 없어요');
+});
+t('picks가 있으면 intro·caveat 그대로', () => {
+  const o = parseStructured(JSON.stringify({ intro: '대안으로 골랐어요', caveat: '판교는 데이터에 없어요', picks: [{ id: 'c1', reason: 'a' }] }), cands);
+  assert.equal(o.intro, '대안으로 골랐어요'); assert.equal(o.caveat, '판교는 데이터에 없어요');
+});
+await ta('핸들러: 후보 ID → 실존 식당으로 매핑해 picks 반환', async () => {
+  process.env.GEMINI_API_KEY = 'test';
+  globalThis.fetch = async () => new Response(JSON.stringify({ candidates: [{ content: { parts: [{ text:
+    JSON.stringify({ intro: '추천해요', caveat: '', picks: [{ id: 'c1', reason: '국물' }, { id: 'c77', reason: '없는 후보' }] }) }] } }] }), { status: 200 });
+  const out = await new Promise((resolve) => handler({ method: 'POST', body: { message: '강남 국밥', history: [] } },
+    { status() { return this; }, json: resolve }));
+  globalThis.fetch = realFetch;
+  assert.equal(out.picks.length, 1);
+  assert.equal(out.picks[0].상호명, cands[0].상호명);
+  assert.deepEqual(out.restaurants, [{ 상호명: cands[0].상호명, 주소: cands[0].주소 || '' }]);
+  assert.ok(out.text.startsWith('추천해요'));
 });
 
 console.log(`\n${pass} 통과 / ${fail} 실패`);
