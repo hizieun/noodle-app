@@ -117,6 +117,11 @@ node eval/run.mjs --set all --target local --rpm 10                         # �
 - 생성·채점을 `GEMINI_MODELS=gemini-3.5-flash-lite`, `EVAL_JUDGE_MODEL=gemini-3.5-flash-lite`로 돌리면 smoke 30 + edge 25 + 채점 25를 하루 안에 여러 번 반복 가능. CI 생성 모델도 Lite로 고정, `baseline.json`은 Lite 전체 실행(30/30) 기준.
 - 결과 행에 `picks` 보존 → 나중에 채점 로직만 바꿔 재채점 가능.
 
+### ✅ variance 실행 (2026-10-14, Lite)
+- `variance.mjs --from a,b,c`: 같은 코드로 이미 돌린 결과 파일을 재사용해 계산(무료 한도 절약). LLM 점수·응답 시간 편차도 `informational`로 함께 기록(게이트엔 미사용).
+- 규칙 지표는 3회 모두 같아 σ=0 → 2σ=0을 그대로 쓰면 식당 하나에도 CI가 떨어짐. **측정 해상도(1/채점 문항 수)를 임계값 바닥**으로 둠. 환각(grounding)만 무관용 0.
+- 결과·해석: `docs/14` §14.5. 게이트 임계값: `eval/variance.json` (smoke 3회).
+
 ### 상태 요약
-- ✅ Day 1–5 코드 전량 완성 + 오프라인 검증(추출기 6/6·negative control 4/4) + 부분 실측(grounding 0·지역/카테고리/영업중 1.0).
-- ⏳ 전량·variance·LLM-Judge **실행**만 Gemini 쿼터 대기(무료 RPD 소진). billing 키/리셋 후 위 3줄로 완결.
+- ✅ Day 1–5 코드 + 오프라인 검증(추출기 8/8·negative control 4/4) + Lite로 smoke·edge 전후 실측 + variance(k=3) 완료.
+- ⏳ 남은 것: 골든 전량(149) 스냅샷, 마크다운 이전 버전 k=3(전후 비교 대칭화), 채점 기준에 프롬프트 누출 감점.

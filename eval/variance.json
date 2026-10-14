@@ -1,0 +1,80 @@
+{
+  "k": 3,
+  "n": 30,
+  "set": "smoke",
+  "target": "local",
+  "sources": [
+    "json-lite-final2-smoke-2026-10-14T07-38-01-836Z.json",
+    "json-lite-var-smoke-2026-10-14T07-52-48-710Z.json",
+    "json-lite-var-smoke-2026-10-14T07-59-48-548Z.json"
+  ],
+  "metrics": {
+    "grounding_violation_rate": {
+      "values": [
+        0,
+        0,
+        0
+      ],
+      "mean": 0,
+      "stddev": 0,
+      "suggested_threshold": 0,
+      "floor_applied": false
+    },
+    "region_accuracy_mean": {
+      "values": [
+        1,
+        1,
+        1
+      ],
+      "mean": 1,
+      "stddev": 0,
+      "suggested_threshold": 0.0417,
+      "floor_applied": true
+    },
+    "category_accuracy_mean": {
+      "values": [
+        1,
+        1,
+        1
+      ],
+      "mean": 1,
+      "stddev": 0,
+      "suggested_threshold": 0.125,
+      "floor_applied": true
+    },
+    "opennow_accuracy_mean": {
+      "values": [
+        1,
+        1,
+        1
+      ],
+      "mean": 1,
+      "stddev": 0,
+      "suggested_threshold": 0.5,
+      "floor_applied": true
+    },
+    "unclassified_rate": {
+      "values": [
+        0,
+        0,
+        0
+      ],
+      "mean": 0,
+      "stddev": 0,
+      "suggested_threshold": 0.0333,
+      "floor_applied": true
+    }
+  },
+  "informational": {
+    "latency_p50_ms": {
+      "values": [
+        4831,
+        1721,
+        1570
+      ],
+      "mean": 2707.3333,
+      "stddev": 1502.9239,
+      "two_sigma": 3005.8478
+    }
+  }
+}
