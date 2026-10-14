@@ -3931,6 +3931,9 @@ body, .header { transition: none; }
 
 /* ── 지도 타일: 낮엔 채도 낮춘 OSM, 밤엔 반전해 포장마차 불빛 같은 따뜻한 어둠 ── */
 .leaflet-tile-pane { filter: saturate(0.65) contrast(0.97); }
+/* 레티나 Chrome에서 타일 가장자리 처리 때문에 타일 경계에 흰 줄이 비침(필터와 무관 — 2x 실측).
+   투명 외곽선 1px로 막는다: 경계 밝기 튐 27 → 0.9 */
+.leaflet-tile { outline: 1px solid transparent; }
 .yajang-theme .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) saturate(0.5) brightness(0.85) contrast(0.92) sepia(0.2); }
 .chat-example-chip { border-radius: 6px; }
 
