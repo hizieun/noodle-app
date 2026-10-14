@@ -1,0 +1,77 @@
+<!doctype html>
+<!--
+  공유 미리보기(OG) 카드 원본 — 1200×630. 앱 화면 캡처 대신 썸네일 크기에서 읽히게 따로 짠 것.
+  카톡에선 폭 ~250px로 작게 보이므로 큰 간판 '노포지도'가 주인공, 메뉴판 줄은 분위기.
+
+  다시 뽑기 (frontend/ 에서):
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless=new --hide-scrollbars \
+    --window-size=1200,630 --virtual-time-budget=8000 \
+    --screenshot="$PWD/public/og-v3.png" "file://$PWD/scripts/og-card.html"
+  이미지를 바꾸면 파일 이름도 올려야(og-v4…) 카톡·SNS 이미지 캐시가 갱신된다.
+-->
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../node_modules/pretendard/dist/web/variable/pretendardvariable.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=block">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    background: #F4F5F1;
+    color: #1F2328;
+    font-family: 'Pretendard Variable', sans-serif;
+    font-synthesis: none;
+    display: grid;
+    grid-template-columns: 560px 1fr;
+    gap: 64px;
+    align-items: center;
+    padding: 0 72px;
+  }
+  .sign {
+    background: #D42A1F;
+    color: #fff;
+    border-radius: 4px;
+    padding: 46px 40px 52px;
+    box-shadow: inset 0 0 0 10px #D42A1F, inset 0 0 0 14px rgba(255, 255, 255, 0.6);
+  }
+  .sign h1 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-weight: 400;
+    font-size: 132px;
+    line-height: 1;
+    letter-spacing: 0.01em;
+  }
+  .tagline { margin-top: 28px; font-size: 34px; font-weight: 700; line-height: 1.3; }
+  .tagline span { display: block; color: #5E635C; font-weight: 500; font-size: 28px; }
+
+  .board h2 {
+    font-family: 'Black Han Sans', sans-serif;
+    font-weight: 400;
+    font-size: 40px;
+    padding-bottom: 12px;
+    border-bottom: 5px solid #1F2328;
+  }
+  .row { padding: 18px 2px; border-bottom: 2px solid #D3D6CE; }
+  .line { display: flex; align-items: baseline; gap: 14px; }
+  .name { font-size: 30px; font-weight: 700; white-space: nowrap; }
+  .dots { flex: 1; border-bottom: 3px dotted #C3C7BE; transform: translateY(-8px); }
+  .rating { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .rating b { color: #D42A1F; font-size: 0.8em; margin-right: 4px; }
+  .meta { margin-top: 4px; font-size: 20px; color: #5E635C; }
+</style>
+</head>
+<body>
+  <div>
+    <div class="sign"><h1>노포지도</h1></div>
+    <p class="tagline">서울의 숨은 맛 <span>낮엔 노포, 밤엔 야장</span></p>
+  </div>
+  <div class="board">
+    <h2>평점 높은 노포</h2>
+    <div class="row"><div class="line"><span class="name">혜원곱창</span><span class="dots"></span><span class="rating"><b>★</b>4.9</span></div><div class="meta">금천구 순대볶음</div></div>
+    <div class="row"><div class="line"><span class="name">개성김치손만두</span><span class="dots"></span><span class="rating"><b>★</b>4.8</span></div><div class="meta">강동구 찐만두</div></div>
+    <div class="row"><div class="line"><span class="name">메밀마을</span><span class="dots"></span><span class="rating"><b>★</b>4.8</span></div><div class="meta">은평구 보리밥</div></div>
+    <div class="row"><div class="line"><span class="name">맑곰 본점</span><span class="dots"></span><span class="rating"><b>★</b>4.8</span></div><div class="meta">동작구 돼지곰탕</div></div>
+  </div>
+</body>
+</html>
