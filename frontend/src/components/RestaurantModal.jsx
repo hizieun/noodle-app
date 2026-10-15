@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { formatRestaurantName } from '../utils/format.js';
-import { isOpenNow, isClosedToday, getBusinessHours, isCashOnly, formatHoursForDisplay } from '../businessHours.js';
+import { isOpenNow, isClosedToday, getBusinessHours, isCashOnly, formatHoursForDisplay, seoulDayKey } from '../businessHours.js';
 import ReviewSection from './ReviewSection.jsx';
 import { XIcon, LinkIcon, CheckIcon } from './icons.jsx';
 
@@ -68,7 +68,7 @@ const RestaurantModal = ({ restaurant, onClose, isVisited, onToggleVisited, myVi
   const openStatus = isOpenNow(restaurant);
   const closedToday = isClosedToday(restaurant);
   const hoursRows = hours ? formatHoursForDisplay(hours) : [];
-  const todayKey = ['sun','mon','tue','wed','thu','fri','sat'][new Date().getDay()];
+  const todayKey = seoulDayKey(); // 영업시간 표의 '오늘'은 서울 기준 (판정과 같은 기준)
   const closedDays = restaurant.휴무일 || restaurant.closed_days;
   const payment = restaurant.결제수단 || restaurant.payment;
   const cashOnly = isCashOnly(restaurant);

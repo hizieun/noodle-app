@@ -1,6 +1,7 @@
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { isOpenAt, formatRanges } from '../src/businessHours.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // 무료 등급 한도는 프로젝트×모델 단위로 따로 잡힌다 (2026-09 실측: Flash 하루 20회, Flash-Lite 하루 500회).
@@ -23,42 +24,10 @@ try {
   console.error('data.json 로드 실패:', e.message);
 }
 
-const DAY_KEYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
-
-function parseHm(s) {
-  const [h, m] = s.split(':').map(Number);
-  return h * 60 + m;
-}
-
+// 영업 판정은 화면과 같은 함수 하나로(서울 시각·브레이크타임 처리). 예전엔 여기 복사본이 서버 시간대(UTC)로 판정했음.
+// true/false/null 반환은 평가 채점기(eval/judges/rule.mjs) 호환용.
 export function isOpenAtServer(hours, now) {
-  if (!hours || typeof hours !== 'object') return null;
-  const minutes = now.getHours() * 60 + now.getMinutes();
-  const todayKey = DAY_KEYS[now.getDay()];
-  const yesterdayKey = DAY_KEYS[(now.getDay() + 6) % 7];
-
-  const matches = (range, cursor) => {
-    const [s, e] = range.split('-').map(parseHm);
-    const end = e === 0 ? 1440 : e;
-    if (end > s) return cursor === 'today' && minutes >= s && minutes < end;
-    if (cursor === 'today') return minutes >= s;
-    if (cursor === 'yesterday') return minutes < end;
-    return false;
-  };
-
-  const checkRanges = (val, cursor) => {
-    if (val === 'closed') return false;
-    if (val === '24h') return true;
-    if (typeof val === 'string') return matches(val, cursor);
-    if (Array.isArray(val)) return val.some(r => matches(r, cursor));
-    return null;
-  };
-
-  const today = checkRanges(hours[todayKey], 'today');
-  if (today === true) return true;
-  const yesterday = checkRanges(hours[yesterdayKey], 'yesterday');
-  if (yesterday === true) return true;
-  if (today === false || yesterday === false) return false;
-  return null;
+  return { open: true, closed: false, unknown: null }[isOpenAt(hours, now)];
 }
 
 // 흔히 쓰는 동네명 → 자치구 (사용자는 "강남구"보다 "강남"·"홍대"로 검색)
@@ -159,7 +128,7 @@ function formatHours(hours) {
     .map(k => {
       const v = hours[k];
       if (v == null) return null;
-      const txt = v === 'closed' ? '휴무' : v === '24h' ? '24시간' : Array.isArray(v) ? v.join('/') : v;
+      const txt = v === 'closed' ? '휴무' : v === '24h' ? '24시간' : formatRanges(v);
       return `${dayKo[k]} ${txt}`;
     })
     .filter(Boolean)
