@@ -223,9 +223,15 @@ export function parseStructured(text, relevant) {
   return { intro, caveat, picks };
 }
 
+// 화면 카드 한 장에 보이는 정보(이름·이유, 그 아래 지역·평점·영업중) — 평문과 카드가 같은 걸 보이게 한 곳에서 정한다.
+// 채점 모델과 대화 이력은 평문만 본다: 예전 평문은 이름·지역·이유뿐이라 카드보다 적게 보였고, 유용성 하락의 원인 후보였다.
+export function cardMeta(r) {
+  return [r.지역, r.평점 && r.평점 !== '정보 없음' ? `★${r.평점}` : null, r._isOpen === true ? '영업중' : null].filter(Boolean);
+}
+
 // 대화 이력·평가에 쓰는 평문 (화면은 구조화 필드로 그림)
 export function renderText({ intro, caveat, picks }) {
-  return [intro, caveat, ...picks.map((p, i) => `${i + 1}. ${p.r.상호명} (${p.r.지역}): ${p.reason}`)]
+  return [intro, caveat, ...picks.map((p, i) => `${i + 1}. ${p.r.상호명}: ${p.reason}\n   ${cardMeta(p.r).join(', ')}`)]
     .filter(Boolean).join('\n');
 }
 

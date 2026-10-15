@@ -1,7 +1,7 @@
 // chat.js 후보 선별 로직 회귀 테스트 (프레임워크 없이: `node api/chat.test.mjs`)
 // findRelevant는 data.json을 읽으므로 실데이터 기반으로 검증한다.
 import assert from 'node:assert';
-import handler, { matchRegion, findRelevant, extractText, MODELS, buildResponseSchema, parseStructured, renderText } from './chat.js';
+import handler, { matchRegion, findRelevant, extractText, MODELS, buildResponseSchema, parseStructured, renderText, cardMeta } from './chat.js';
 
 let pass = 0, fail = 0;
 const t = (name, fn) => { try { fn(); pass++; console.log('  ✅', name); } catch (e) { fail++; console.log('  ❌', name, '—', e.message); } };
@@ -101,6 +101,13 @@ t('깨진 JSON은 null (→ 예전 경로)', () => assert.equal(parseStructured(
 t('빈 picks면 intro 대신 caveat가 본문 (고르지 않은 추천 약속 차단)', () => {
   const o = parseStructured(JSON.stringify({ intro: '서울 맛집을 대신 추천해 드립니다', caveat: '인천은 데이터에 없어요', picks: [] }), cands);
   assert.equal(o.picks.length, 0); assert.equal(o.intro, '인천은 데이터에 없어요'); assert.equal(renderText(o), '인천은 데이터에 없어요');
+});
+t('평문에 카드와 같은 정보(지역·평점·영업중)', () => {
+  const r = { 상호명: '대성집', 지역: '종로구', 평점: '4.2', _isOpen: true };
+  assert.deepEqual(cardMeta(r), ['종로구', '★4.2', '영업중']);
+  assert.deepEqual(cardMeta({ ...r, 평점: '정보 없음', _isOpen: false }), ['종로구']); // 카드도 이 경우 지역만
+  const txt = renderText({ intro: 'i', caveat: '', picks: [{ r, reason: '도가니탕' }] });
+  assert.equal(txt, 'i\n1. 대성집: 도가니탕\n   종로구, ★4.2, 영업중');
 });
 t('picks가 있으면 intro·caveat 그대로', () => {
   const o = parseStructured(JSON.stringify({ intro: '대안으로 골랐어요', caveat: '판교는 데이터에 없어요', picks: [{ id: 'c1', reason: 'a' }] }), cands);
