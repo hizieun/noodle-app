@@ -131,6 +131,7 @@ export default function ChatPanel({ isOpen, onClose, onOpenRestaurant, restauran
                                   <span className="chat-pick-meta">
                                     <span>{p.지역}</span>
                                     {p.open === true && <span className="open-badge open">영업중</span>}
+                                    {p.hours && <span>{p.hours}</span>}
                                   </span>
                                   <span className="chat-pick-reason">{p.reason}</span>
                                 </button>

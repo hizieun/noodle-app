@@ -104,10 +104,14 @@ t('빈 picks면 intro 대신 caveat가 본문 (고르지 않은 추천 약속 �
 });
 t('평문에 카드와 같은 정보(지역·평점·영업중)', () => {
   const r = { 상호명: '대성집', 지역: '종로구', 평점: '4.2', _isOpen: true };
-  assert.deepEqual(cardMeta(r), ['종로구', '★4.2', '영업중']);
+  assert.deepEqual(cardMeta(r), ['종로구', '★4.2', '영업중']); // 영업시간 데이터 없으면 시간 줄 없음
   assert.deepEqual(cardMeta({ ...r, 평점: '정보 없음', _isOpen: false }), ['종로구']); // 카드도 이 경우 지역만
   const txt = renderText({ intro: 'i', caveat: '', picks: [{ r, reason: '도가니탕' }] });
   assert.equal(txt, 'i\n1. 대성집: 도가니탕\n   종로구, ★4.2, 영업중');
+});
+t('오늘(서울) 영업시간도 카드·평문에 — 브레이크는 브레이크로', () => {
+  const r = { 지역: '종로구', 평점: '4.2', _isOpen: true, 영업시간: Object.fromEntries(['sun','mon','tue','wed','thu','fri','sat'].map(d => [d, ['10:30-20:00', '14:30-17:00']])) };
+  assert.equal(cardMeta(r).at(-1), '오늘 10:30-20:00 (브레이크 14:30-17:00)');
 });
 t('picks가 있으면 intro·caveat 그대로', () => {
   const o = parseStructured(JSON.stringify({ intro: '대안으로 골랐어요', caveat: '판교는 데이터에 없어요', picks: [{ id: 'c1', reason: 'a' }] }), cands);

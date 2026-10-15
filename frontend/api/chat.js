@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { isOpenAt, formatRanges } from '../src/businessHours.js';
+import { isOpenAt, formatRanges, todayHoursText } from '../src/businessHours.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // 무료 등급 한도는 프로젝트×모델 단위로 따로 잡힌다 (2026-09 실측: Flash 하루 20회, Flash-Lite 하루 500회).
@@ -223,10 +223,10 @@ export function parseStructured(text, relevant) {
   return { intro, caveat, picks };
 }
 
-// 화면 카드 한 장에 보이는 정보(이름·이유, 그 아래 지역·평점·영업중) — 평문과 카드가 같은 걸 보이게 한 곳에서 정한다.
+// 화면 카드 한 장에 보이는 정보(이름·이유, 그 아래 지역·평점·영업중·오늘 영업시간) — 평문과 카드가 같은 걸 보이게 한 곳에서 정한다.
 // 채점 모델과 대화 이력은 평문만 본다: 예전 평문은 이름·지역·이유뿐이라 카드보다 적게 보였고, 유용성 하락의 원인 후보였다.
 export function cardMeta(r) {
-  return [r.지역, r.평점 && r.평점 !== '정보 없음' ? `★${r.평점}` : null, r._isOpen === true ? '영업중' : null].filter(Boolean);
+  return [r.지역, r.평점 && r.평점 !== '정보 없음' ? `★${r.평점}` : null, r._isOpen === true ? '영업중' : null, todayHoursText(r.영업시간)].filter(Boolean);
 }
 
 // 대화 이력·평가에 쓰는 평문 (화면은 구조화 필드로 그림)
@@ -303,7 +303,7 @@ export default async function handler(req, res) {
     if (structured) {
       const picks = structured.picks.map(({ r, reason }) => ({
         상호명: r.상호명, 주소: r.주소 || '', 지역: r.지역, 카테고리: r.카테고리,
-        평점: r.평점, open: r._isOpen, reason,
+        평점: r.평점, open: r._isOpen, hours: todayHoursText(r.영업시간), reason,
       }));
       return res.status(200).json({
         text: renderText(structured),   // 대화 이력·평가용 평문
